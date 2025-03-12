@@ -4,13 +4,13 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const notFound = require('./middlewares/not-found');
 const usersRouter = require('./routes/users');
+const errorHandler = require('./middlewares/error-handler');
 
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(notFound);
 
 app.use(cors());
 app.use(helmet());
@@ -27,5 +27,8 @@ app.get("/", (req, res) => {
 app.get('/health', (req, res) => {
   res.status(200).json({ message: 'OK' });
 });
+
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;
