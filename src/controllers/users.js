@@ -3,7 +3,7 @@ const User = require('../models/users');
 const getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
-    res.status(200).json({ message: 'Get All Users', users });
+    res.status(200).json({ users });
   } catch (error) {
     console.error('Error getting all users:', error);
     res.status(500).json({ message: 'Failed to get all users', error: error.message });
@@ -17,7 +17,7 @@ const getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.status(200).json({ message: 'Get User By Id', user });
+    res.status(200).json({ user });
   } catch (error) {
     console.error('Error getting user by id:', error);
     res.status(500).json({ message: 'Failed to get user by id', error: error.message });
@@ -33,7 +33,7 @@ const createUser = async (req, res) => {
     await user.save();
 
     // Send a success response
-    res.status(201).json({ message: 'User created successfully', user });
+    res.status(201).json({ user });
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ message: 'Failed to create user', error: error.message });
@@ -61,7 +61,7 @@ const updateUser = async (req, res) => {
     const { username, email, password, firstName, lastName } = req.body;
     const user = await User.findByIdAndUpdate(id, { username, email, password, firstName, lastName }, 
         { new: true , runValidators: true });
-    res.status(200).json({ message: 'Update User', user });
+    res.status(200).json({ user });
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ message: 'Failed to update user', error: error.message });
