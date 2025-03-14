@@ -3,8 +3,28 @@ const asyncWrapper = require('../middlewares/async-wrapper');
 const { createCustomError } = require('../errors/custom-error');
 
 const getAllUsers = asyncWrapper(async (req, res) => {
-    const users = await User.find();
-    res.status(200).json({ users });
+    const { currency , name, sort} = req.query;
+
+    const queryObject = {};
+    if (currency) {
+      queryObject.currency = currency;
+    }
+    if (name) {
+      queryObject.$or = [
+        { username: { $regex: name, $options: 'i' } },
+        { email: { $regex: name, $options: 'i' } },
+        { firstName: { $regex: name, $options: 'i' } },
+        { lastName: { $regex: name, $options: 'i' } }
+      ];
+    }
+    let result = User.find(queryObject);
+    
+    if (sort) {
+      const sortFields = sort.split(',').join(' ');
+      result = result.sort(sortFields);
+    }
+    const users = await result;
+    res.status(200).json({ users, nbHits: users.length });
 });
 
 
@@ -19,10 +39,7 @@ const getUserById = asyncWrapper(async (req, res, next) => {
 });
 
 const createUser = asyncWrapper(async (req, res) => {
-    const { username, email, password, firstName, lastName } = req.body;
-
-    // Create a new user
-    const user = new User({ username, email, password, firstName, lastName });
+    const user = new User({...req.body});
     await user.save();
 
     // Send a success response

@@ -1,6 +1,9 @@
 const app = require('./src/app');
 const connectDB = require('./src/config/config');
 require('dotenv').config();
+// require('express-async-errors');
+// can be used to avoid using try catch in controllers
+
 
 const envFile = process.env.NODE_ENV === 'development' ? '.env.development' : '.env';
 require('dotenv').config({ path: envFile });
