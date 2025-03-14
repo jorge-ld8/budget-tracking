@@ -3,7 +3,7 @@ const asyncWrapper = require('../middlewares/async-wrapper');
 const { createCustomError } = require('../errors/custom-error');
 
 const getAllUsers = asyncWrapper(async (req, res) => {
-    const { currency , name, sort} = req.query;
+    const { currency , name, sort, fields} = req.query;
 
     const queryObject = {};
     if (currency) {
@@ -18,10 +18,14 @@ const getAllUsers = asyncWrapper(async (req, res) => {
       ];
     }
     let result = User.find(queryObject);
-    
+
     if (sort) {
       const sortFields = sort.split(',').join(' ');
       result = result.sort(sortFields);
+    }
+    if (fields) {
+      const fieldsList = fields.split(',').join(' ');
+      result = result.select(fieldsList);
     }
     const users = await result;
     res.status(200).json({ users, nbHits: users.length });
