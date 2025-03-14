@@ -3,7 +3,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const notFound = require('./middlewares/not-found');
-const usersRouter = require('./routes/users');
+const UsersRouter = require('./routes/users');
+const UsersController = require('./controllers/users');
 const errorHandler = require('./middlewares/error-handler');
 
 const app = express();
@@ -17,7 +18,7 @@ app.use(helmet());
 app.use(morgan('dev'));
 
 // Routes
-app.use('/users', usersRouter);
+app.use('/users', new UsersRouter(new UsersController()).getRouter());
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome to the budget tracking express api"});
