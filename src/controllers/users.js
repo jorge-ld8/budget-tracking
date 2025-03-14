@@ -1,8 +1,13 @@
 const User = require('../models/users');
-const asyncWrapper = require('../middlewares/async-wrapper');
 const { createCustomError } = require('../errors/custom-error');
+const BaseController = require('../interfaces/BaseController');
 
-const getAllUsers = asyncWrapper(async (req, res) => {
+class UsersController extends BaseController {
+  constructor() {
+    super();
+  }
+
+  async getAll(req, res) {
     const { currency, name, sort, fields, page, limit, numericFilters } = req.query;
 
     const queryObject = {};
@@ -18,7 +23,7 @@ const getAllUsers = asyncWrapper(async (req, res) => {
       ];
     }
     if (numericFilters) {
-        console.log(numericFilters);
+      console.log(numericFilters);
       const operatorMap = {
         '>': '$gt',
         '>=': '$gte',
@@ -63,54 +68,47 @@ const getAllUsers = asyncWrapper(async (req, res) => {
       limit: limitNumber,
       totalPages: Math.ceil(await User.countDocuments(queryObject) / limitNumber)
     });
-});
+  }
 
-
-const getUserById = asyncWrapper(async (req, res, next) => {
+  async getById(req, res, next) {
     const { id } = req.params;
     const user = await User.findById(id);
     if (!user) {
-        const error = createCustomError('User not found', 404);
-        return next(error);
+      const error = createCustomError('User not found', 404);
+      return next(error);
     }
     res.status(200).json({ user });
-});
+  }
 
-const createUser = asyncWrapper(async (req, res) => {
+  async create(req, res) {
     const user = new User({...req.body});
     await user.save();
 
     // Send a success response
     res.status(201).json({ user });
-});
+  }
 
-
-const deleteUser = asyncWrapper(async (req, res, next) => {
+  async delete(req, res, next) {
     const { id } = req.params;
     const user = await User.findByIdAndDelete(id);
     if (!user) {
-        const error = createCustomError('User not found', 404);
-        return next(error);
+      const error = createCustomError('User not found', 404);
+      return next(error);
     }
     res.status(200).json({ message: 'User deleted successfully' });
-});
+  }
 
-const updateUser = asyncWrapper(async (req, res) => {
+  async update(req, res, next) {
     const { id } = req.params;
     const { username, email, password, firstName, lastName } = req.body;
     const user = await User.findByIdAndUpdate(id, { username, email, password, firstName, lastName }, 
-        { new: true , runValidators: true });
+      { new: true , runValidators: true });
     if (!user) {
-        const error = createCustomError('User not found', 404);
-        return next(error);
+      const error = createCustomError('User not found', 404);
+      return next(error);
     }
     res.status(200).json({ user });
-});
+  }
+}
 
-module.exports = {
-    getAllUsers,
-    getUserById,
-    createUser,
-    updateUser,
-  deleteUser,
-};
+module.exports = UsersController;

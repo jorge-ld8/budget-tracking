@@ -1,11 +1,13 @@
-const express = require('express');
-const router = express.Router();
-const { getAllUsers, getUserById, createUser, updateUser, deleteUser } = require('../controllers/users');
+const BaseRouter = require('../interfaces/BaseRouter');
 
-router.get('/', getAllUsers);
-router.get('/:id', getUserById);
-router.post('/', createUser);
-router.patch('/:id', updateUser);
-router.delete('/:id', deleteUser);  
+class UsersRouter extends BaseRouter {
+    async initializeRoutes() {
+        this.router.get('/', this.controller.getAll);
+        this.router.get('/:id', this.controller.getById);
+        this.router.post('/', this.controller.create);
+        this.router.patch('/:id', this.controller.update);
+        this.router.delete('/:id', this.controller.delete);
+    }
+}
 
-module.exports = router;
+module.exports = UsersRouter;
