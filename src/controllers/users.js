@@ -3,7 +3,7 @@ const asyncWrapper = require('../middlewares/async-wrapper');
 const { createCustomError } = require('../errors/custom-error');
 
 const getAllUsers = asyncWrapper(async (req, res) => {
-    const { currency , name, sort, fields} = req.query;
+    const { currency, name, sort, fields, page, limit, numericFilters } = req.query;
 
     const queryObject = {};
     if (currency) {
@@ -17,6 +17,26 @@ const getAllUsers = asyncWrapper(async (req, res) => {
         { lastName: { $regex: name, $options: 'i' } }
       ];
     }
+    if (numericFilters) {
+        console.log(numericFilters);
+      const operatorMap = {
+        '>': '$gt',
+        '>=': '$gte',
+        '<': '$lt',
+        '<=': '$lte',
+        '=': '$eq',
+        '!=': '$ne'
+      };
+      const regex = /\b(<|>|>=|<=|=|!=)\b/g;
+      let filters = numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);    
+      const options = ['balance', 'age'];
+      filters = filters.split(',').forEach((item) => {
+        const [field, operator, value] = item.split('-');
+        if (options.includes(field)) {
+          queryObject[field] = { [operator]: Number(value) };
+        }
+      });
+    }
     let result = User.find(queryObject);
 
     if (sort) {
@@ -27,8 +47,22 @@ const getAllUsers = asyncWrapper(async (req, res) => {
       const fieldsList = fields.split(',').join(' ');
       result = result.select(fieldsList);
     }
+    
+    // Pagination
+    const pageNumber = Number(page) || 1;
+    const limitNumber = Number(limit) || 10;
+    const skip = (pageNumber - 1) * limitNumber;
+    
+    result = result.skip(skip).limit(limitNumber);
+    
     const users = await result;
-    res.status(200).json({ users, nbHits: users.length });
+    res.status(200).json({ 
+      users, 
+      nbHits: users.length,
+      page: pageNumber,
+      limit: limitNumber,
+      totalPages: Math.ceil(await User.countDocuments(queryObject) / limitNumber)
+    });
 });
 
 
