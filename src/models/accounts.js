@@ -1,13 +1,17 @@
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
 
-const accountSchema = new Schema({
+const accountSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   balance: { type: Number, required: true, default: 0 },
-  type: { type: String, required: true, enum: ['cash', 'bank', 'credit', 'investment', 'other'] },
+  type: { 
+    type: String, 
+    required: true, 
+    enum: ['cash', 'bank', 'credit', 'investment', 'other'],
+    default: 'bank'
+  },
   description: { type: String, trim: true },
   isActive: { type: Boolean, default: true },
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });
