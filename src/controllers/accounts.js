@@ -39,15 +39,16 @@ class AccountController extends BaseController {
         }
       });
     }
-    let result = Account.find(queryObject);
+    
+    let query = Account.find(queryObject);
 
     if (sort) {
       const sortFields = sort.split(',').join(' ');
-      result = result.sort(sortFields);
+      query = query.sort(sortFields);
     }
     if (fields) {
       const fieldsList = fields.split(',').join(' ');
-      result = result.select(fieldsList);
+      query = query.select(fieldsList);
     }
     
     // Pagination
@@ -55,15 +56,20 @@ class AccountController extends BaseController {
     const limitNumber = Number(limit) || 10;
     const skip = (pageNumber - 1) * limitNumber;
     
-    result = result.skip(skip).limit(limitNumber);
+    query = query.skip(skip).limit(limitNumber);
     
-    const accounts = await result;
+    const accounts = await query;
+    
+    // For total count, respect the includeDeleted parameter
+    let countQuery = queryObject;
+      // Normal count (middleware handles filtering)
+    const totalDocuments = await Account.countDocuments(countQuery);
     res.status(200).json({ 
       accounts, 
       nbHits: accounts.length,
       page: pageNumber,
       limit: limitNumber,
-      totalPages: Math.ceil(await Account.countDocuments(queryObject) / limitNumber)
+      totalPages: Math.ceil(totalDocuments / limitNumber)
     });
   }
 
@@ -85,11 +91,27 @@ class AccountController extends BaseController {
 
   async delete(req, res, next) {
     const { id } = req.params;
-    const account = await Account.findByIdAndDelete(id);
+    const { permanent } = req.query;
+    
+    // Handle permanent delete if explicitly requested
+    if (permanent === 'true') {
+      const account = await Account.findById(id);
+      if (!account) {
+        const error = createCustomError('Account not found', 404);
+        return next(error);
+      }
+      await account.softDelete();
+      return res.status(200).json({ message: 'Account permanently deleted' });
+    }
+    
+    // Otherwise do soft delete
+    const account = await Account.findById(id);
     if (!account) {
       const error = createCustomError('Account not found', 404);
       return next(error);
     }
+    
+    await account.softDelete();
     res.status(200).json({ message: 'Account deleted successfully' });
   }
 
@@ -154,6 +176,33 @@ class AccountController extends BaseController {
     const { userId } = req.params;
     const accounts = await Account.find({ user: userId });
     res.status(200).json({ accounts });
+  }
+
+  async restore(req, res, next) {
+    // Set includeDeleted flag to allow finding deleted items
+    const query = Account.findById(req.params.id);
+    query.includeDeleted = true;
+    
+    const account = await query;
+    if (!account) {
+      const error = createCustomError('Account not found', 404);
+      return next(error);
+    }
+    
+    if (!account.isDeleted) {
+      return res.status(400).json({ message: 'Account is not deleted' });
+    }
+    
+    await account.restore();
+    res.status(200).json({ message: 'Account restored successfully', account });
+  }
+
+  async getDeletedAccounts(req, res) {
+    const deletedAccounts = await Account.findDeleted();
+    res.status(200).json({ 
+      deletedAccounts,
+      count: deletedAccounts.length
+    });
   }
 }
 

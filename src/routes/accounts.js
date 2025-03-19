@@ -10,6 +10,10 @@ class AccountRouter extends BaseRouter {
         this.router.get('/user/:userId', this.controller.findByUser);
         this.router.patch('/:id/balance', this.controller.updateBalance);
         this.router.patch('/:id/toggle-active', this.controller.toggleActive);
+        
+        // New routes for managing deleted accounts
+        this.router.get('/deleted/all', this.controller.getDeletedAccounts);
+        this.router.post('/:id/restore', this.controller.restore);
     }
 }
 
