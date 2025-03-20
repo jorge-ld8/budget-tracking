@@ -91,18 +91,6 @@ class AccountController extends BaseController {
 
   async delete(req, res, next) {
     const { id } = req.params;
-    const { permanent } = req.query;
-    
-    // Handle permanent delete if explicitly requested
-    if (permanent === 'true') {
-      const account = await Account.findById(id);
-      if (!account) {
-        const error = createCustomError('Account not found', 404);
-        return next(error);
-      }
-      await account.softDelete();
-      return res.status(200).json({ message: 'Account permanently deleted' });
-    }
     
     // Otherwise do soft delete
     const account = await Account.findById(id);
@@ -111,8 +99,13 @@ class AccountController extends BaseController {
       return next(error);
     }
     
+    // Check if already deleted
+    if (account.isDeleted) {
+      return res.status(400).json({ message: 'Account is already deleted' });
+    }
+    
     await account.softDelete();
-    res.status(200).json({ message: 'Account deleted successfully' });
+    res.status(200).json({ message: 'Account soft deleted successfully' });
   }
 
   async update(req, res, next) {
@@ -144,19 +137,33 @@ class AccountController extends BaseController {
       const error = createCustomError('Account not found', 404);
       return next(error);
     }
+    
+    // Prevent operations on deleted accounts
+    if (account.isDeleted) {
+      const error = createCustomError('Cannot update balance of a deleted account', 400);
+      return next(error);
+    }
 
     if (operation === 'add') {
-      account.balance += amount;
+      account.balance += Number(amount);
     } else if (operation === 'subtract') {
       if (account.balance < amount) {
         const error = createCustomError('Insufficient funds', 400);
         return next(error);
       }
-      account.balance -= amount;
+      account.balance -= Number(amount);
     }
 
     await account.save();
-    res.status(200).json({ account });
+    
+    // Return only specific fields
+    res.status(200).json({ 
+      balance: account.balance,
+      name: account.name,
+      operation: operation,
+      amount: Number(amount),
+      timestamp: new Date()
+    });
   }
 
   async toggleActive(req, res, next) {
@@ -164,6 +171,12 @@ class AccountController extends BaseController {
     const account = await Account.findById(id);
     if (!account) {
       const error = createCustomError('Account not found', 404);
+      return next(error);
+    }
+    
+    // Prevent toggling active status of deleted accounts
+    if (account.isDeleted) {
+      const error = createCustomError('Cannot change active status of a deleted account', 400);
       return next(error);
     }
 
@@ -174,7 +187,11 @@ class AccountController extends BaseController {
 
   async findByUser(req, res, next) {
     const { userId } = req.params;
-    const accounts = await Account.find({ user: userId });
+    
+    let query;
+    query = Account.find({ user: userId });
+    
+    const accounts = await query;
     res.status(200).json({ accounts });
   }
 

@@ -48,7 +48,9 @@ accountSchema.pre(/^find/, function(next) {
 
 // Add a static method to find deleted documents when needed
 accountSchema.statics.findDeleted = function(query = {}) {
-  return this.find({ ...query, isDeleted: true });
+  const queryObj = this.find({...query, isDeleted: true});
+  queryObj.includeDeleted = true;
+  return queryObj;
 };
 
 // Add a static method to find both deleted and non-deleted
@@ -60,6 +62,13 @@ accountSchema.statics.findWithDeleted = function(query = {}) {
 
 // Override the countDocuments to respect the isDeleted filter
 accountSchema.statics.countDocuments = function(query = {}, options = {}) {
+  // Allow override of isDeleted behavior through options
+  if (options && options.includeDeleted) {
+    // Don't add isDeleted filter if explicitly asked to include deleted items
+    return mongoose.Model.countDocuments.call(this, query, options);
+  }
+  
+  // Otherwise filter out deleted documents by default
   if (!query.hasOwnProperty('isDeleted')) {
     query.isDeleted = false;
   }
