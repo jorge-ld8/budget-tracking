@@ -90,12 +90,18 @@ class UsersController extends BaseController {
 
   async delete(req, res, next) {
     const { id } = req.params;
-    const user = await User.findByIdAndDelete(id);
+    const user = await User.findById(id);
     if (!user) {
       const error = createCustomError('User not found', 404);
       return next(error);
     }
-    res.status(200).json({ message: 'User deleted successfully' });
+    
+    if (user.isDeleted) {
+      return res.status(400).json({ message: 'User is already deleted' });
+    }
+    
+    await user.softDelete();
+    res.status(200).json({ message: 'User soft deleted successfully' });
   }
 
   async update(req, res, next) {
@@ -108,6 +114,33 @@ class UsersController extends BaseController {
       return next(error);
     }
     res.status(200).json({ user });
+  }
+  
+  async restore(req, res, next) {
+    // Set includeDeleted flag to allow finding deleted items
+    const query = User.findById(req.params.id);
+    query.includeDeleted = true;
+    
+    const user = await query;
+    if (!user) {
+      const error = createCustomError('User not found', 404);
+      return next(error);
+    }
+    
+    if (!user.isDeleted) {
+      return res.status(400).json({ message: 'User is not deleted' });
+    }
+    
+    await user.restore();
+    res.status(200).json({ message: 'User restored successfully', user });
+  }
+
+  async getDeletedUsers(req, res) {
+    const deletedUsers = await User.findDeleted();
+    res.status(200).json({ 
+      deletedUsers,
+      count: deletedUsers.length
+    });
   }
 }
 

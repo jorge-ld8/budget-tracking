@@ -10,6 +10,9 @@ class UsersRouter extends BaseRouter {
         this.router.post('/', this.controller.create);
         this.router.patch('/:id', this.controller.update);
         this.router.delete('/:id', this.controller.delete);
+        
+        this.router.get('/deleted/all', this.controller.getDeletedUsers);
+        this.router.post('/:id/restore', this.controller.restore);
     }
 }
 
