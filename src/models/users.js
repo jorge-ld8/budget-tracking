@@ -85,5 +85,50 @@ userSchema.statics.countDocuments = function(query = {}, options = {}) {
   return mongoose.Model.countDocuments.call(this, query, options);
 };
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - username
+ *         - email
+ *         - password
+ *         - firstName
+ *         - lastName
+ *         - currency
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Auto-generated MongoDB ID
+ *         username:
+ *           type: string
+ *           description: User's unique username
+ *         email:
+ *           type: string
+ *           description: User's email address
+ *         firstName:
+ *           type: string
+ *           description: User's first name
+ *         lastName:
+ *           type: string
+ *           description: User's last name
+ *         currency:
+ *           type: string
+ *           enum: [USD, EUR, GBP, CAD, AUD, NZD, CHF, JPY, CNY, INR, BRL, ARS, CLP, COP, MXN, PEN, PYG, UYU, VND, ZAR]
+ *           description: User's preferred currency
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: Creation timestamp
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Update timestamp
+ *         isDeleted:
+ *           type: boolean
+ *           description: Whether the user is soft deleted
+ */
 const User = mongoose.model('User', userSchema);
 module.exports = User;
