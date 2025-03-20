@@ -75,6 +75,65 @@ accountSchema.statics.countDocuments = function(query = {}, options = {}) {
   return mongoose.Model.countDocuments.call(this, query, options);
 };
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Account:
+ *       type: object
+ *       required:
+ *         - name
+ *         - type
+ *         - user
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The auto-generated ID of the account
+ *           example: 60d21b4667d0d8992e610c85
+ *         name:
+ *           type: string
+ *           description: Account name
+ *           example: Checking Account
+ *         balance:
+ *           type: number
+ *           description: Current account balance
+ *           default: 0
+ *           example: 1250.75
+ *         type:
+ *           type: string
+ *           enum: [cash, bank, credit, investment, other]
+ *           description: Type of account
+ *           default: bank
+ *           example: bank
+ *         description:
+ *           type: string
+ *           description: Optional account description
+ *           example: My primary checking account
+ *         isActive:
+ *           type: boolean
+ *           description: Whether the account is active
+ *           default: true
+ *           example: true
+ *         user:
+ *           type: string
+ *           description: Reference to the user who owns this account
+ *           example: 60d21b4667d0d8992e610c85
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: When the account was created
+ *           example: 2023-04-15T09:12:28.291Z
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: When the account was last updated
+ *           example: 2023-05-22T15:34:12.345Z
+ *         isDeleted:
+ *           type: boolean
+ *           description: Whether the account has been soft deleted
+ *           default: false
+ *           example: false
+ */
 const Account = mongoose.model('Account', accountSchema);
 
 module.exports = Account; 
