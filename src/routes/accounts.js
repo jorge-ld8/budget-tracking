@@ -1,7 +1,10 @@
 const BaseRouter = require('../interfaces/BaseRouter');
+const { authenticate } = require('../middlewares/auth');
 
 class AccountRouter extends BaseRouter {
     async initializeRoutes() {
+        this.router.use(authenticate);
+        
         this.router.get('/', this.controller.getAll);
         this.router.get('/:id', this.controller.getById);
         this.router.post('/', this.controller.create);

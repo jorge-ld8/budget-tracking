@@ -8,6 +8,8 @@ const UsersController = require('./controllers/users');
 const AccountRouter = require('./routes/accounts');
 const AccountController = require('./controllers/accounts');
 const errorHandler = require('./middlewares/error-handler');
+const AuthRouter = require('./routes/auth');
+const AuthController = require('./controllers/auth');
 
 const app = express();
 
@@ -20,6 +22,7 @@ app.use(helmet());
 app.use(morgan('dev'));
 
 // Routes
+app.use('/auth', new AuthRouter(new AuthController()).getRouter());
 app.use('/users', new UsersRouter(new UsersController()).getRouter());
 app.use('/accounts', new AccountRouter(new AccountController()).getRouter());
 
