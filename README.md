@@ -23,7 +23,6 @@ An Express application for managing personal finances with user accounts, budget
 git clone --branch main https://github.com/jorge-ld8/budget-tracking.git budget-project
 cd budget-project
 ```
-https://github.com/jorge-ld8/budget-tracking.git
 ### Build the Docker image
 
 ```bash
