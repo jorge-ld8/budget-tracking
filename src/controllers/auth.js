@@ -1,5 +1,5 @@
 const User = require('../models/users');
-const { createCustomError } = require('../errors/custom-error');
+const { BadRequestError, UnauthorizedError, ConflictError } = require('../errors');
 const BaseController = require('../interfaces/BaseController');
 
 class AuthController extends BaseController {
@@ -14,8 +14,7 @@ class AuthController extends BaseController {
       // Check if user already exists
       const existingUser = await User.findOne({ $or: [{ email }, { username }] });
       if (existingUser) {
-        const error = createCustomError('User with this email or username already exists', 400);
-        return next(error);
+        return next(new BadRequestError('User with this email or username already exists'));
       }
       
       // Create new user
@@ -52,22 +51,19 @@ class AuthController extends BaseController {
       
       // Check if email and password are provided
       if (!email || !password) {
-        const error = createCustomError('Email and password are required', 400);
-        return next(error);
+        return next(new BadRequestError('Email and password are required'));
       };
 
       // Check if user exists
       const user = await User.findOne({ email });
       if (!user) {
-        const error = createCustomError('Invalid credentials', 401);
-        return next(error);
+        return next(new UnauthorizedError('Invalid credentials'));
       }
       
       // Check password
       const isMatch = await user.comparePassword(password);
       if (!isMatch) {
-        const error = createCustomError('Invalid credentials', 401);
-        return next(error);
+        return next(new UnauthorizedError('Invalid credentials'));
       }
       
       // Update last login

@@ -1,5 +1,5 @@
 const User = require('../models/users');
-const { createCustomError } = require('../errors/custom-error');
+const { NotFoundError, BadRequestError } = require('../errors');
 const BaseController = require('../interfaces/BaseController');
 
 class UsersController extends BaseController {
@@ -74,8 +74,7 @@ class UsersController extends BaseController {
     const { id } = req.params;
     const user = await User.findById(id);
     if (!user) {
-      const error = createCustomError('User not found', 404);
-      return next(error);
+      return next(new NotFoundError('User not found'));
     }
     res.status(200).json({ user });
   }
@@ -92,12 +91,11 @@ class UsersController extends BaseController {
     const { id } = req.params;
     const user = await User.findById(id);
     if (!user) {
-      const error = createCustomError('User not found', 404);
-      return next(error);
+      return next(new NotFoundError('User not found'));
     }
     
     if (user.isDeleted) {
-      return res.status(400).json({ message: 'User is already deleted' });
+      return next(new BadRequestError('User is already deleted'));
     }
     
     await user.softDelete();
@@ -110,8 +108,7 @@ class UsersController extends BaseController {
     const user = await User.findByIdAndUpdate(id, { username, email, password, firstName, lastName }, 
       { new: true , runValidators: true });
     if (!user) {
-      const error = createCustomError('User not found', 404);
-      return next(error);
+      return next(new NotFoundError('User not found'));
     }
     res.status(200).json({ user });
   }
@@ -123,12 +120,11 @@ class UsersController extends BaseController {
     
     const user = await query;
     if (!user) {
-      const error = createCustomError('User not found', 404);
-      return next(error);
+      return next(new NotFoundError('User not found'));
     }
     
     if (!user.isDeleted) {
-      return res.status(400).json({ message: 'User is not deleted' });
+      return next(new BadRequestError('User is not deleted'));
     }
     
     await user.restore();

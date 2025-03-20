@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/users');
-const { createCustomError } = require('../errors/custom-error');
+const { UnauthorizedError, ForbiddenError } = require('../errors');
 
 // Middleware to authenticate users
 const authenticate = async (req, res, next) => {
@@ -9,14 +9,14 @@ const authenticate = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return next(createCustomError('Authentication required', 401));
+      return next(new UnauthorizedError('Authentication required'));
     }
     
     // Extract token
     const token = authHeader.split(' ')[1];
     
     if (!token) {
-      return next(createCustomError('Authentication required', 401));
+      return next(new UnauthorizedError('Authentication required'));
     }
     
     try {
@@ -27,14 +27,14 @@ const authenticate = async (req, res, next) => {
       const user = await User.findById(decoded.id);
       
       if (!user) {
-        return next(createCustomError('User not found', 401));
+        return next(new UnauthorizedError('User not found'));
       }
       
       // Attach user to request
       req.user = user;
       next();
     } catch (error) {
-      return next(createCustomError('Invalid or expired token', 401));
+      return next(new UnauthorizedError('Invalid or expired token'));
     }
   } catch (error) {
     next(error);
@@ -45,7 +45,7 @@ const authenticate = async (req, res, next) => {
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return next(createCustomError(`Role ${req.user.role} is not authorized to access this resource`, 403));
+      return next(new ForbiddenError(`Role ${req.user.role} is not authorized to access this resource`));
     }
     next();
   };

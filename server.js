@@ -1,6 +1,5 @@
 const app = require('./src/app');
 const connectDB = require('./src/config/config');
-const { swaggerDocs } = require('./src/swagger');
 
 // load environment variables
 require('dotenv').config();

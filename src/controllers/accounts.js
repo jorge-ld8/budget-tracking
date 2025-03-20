@@ -1,5 +1,5 @@
 const Account = require('../models/accounts');
-const { createCustomError } = require('../errors/custom-error');
+const { NotFoundError, BadRequestError } = require('../errors');
 const BaseController = require('../interfaces/BaseController');
 
 class AccountController extends BaseController {
@@ -77,8 +77,7 @@ class AccountController extends BaseController {
     const { id } = req.params;
     const account = await Account.findById(id);
     if (!account) {
-      const error = createCustomError('Account not found', 404);
-      return next(error);
+      return next(new NotFoundError('Account not found'));
     }
     res.status(200).json({ account });
   }
@@ -95,13 +94,12 @@ class AccountController extends BaseController {
     // Otherwise do soft delete
     const account = await Account.findById(id);
     if (!account) {
-      const error = createCustomError('Account not found', 404);
-      return next(error);
+      return next(new NotFoundError('Account not found'));
     }
     
     // Check if already deleted
     if (account.isDeleted) {
-      return res.status(400).json({ message: 'Account is already deleted' });
+      return next(new BadRequestError('Account is already deleted'));
     }
     
     await account.softDelete();
@@ -117,8 +115,7 @@ class AccountController extends BaseController {
       { new: true, runValidators: true }
     );
     if (!account) {
-      const error = createCustomError('Account not found', 404);
-      return next(error);
+      return next(new NotFoundError('Account not found'));
     }
     res.status(200).json({ account });
   }
@@ -128,28 +125,24 @@ class AccountController extends BaseController {
     const { amount, operation } = req.body;
     
     if (!amount || !operation || !['add', 'subtract'].includes(operation)) {
-      const error = createCustomError('Invalid request. Amount and operation (add/subtract) are required.', 400);
-      return next(error);
+      return next(new BadRequestError('Invalid request. Amount and operation (add/subtract) are required.'));
     }
 
     const account = await Account.findById(id);
     if (!account) {
-      const error = createCustomError('Account not found', 404);
-      return next(error);
+      return next(new NotFoundError('Account not found'));
     }
     
     // Prevent operations on deleted accounts
     if (account.isDeleted) {
-      const error = createCustomError('Cannot update balance of a deleted account', 400);
-      return next(error);
+      return next(new BadRequestError('Cannot update balance of a deleted account'));
     }
 
     if (operation === 'add') {
       account.balance += Number(amount);
     } else if (operation === 'subtract') {
       if (account.balance < amount) {
-        const error = createCustomError('Insufficient funds', 400);
-        return next(error);
+        return next(new BadRequestError('Insufficient funds'));
       }
       account.balance -= Number(amount);
     }
@@ -170,14 +163,12 @@ class AccountController extends BaseController {
     const { id } = req.params;
     const account = await Account.findById(id);
     if (!account) {
-      const error = createCustomError('Account not found', 404);
-      return next(error);
+      return next(new NotFoundError('Account not found'));
     }
     
     // Prevent toggling active status of deleted accounts
     if (account.isDeleted) {
-      const error = createCustomError('Cannot change active status of a deleted account', 400);
-      return next(error);
+      return next(new BadRequestError('Cannot change active status of a deleted account'));
     }
 
     account.isActive = !account.isActive;
@@ -202,12 +193,11 @@ class AccountController extends BaseController {
     
     const account = await query;
     if (!account) {
-      const error = createCustomError('Account not found', 404);
-      return next(error);
+      return next(new NotFoundError('Account not found'));
     }
     
     if (!account.isDeleted) {
-      return res.status(400).json({ message: 'Account is not deleted' });
+      return next(new BadRequestError('Account is not deleted'));
     }
     
     await account.restore();
