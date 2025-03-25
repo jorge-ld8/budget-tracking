@@ -9,9 +9,8 @@ const transactionSchema = new Schema({
   category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
   account: { type: Schema.Types.ObjectId, ref: 'Account', required: true },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
+  isDeleted: { type: Boolean, default: false, index: true }
+}, {timestamps: true});
 
 // Update the updatedAt field before saving
 transactionSchema.pre('save', function(next) {

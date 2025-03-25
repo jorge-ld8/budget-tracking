@@ -9,9 +9,8 @@ const budgetSchema = new Schema({
   endDate: { type: Date },
   isRecurring: { type: Boolean, default: true },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
+  isDeleted: { type: Boolean, default: false, index: true }
+}, {timestamps: true});
 
 // Update the updatedAt field before saving
 budgetSchema.pre('save', function(next) {

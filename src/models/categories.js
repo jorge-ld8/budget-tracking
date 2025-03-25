@@ -7,9 +7,8 @@ const categorySchema = new Schema({
   icon: { type: String, default: 'default-icon' },
   color: { type: String, default: '#000000' },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
-});
+  isDeleted: { type: Boolean, default: false, index: true }
+}, {timestamps: true});
 
 // Update the updatedAt field before saving
 categorySchema.pre('save', function(next) {
