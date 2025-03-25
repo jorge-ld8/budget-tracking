@@ -13,7 +13,10 @@ class TransactionController extends BaseController {
     try {
       const { type, description, category, account, sort, fields, page, limit, numericFilters, startDate, endDate } = req.query;
       
-      const queryObject = {};
+      // Create query object and add user filter
+      const queryObject = {
+        user: req.user._id // Only return transactions belonging to the authenticated user
+      };
       
       // Basic filters
       if (type) {
@@ -112,7 +115,10 @@ class TransactionController extends BaseController {
   async getById(req, res, next) {
     try {
       const { id } = req.params;
-      const transaction = await Transaction.findById(id);
+      const transaction = await Transaction.findOne({ 
+        _id: id,
+        user: req.user._id // Only find if it belongs to the authenticated user
+      });
       
       if (!transaction) {
         return next(new NotFoundError('Transaction not found'));
@@ -126,35 +132,38 @@ class TransactionController extends BaseController {
 
   async create(req, res, next) {
     try {
-      // Update account balance
-      const account = await Account.findById(transaction.account);
+      // Check if the account exists and belongs to the authenticated user
+      const account = await Account.findOne({
+        _id: req.body.account,
+        user: req.user._id
+      });
       
       if (!account) {
-        return next(new NotFoundError('Account not found'));
-      }
-
-      if (account.user !== req.user._id) {
-        return next(new BadRequestError('Account not found on current user'));
+        return next(new NotFoundError('Account not found or does not belong to you'));
       }
       
+      // Check for sufficient funds for expense transactions
+      if (req.body.type === 'expense' && account.balance < req.body.amount) {
+        return next(new BadRequestError('Insufficient funds'));
+      }
+      
+      // Create the transaction
+      const transaction = new Transaction({
+        ...req.body,
+        user: req.user._id
+      });
+      
+      await transaction.save();
+      
+      // Update account balance
       if (transaction.type === 'income') {
         account.balance += transaction.amount;
       } else if (transaction.type === 'expense') {
-        if (account.balance < transaction.amount) {
-          return next(new BadRequestError('Insufficient funds'));
-        }
         account.balance -= transaction.amount;
       }
       
       await account.save();
       
-      // Add user ID from authenticated user
-      const transaction = new Transaction({
-        ...req.body,
-        user: req.user._id
-      });
-        
-      await transaction.save();
       res.status(201).json({ transaction });
     } catch (error) {
       next(error);
@@ -166,7 +175,11 @@ class TransactionController extends BaseController {
       const { id } = req.params;
       const { amount, description, category, date, type } = req.body;
       
-      const transaction = await Transaction.findById(id);
+      // Find transaction and ensure it belongs to the authenticated user
+      const transaction = await Transaction.findOne({
+        _id: id,
+        user: req.user._id
+      });
       
       if (!transaction) {
         return next(new NotFoundError('Transaction not found'));
@@ -177,11 +190,14 @@ class TransactionController extends BaseController {
       const typeChanged = type && type !== transaction.type;
       
       if (amountChanged || typeChanged) {
-        const Account = require('../models/accounts');
-        const account = await Account.findById(transaction.account);
+        // Make sure the account belongs to the user
+        const account = await Account.findOne({
+          _id: transaction.account,
+          user: req.user._id
+        });
         
         if (!account) {
-          return next(new NotFoundError('Account not found'));
+          return next(new NotFoundError('Account not found or does not belong to you'));
         }
         
         // Revert old transaction effect
@@ -224,8 +240,11 @@ class TransactionController extends BaseController {
     try {
       const { id } = req.params;
       
-      // Find transaction
-      const transaction = await Transaction.findById(id);
+      // Find transaction and ensure it belongs to the authenticated user
+      const transaction = await Transaction.findOne({
+        _id: id,
+        user: req.user._id
+      });
       
       if (!transaction) {
         return next(new NotFoundError('Transaction not found'));
@@ -237,17 +256,22 @@ class TransactionController extends BaseController {
       }
       
       // Update account balance
-      const account = await Account.findById(transaction.account);
+      const account = await Account.findOne({
+        _id: transaction.account,
+        user: req.user._id
+      });
       
-      if (account) {
-        if (transaction.type === 'income') {
-          account.balance -= transaction.amount;
-        } else {
-          account.balance += transaction.amount;
-        }
-        
-        await account.save();
+      if (!account) {
+        return next(new NotFoundError('Account not found or does not belong to you'));
       }
+      
+      if (transaction.type === 'income') {
+        account.balance -= transaction.amount;
+      } else {
+        account.balance += transaction.amount;
+      }
+      
+      await account.save();
       
       // Soft delete
       await transaction.softDelete();
@@ -260,7 +284,10 @@ class TransactionController extends BaseController {
   async restore(req, res, next) {
     try {
       // Set includeDeleted flag to allow finding deleted items
-      const query = Transaction.findById(req.params.id);
+      const query = Transaction.findOne({
+        _id: req.params.id,
+        user: req.user._id
+      });
       query.includeDeleted = true;
       
       const transaction = await query;
@@ -273,24 +300,25 @@ class TransactionController extends BaseController {
       }
       
       // Update account balance
-      const Account = require('../models/accounts');
-      const account = await Account.findById(transaction.account);
+      const account = await Account.findOne({
+        _id: transaction.account,
+        user: req.user._id
+      });
       
-      if (account) {
-        if (transaction.type === 'income') {
-          account.balance += transaction.amount;
-        } else {
-          if (account.balance < transaction.amount) {
-            return next(new BadRequestError('Insufficient funds to restore this transaction'));
-          }
-          account.balance -= transaction.amount;
-        }
-        
-        await account.save();
-      } else {
-        return next(new NotFoundError('Account not found'));
+      if (!account) {
+        return next(new NotFoundError('Account not found or does not belong to you'));
       }
       
+      if (transaction.type === 'income') {
+        account.balance += transaction.amount;
+      } else {
+        if (account.balance < transaction.amount) {
+          return next(new BadRequestError('Insufficient funds to restore this transaction'));
+        }
+        account.balance -= transaction.amount;
+      }
+      
+      await account.save();
       await transaction.restore();
       res.status(200).json({ message: 'Transaction restored successfully', transaction });
     } catch (error) {
@@ -300,7 +328,8 @@ class TransactionController extends BaseController {
   
   async getDeletedTransactions(req, res, next) {
     try {
-      const deletedTransactions = await Transaction.findDeleted();
+      // Only find deleted transactions belonging to the authenticated user
+      const deletedTransactions = await Transaction.findDeleted({ user: req.user._id });
       res.status(200).json({ 
         deletedTransactions,
         count: deletedTransactions.length
@@ -313,7 +342,22 @@ class TransactionController extends BaseController {
   async getByAccount(req, res, next) {
     try {
       const { accountId } = req.params;
-      const transactions = await Transaction.find({ account: accountId }).sort('-date');
+      
+      // First check if the account belongs to the user
+      const accountExists = await Account.findOne({
+        _id: accountId,
+        user: req.user._id
+      });
+      
+      if (!accountExists) {
+        return next(new NotFoundError('Account not found or does not belong to you'));
+      }
+      
+      // Find transactions for this account that belong to the authenticated user
+      const transactions = await Transaction.find({ 
+        account: accountId,
+        user: req.user._id
+      }).sort('-date');
       
       res.status(200).json({ 
         transactions,
@@ -327,7 +371,12 @@ class TransactionController extends BaseController {
   async getByCategory(req, res, next) {
     try {
       const { categoryId } = req.params;
-      const transactions = await Transaction.find({ category: categoryId }).sort('-date');
+      
+      // Find transactions for this category that belong to the authenticated user
+      const transactions = await Transaction.find({ 
+        category: categoryId,
+        user: req.user._id
+      }).sort('-date');
       
       res.status(200).json({ 
         transactions,
