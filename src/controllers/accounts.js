@@ -10,7 +10,11 @@ class AccountController extends BaseController {
   async getAll(req, res) {
     const { type, name, sort, fields, page, limit, numericFilters } = req.query;
 
-    const queryObject = {};
+    // Add user filter to query object - only return accounts belonging to the authenticated user
+    const queryObject = {
+      user: req.user._id
+    };
+    
     if (type) {
       queryObject.type = type;
     }
@@ -75,10 +79,17 @@ class AccountController extends BaseController {
 
   async getById(req, res, next) {
     const { id } = req.params;
-    const account = await Account.findById(id);
+    
+    // Find account and ensure it belongs to the authenticated user
+    const account = await Account.findOne({
+      _id: id,
+      user: req.user._id
+    });
+    
     if (!account) {
       return next(new NotFoundError('Account not found'));
     }
+    
     res.status(200).json({ account });
   }
 
@@ -91,8 +102,12 @@ class AccountController extends BaseController {
   async delete(req, res, next) {
     const { id } = req.params;
     
-    // Otherwise do soft delete
-    const account = await Account.findById(id);
+    // Find account and ensure it belongs to the authenticated user
+    const account = await Account.findOne({
+      _id: id,
+      user: req.user._id
+    });
+    
     if (!account) {
       return next(new NotFoundError('Account not found'));
     }
@@ -109,14 +124,18 @@ class AccountController extends BaseController {
   async update(req, res, next) {
     const { id } = req.params;
     const { name, type, description, isActive } = req.body;
-    const account = await Account.findByIdAndUpdate(
-      id, 
+    
+    // Find and update account, ensuring it belongs to the authenticated user
+    const account = await Account.findOneAndUpdate(
+      { _id: id, user: req.user._id },
       { name, type, description, isActive }, 
       { new: true, runValidators: true }
     );
+    
     if (!account) {
       return next(new NotFoundError('Account not found'));
     }
+    
     res.status(200).json({ account });
   }
 
@@ -128,7 +147,12 @@ class AccountController extends BaseController {
       return next(new BadRequestError('Invalid request. Amount and operation (add/subtract) are required.'));
     }
 
-    const account = await Account.findById(id);
+    // Find account and ensure it belongs to the authenticated user
+    const account = await Account.findOne({
+      _id: id,
+      user: req.user._id
+    });
+    
     if (!account) {
       return next(new NotFoundError('Account not found'));
     }
@@ -161,7 +185,13 @@ class AccountController extends BaseController {
 
   async toggleActive(req, res, next) {
     const { id } = req.params;
-    const account = await Account.findById(id);
+    
+    // Find account and ensure it belongs to the authenticated user
+    const account = await Account.findOne({
+      _id: id,
+      user: req.user._id
+    });
+    
     if (!account) {
       return next(new NotFoundError('Account not found'));
     }
@@ -177,18 +207,21 @@ class AccountController extends BaseController {
   }
 
   async findByUser(req, res, next) {
-    const { userId } = req.params;
+    // We'll only allow users to find their own accounts
+    // Instead of using the userId parameter, we'll use the authenticated user's ID
+    const userId = req.user._id;
     
-    let query;
-    query = Account.find({ user: userId });
+    const accounts = await Account.find({ user: userId });
     
-    const accounts = await query;
     res.status(200).json({ accounts });
   }
 
   async restore(req, res, next) {
     // Set includeDeleted flag to allow finding deleted items
-    const query = Account.findById(req.params.id);
+    const query = Account.findOne({
+      _id: req.params.id,
+      user: req.user._id
+    });
     query.includeDeleted = true;
     
     const account = await query;
@@ -205,7 +238,9 @@ class AccountController extends BaseController {
   }
 
   async getDeletedAccounts(req, res) {
-    const deletedAccounts = await Account.findDeleted();
+    // Only find deleted accounts belonging to the authenticated user
+    const deletedAccounts = await Account.findDeleted({ user: req.user._id });
+    
     res.status(200).json({ 
       deletedAccounts,
       count: deletedAccounts.length
