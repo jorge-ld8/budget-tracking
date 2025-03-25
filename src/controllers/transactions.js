@@ -1,6 +1,8 @@
 const Transaction = require('../models/transactions');
 const { NotFoundError, BadRequestError } = require('../errors');
 const BaseController = require('../interfaces/BaseController');
+const Account = require('../models/accounts');
+
 
 class TransactionController extends BaseController {
   constructor() {
@@ -124,20 +126,15 @@ class TransactionController extends BaseController {
 
   async create(req, res, next) {
     try {
-      // Add user ID from authenticated user
-      const transaction = new Transaction({
-        ...req.body,
-        user: req.user._id
-      });
-      
-      await transaction.save();
-      
       // Update account balance
-      const Account = require('../models/accounts');
       const account = await Account.findById(transaction.account);
       
       if (!account) {
         return next(new NotFoundError('Account not found'));
+      }
+
+      if (account.user !== req.user._id) {
+        return next(new BadRequestError('Account not found on current user'));
       }
       
       if (transaction.type === 'income') {
@@ -151,6 +148,13 @@ class TransactionController extends BaseController {
       
       await account.save();
       
+      // Add user ID from authenticated user
+      const transaction = new Transaction({
+        ...req.body,
+        user: req.user._id
+      });
+        
+      await transaction.save();
       res.status(201).json({ transaction });
     } catch (error) {
       next(error);
@@ -220,14 +224,19 @@ class TransactionController extends BaseController {
     try {
       const { id } = req.params;
       
+      // Find transaction
       const transaction = await Transaction.findById(id);
       
       if (!transaction) {
         return next(new NotFoundError('Transaction not found'));
       }
       
+      // Check if already deleted
+      if (transaction.isDeleted) {
+        return next(new BadRequestError('Transaction is already deleted'));
+      }
+      
       // Update account balance
-      const Account = require('../models/accounts');
       const account = await Account.findById(transaction.account);
       
       if (account) {
@@ -240,10 +249,62 @@ class TransactionController extends BaseController {
         await account.save();
       }
       
-      // Delete the transaction
-      await Transaction.findByIdAndDelete(id);
+      // Soft delete
+      await transaction.softDelete();
+      res.status(200).json({ message: 'Transaction soft deleted successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  async restore(req, res, next) {
+    try {
+      // Set includeDeleted flag to allow finding deleted items
+      const query = Transaction.findById(req.params.id);
+      query.includeDeleted = true;
       
-      res.status(200).json({ message: 'Transaction deleted successfully' });
+      const transaction = await query;
+      if (!transaction) {
+        return next(new NotFoundError('Transaction not found'));
+      }
+      
+      if (!transaction.isDeleted) {
+        return next(new BadRequestError('Transaction is not deleted'));
+      }
+      
+      // Update account balance
+      const Account = require('../models/accounts');
+      const account = await Account.findById(transaction.account);
+      
+      if (account) {
+        if (transaction.type === 'income') {
+          account.balance += transaction.amount;
+        } else {
+          if (account.balance < transaction.amount) {
+            return next(new BadRequestError('Insufficient funds to restore this transaction'));
+          }
+          account.balance -= transaction.amount;
+        }
+        
+        await account.save();
+      } else {
+        return next(new NotFoundError('Account not found'));
+      }
+      
+      await transaction.restore();
+      res.status(200).json({ message: 'Transaction restored successfully', transaction });
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  async getDeletedTransactions(req, res, next) {
+    try {
+      const deletedTransactions = await Transaction.findDeleted();
+      res.status(200).json({ 
+        deletedTransactions,
+        count: deletedTransactions.length
+      });
     } catch (error) {
       next(error);
     }

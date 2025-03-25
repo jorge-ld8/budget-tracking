@@ -18,37 +18,52 @@ const { authenticate } = require('../middlewares/auth');
  *         _id:
  *           type: string
  *           description: Auto-generated MongoDB ID
+ *           example: 60d21b4667d0d8992e610c89
  *         amount:
  *           type: number
  *           description: Transaction amount
+ *           example: 50.75
  *         type:
  *           type: string
  *           enum: [income, expense]
  *           description: Transaction type
+ *           example: expense
  *         description:
  *           type: string
  *           description: Transaction description
+ *           example: Grocery shopping
  *         date:
  *           type: string
  *           format: date-time
  *           description: Transaction date
+ *           example: 2023-06-15T10:30:00Z
  *         category:
  *           type: string
  *           description: Reference to category ID
+ *           example: 60d21b4667d0d8992e610c85
  *         account:
  *           type: string
  *           description: Reference to account ID
+ *           example: 60d21b4667d0d8992e610c86
  *         user:
  *           type: string
  *           description: Reference to user ID
+ *           example: 60d21b4667d0d8992e610c84
  *         createdAt:
  *           type: string
  *           format: date-time
  *           description: Creation timestamp
+ *           example: 2023-06-15T10:30:00Z
  *         updatedAt:
  *           type: string
  *           format: date-time
  *           description: Update timestamp
+ *           example: 2023-06-15T10:30:00Z
+ *         isDeleted:
+ *           type: boolean
+ *           description: Whether the transaction has been soft deleted
+ *           default: false
+ *           example: false
  */
 
 /**
@@ -152,32 +167,65 @@ class TransactionsRouter extends BaseRouter {
      *                   type: integer
      *                 totalPages:
      *                   type: integer
-     *             examples:
-     *               transactionsList:
-     *                 value:
-     *                   transactions:
-     *                     - _id: "60d21b4667d0d8992e610c89"
-     *                       amount: 50.75
-     *                       type: "expense"
-     *                       description: "Grocery shopping"
-     *                       date: "2023-06-15T10:30:00Z"
-     *                       category: "60d21b4667d0d8992e610c85"
-     *                       account: "60d21b4667d0d8992e610c86"
-     *                       user: "60d21b4667d0d8992e610c84"
-     *                     - _id: "60d21b4667d0d8992e610c90"
-     *                       amount: 1500
-     *                       type: "income"
-     *                       description: "Salary payment"
-     *                       date: "2023-06-01T09:00:00Z"
-     *                       category: "60d21b4667d0d8992e610c87"
-     *                       account: "60d21b4667d0d8992e610c88"
-     *                       user: "60d21b4667d0d8992e610c84"
-     *                   count: 2
-     *                   page: 1
-     *                   limit: 10
-     *                   totalPages: 1
+     *             example:
+     *               transactions:
+     *                 - _id: "60d21b4667d0d8992e610c89"
+     *                   amount: 50.75
+     *                   type: "expense"
+     *                   description: "Grocery shopping"
+     *                   date: "2023-06-15T10:30:00Z"
+     *                   category: "60d21b4667d0d8992e610c85"
+     *                   account: "60d21b4667d0d8992e610c86"
+     *                   user: "60d21b4667d0d8992e610c84"
+     *                 - _id: "60d21b4667d0d8992e610c90"
+     *                   amount: 1500
+     *                   type: "income"
+     *                   description: "Salary payment"
+     *                   date: "2023-06-01T09:00:00Z"
+     *                   category: "60d21b4667d0d8992e610c87"
+     *                   account: "60d21b4667d0d8992e610c88"
+     *                   user: "60d21b4667d0d8992e610c84"
+     *               count: 2
+     *               page: 1
+     *               limit: 10
+     *               totalPages: 1
      */
     this.router.get('/', this.controller.getAll);
+
+    /**
+     * @swagger
+     * /transactions/deleted/all:
+     *   get:
+     *     summary: Get all soft-deleted transactions
+     *     tags: [Transactions]
+     *     responses:
+     *       200:
+     *         description: List of deleted transactions
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 deletedTransactions:
+     *                   type: array
+     *                   items:
+     *                     $ref: '#/components/schemas/Transaction'
+     *                 count:
+     *                   type: integer
+     *             example:
+     *               deletedTransactions:
+     *                 - _id: "60d21b4667d0d8992e610c89"
+     *                   amount: 50.75
+     *                   type: "expense"
+     *                   description: "Grocery shopping"
+     *                   date: "2023-06-15T10:30:00Z"
+     *                   category: "60d21b4667d0d8992e610c85"
+     *                   account: "60d21b4667d0d8992e610c86"
+     *                   user: "60d21b4667d0d8992e610c84"
+     *                   isDeleted: true
+     *               count: 1
+     */
+    this.router.get('/deleted/all', this.controller.getDeletedTransactions);
 
     /**
      * @swagger
@@ -192,6 +240,7 @@ class TransactionsRouter extends BaseRouter {
      *           type: string
      *         required: true
      *         description: The transaction ID
+     *         example: 60d21b4667d0d8992e610c89
      *     responses:
      *       200:
      *         description: The transaction details
@@ -202,6 +251,16 @@ class TransactionsRouter extends BaseRouter {
      *               properties:
      *                 transaction:
      *                   $ref: '#/components/schemas/Transaction'
+     *             example:
+     *               transaction:
+     *                 _id: "60d21b4667d0d8992e610c89"
+     *                 amount: 50.75
+     *                 type: "expense"
+     *                 description: "Grocery shopping"
+     *                 date: "2023-06-15T10:30:00Z"
+     *                 category: "60d21b4667d0d8992e610c85"
+     *                 account: "60d21b4667d0d8992e610c86"
+     *                 user: "60d21b4667d0d8992e610c84"
      *       404:
      *         description: Transaction not found
      */
@@ -228,18 +287,24 @@ class TransactionsRouter extends BaseRouter {
      *             properties:
      *               amount:
      *                 type: number
+     *                 example: 50.75
      *               type:
      *                 type: string
      *                 enum: [income, expense]
+     *                 example: expense
      *               description:
      *                 type: string
+     *                 example: Grocery shopping
      *               date:
      *                 type: string
      *                 format: date-time
+     *                 example: 2023-06-15T10:30:00Z
      *               category:
      *                 type: string
+     *                 example: 60d21b4667d0d8992e610c85
      *               account:
      *                 type: string
+     *                 example: 60d21b4667d0d8992e610c86
      *           examples:
      *             expense:
      *               value:
@@ -283,7 +348,7 @@ class TransactionsRouter extends BaseRouter {
      *           type: string
      *         required: true
      *         description: The transaction ID
-     *         example: "60d21b4667d0d8992e610c89"
+     *         example: 60d21b4667d0d8992e610c89
      *     requestBody:
      *       required: true
      *       content:
@@ -337,7 +402,7 @@ class TransactionsRouter extends BaseRouter {
      * @swagger
      * /transactions/{id}:
      *   delete:
-     *     summary: Delete a transaction
+     *     summary: Soft delete a transaction
      *     tags: [Transactions]
      *     parameters:
      *       - in: path
@@ -357,20 +422,57 @@ class TransactionsRouter extends BaseRouter {
      *               properties:
      *                 message:
      *                   type: string
-     *             examples:
-     *               success:
-     *                 value:
-     *                   message: "Transaction deleted successfully"
+     *             example:
+     *               message: "Transaction soft deleted successfully"
      *       404:
      *         description: Transaction not found
-     *         content:
-     *           application/json:
-     *             examples:
-     *               notFound:
-     *                 value:
-     *                   error: "Transaction not found"
      */
     this.router.delete('/:id', this.controller.delete);
+
+    /**
+     * @swagger
+     * /transactions/{id}/restore:
+     *   post:
+     *     summary: Restore a soft-deleted transaction
+     *     tags: [Transactions]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         schema:
+     *           type: string
+     *         required: true
+     *         description: The transaction ID
+     *         example: 60d21b4667d0d8992e610c89
+     *     responses:
+     *       200:
+     *         description: Restored
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                 transaction:
+     *                   $ref: '#/components/schemas/Transaction'
+     *             example:
+     *               message: "Transaction restored successfully"
+     *               transaction:
+     *                 _id: "60d21b4667d0d8992e610c89"
+     *                 amount: 50.75
+     *                 type: "expense"
+     *                 description: "Grocery shopping"
+     *                 date: "2023-06-15T10:30:00Z"
+     *                 category: "60d21b4667d0d8992e610c85"
+     *                 account: "60d21b4667d0d8992e610c86"
+     *                 user: "60d21b4667d0d8992e610c84"
+     *                 isDeleted: false
+     *       404:
+     *         description: Transaction not found
+     *       400:
+     *         description: Transaction is not deleted
+     */
+    this.router.post('/:id/restore', this.controller.restore);
 
     /**
      * @swagger
@@ -385,6 +487,7 @@ class TransactionsRouter extends BaseRouter {
      *           type: string
      *         required: true
      *         description: The account ID
+     *         example: 60d21b4667d0d8992e610c86
      *     responses:
      *       200:
      *         description: List of transactions for the account
@@ -415,6 +518,7 @@ class TransactionsRouter extends BaseRouter {
      *           type: string
      *         required: true
      *         description: The category ID
+     *         example: 60d21b4667d0d8992e610c85
      *     responses:
      *       200:
      *         description: List of transactions for the category
