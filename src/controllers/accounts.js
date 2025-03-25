@@ -83,7 +83,7 @@ class AccountController extends BaseController {
   }
 
   async create(req, res) {
-    const account = new Account({...req.body, balance: 0, isActive: true});
+    const account = new Account({...req.body, user: req.user._id, balance: 0, isActive: true});
     await account.save();
     res.status(201).json({ account });
   }
