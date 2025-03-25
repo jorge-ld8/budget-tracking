@@ -29,8 +29,8 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 userSchema.methods.generateAuthToken = function() {
   return jwt.sign(
     { id: this._id, username: this.username },
-    process.env.JWT_SECRET, // You'll need to set this in your environment
-    { expiresIn: '1d' } // Token expiration time
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN }
   );
 };
 
