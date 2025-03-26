@@ -334,22 +334,15 @@ class AccountRouter extends BaseRouter {
 
         /**
          * @swagger
-         * /accounts/user/{userId}:
+         * /accounts/user:
          *   get:
-         *     summary: Get all accounts for a specific user
+         *     summary: Get accounts for the authenticated user
          *     tags: [Accounts]
          *     security:
          *       - bearerAuth: []
-         *     parameters:
-         *       - in: path
-         *         name: userId
-         *         schema:
-         *           type: string
-         *         required: true
-         *         description: User ID
          *     responses:
          *       200:
-         *         description: List of user accounts
+         *         description: List of accounts for the authenticated user
          *         content:
          *           application/json:
          *             schema:
@@ -362,7 +355,7 @@ class AccountRouter extends BaseRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.get('/user/:userId', this.controller.findByUser);
+        this.router.get('/user', this.controller.findByUser);
 
         /**
          * @swagger
