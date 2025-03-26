@@ -64,7 +64,6 @@ const swaggerDocs = (app, port) => {
   });
 
   console.log(`\nSwagger docs available at http://localhost:${port}/api-docs`);
-  console.log('Done');
   
 };
 
