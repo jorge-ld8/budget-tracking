@@ -34,7 +34,6 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.14.2",
     "mongoose": "^8.11.0",
-    "mongoose-migrate-2": "^0.2.5",
     "morgan": "^1.10.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-dist": "^5.20.1",
