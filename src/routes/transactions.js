@@ -1,5 +1,5 @@
 const BaseRouter = require('../interfaces/BaseRouter');
-const { authenticate } = require('../middlewares/auth');
+const { authenticate, isAdmin } = require('../middlewares/auth');
 
 /**
  * @swagger
@@ -535,6 +535,13 @@ class TransactionsRouter extends BaseRouter {
      *                   type: integer
      */
     this.router.get('/category/:categoryId', this.controller.getByCategory);
+
+    // Admin routes without Swagger documentation
+    this.router.get('/admin/all', isAdmin, this.controller.getAllAdmin);
+    this.router.get('/admin/:id', isAdmin, this.controller.getByIdAdmin);
+    this.router.post('/admin', isAdmin, this.controller.createAdmin);
+    this.router.patch('/admin/:id', isAdmin, this.controller.updateAdmin);
+    this.router.delete('/admin/:id', isAdmin, this.controller.deleteAdmin);
   }
 }
 

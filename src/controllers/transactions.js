@@ -386,6 +386,269 @@ class TransactionController extends BaseController {
       next(error);
     }
   }
+
+  // ==================== Admin-only methods ====================
+
+  async getAllAdmin(req, res, next) {
+    try {
+      const { type, user, account, category, startDate, endDate, page, limit, sort } = req.query;
+      
+      // Create query object without user filter (admin can see all)
+      const queryObject = {};
+      
+      // Optional filters
+      if (user) {
+        queryObject.user = user;
+      }
+      
+      if (type) {
+        queryObject.type = type;
+      }
+      
+      if (account) {
+        queryObject.account = account;
+      }
+      
+      if (category) {
+        queryObject.category = category;
+      }
+      
+      // Date range filtering
+      if (startDate || endDate) {
+        queryObject.date = {};
+        
+        if (startDate) {
+          queryObject.date.$gte = new Date(startDate);
+        }
+        
+        if (endDate) {
+          queryObject.date.$lte = new Date(endDate);
+        }
+      }
+
+      // Build query
+      let query = Transaction.find(queryObject);
+
+      // Sorting
+      if (sort) {
+        const sortFields = sort.split(',').join(' ');
+        query = query.sort(sortFields);
+      } else {
+        // Default sort by date (newest first)
+        query = query.sort('-date');
+      }
+
+      // Pagination
+      const pageNumber = Number(page) || 1;
+      const limitNumber = Number(limit) || 50;
+      const skip = (pageNumber - 1) * limitNumber;
+      
+      query = query.skip(skip).limit(limitNumber);
+      
+      // Populate user, account and category information
+      query = query.populate('user', 'username email firstName lastName')
+                   .populate('account', 'name type')
+                   .populate('category', 'name type');
+      
+      // Execute query
+      const transactions = await query;
+      
+      // Count total documents for pagination
+      const totalDocuments = await Transaction.countDocuments(queryObject);
+      
+      res.status(200).json({
+        transactions,
+        count: transactions.length,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(totalDocuments / limitNumber),
+        total: totalDocuments
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getByIdAdmin(req, res, next) {
+    try {
+      const { id } = req.params;
+      
+      // Find transaction without user filter
+      const transaction = await Transaction.findById(id)
+        .populate('user', 'username email firstName lastName')
+        .populate('account', 'name type')
+        .populate('category', 'name type');
+      
+      if (!transaction) {
+        return next(new NotFoundError('Transaction not found'));
+      }
+      
+      res.status(200).json({ transaction });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async createAdmin(req, res, next) {
+    try {
+      // Check if the account exists
+      const account = await Account.findById(req.body.account);
+      
+      if (!account) {
+        return next(new NotFoundError('Account not found'));
+      }
+      
+      // Check if user exists
+      const User = require('../models/users');
+      const user = await User.findById(req.body.user);
+      
+      if (!user) {
+        return next(new NotFoundError('User not found'));
+      }
+      
+      // Check for sufficient funds for expense transactions
+      if (req.body.type === 'expense' && account.balance < req.body.amount) {
+        return next(new BadRequestError('Insufficient funds'));
+      }
+      
+      // Create the transaction
+      const transaction = new Transaction(req.body);
+      await transaction.save();
+      
+      // Update account balance
+      if (transaction.type === 'income') {
+        account.balance += transaction.amount;
+      } else if (transaction.type === 'expense') {
+        account.balance -= transaction.amount;
+      }
+      
+      await account.save();
+      
+      res.status(201).json({ transaction });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateAdmin(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { amount, description, category, date, type, user, account } = req.body;
+      
+      // Find transaction without user filter
+      const transaction = await Transaction.findById(id);
+      
+      if (!transaction) {
+        return next(new NotFoundError('Transaction not found'));
+      }
+      
+      // If amount, type or account changed, update account balances
+      const amountChanged = amount && amount !== transaction.amount;
+      const typeChanged = type && type !== transaction.type;
+      const accountChanged = account && account !== transaction.account.toString();
+      
+      if (amountChanged || typeChanged || accountChanged) {
+        // Handle old account
+        const oldAccount = await Account.findById(transaction.account);
+        
+        if (oldAccount) {
+          // Revert old transaction effect
+          if (transaction.type === 'income') {
+            oldAccount.balance -= transaction.amount;
+          } else {
+            oldAccount.balance += transaction.amount;
+          }
+          await oldAccount.save();
+        }
+        
+        // Handle new account if changed
+        const newAccount = accountChanged 
+          ? await Account.findById(account) 
+          : oldAccount;
+        
+        if (!newAccount) {
+          return next(new NotFoundError('New account not found'));
+        }
+        
+        // Apply new transaction effect
+        const newType = type || transaction.type;
+        const newAmount = amount || transaction.amount;
+        
+        if (newType === 'income') {
+          newAccount.balance += newAmount;
+        } else {
+          if (newAccount.balance < newAmount) {
+            return next(new BadRequestError('Insufficient funds in the new account'));
+          }
+          newAccount.balance -= newAmount;
+        }
+        
+        await newAccount.save();
+      }
+      
+      // Update transaction
+      const updatedFields = {};
+      if (amount) updatedFields.amount = amount;
+      if (description) updatedFields.description = description;
+      if (category) updatedFields.category = category;
+      if (date) updatedFields.date = date;
+      if (type) updatedFields.type = type;
+      if (user) updatedFields.user = user;
+      if (account) updatedFields.account = account;
+      
+      const updatedTransaction = await Transaction.findByIdAndUpdate(
+        id,
+        updatedFields,
+        { new: true, runValidators: true }
+      ).populate('user', 'username email')
+        .populate('account', 'name type')
+        .populate('category', 'name type');
+      
+      res.status(200).json({ transaction: updatedTransaction });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteAdmin(req, res, next) {
+    try {
+      const { id } = req.params;
+      
+      // Find transaction without user filter
+      const transaction = await Transaction.findById(id);
+      
+      if (!transaction) {
+        return next(new NotFoundError('Transaction not found'));
+      }
+      
+      // Check if already deleted
+      if (transaction.isDeleted) {
+        return next(new BadRequestError('Transaction is already deleted'));
+      }
+      
+      // Update account balance
+      const account = await Account.findById(transaction.account);
+      
+      if (account) {
+        if (transaction.type === 'income') {
+          account.balance -= transaction.amount;
+        } else {
+          account.balance += transaction.amount;
+        }
+        
+        await account.save();
+      }
+      
+      // Soft delete
+      await transaction.softDelete();
+      res.status(200).json({ 
+        message: 'Transaction soft deleted successfully',
+        transactionId: transaction._id
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = TransactionController;

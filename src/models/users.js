@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   firstName: {type: String, required: true, trim: true, minlength: 3, maxlength: 30},
   lastName: {type: String, required: true, trim: true, minlength: 3, maxlength: 30},
   currency: {type: String, required: true, enum: {values: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD', 'CHF', 'JPY', 'CNY', 'INR', 'BRL', 'ARS', 'CLP', 'COP', 'MXN', 'PEN', 'PYG', 'UYU', 'VND', 'ZAR'], message: 'Invalid currency. {VALUE} is not supported.'} },
+  isAdmin: {type: Boolean, default: false},
   createdAt: {type: Date, default: Date.now},
 }, {timestamps: true});
 
@@ -116,6 +117,10 @@ userSchema.statics.countDocuments = function(query = {}, options = {}) {
  *           type: string
  *           enum: [USD, EUR, GBP, CAD, AUD, NZD, CHF, JPY, CNY, INR, BRL, ARS, CLP, COP, MXN, PEN, PYG, UYU, VND, ZAR]
  *           description: User's preferred currency
+ *         isAdmin:
+ *           type: boolean
+ *           description: Whether the user has administrator privileges
+ *           default: false
  *         createdAt:
  *           type: string
  *           format: date-time

@@ -1,5 +1,5 @@
 const BaseRouter = require('../interfaces/BaseRouter');
-const { authenticate } = require('../middlewares/auth');
+const { authenticate, isAdmin } = require('../middlewares/auth');
 
 /**
  * @swagger
@@ -510,6 +510,15 @@ class AccountRouter extends BaseRouter {
          *         description: Unauthorized
          */
         this.router.post('/:id/restore', this.controller.restore);
+        
+        // Admin routes without Swagger documentation
+        this.router.get('/admin/all', isAdmin, this.controller.getAllAdmin);
+        this.router.get('/admin/deleted/all', isAdmin, this.controller.getDeletedAccountsAdmin);
+        this.router.get('/admin/:id', isAdmin, this.controller.getByIdAdmin);
+        this.router.post('/admin', isAdmin, this.controller.createAdmin);
+        this.router.patch('/admin/:id', isAdmin, this.controller.updateAdmin);
+        this.router.delete('/admin/:id', isAdmin, this.controller.deleteAdmin);
+        this.router.post('/admin/:id/restore', isAdmin, this.controller.restoreAdmin);
     }
 }
 

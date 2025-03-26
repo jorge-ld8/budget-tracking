@@ -41,6 +41,21 @@ const authenticate = async (req, res, next) => {
   }
 };
 
+// Middleware to check if user is an administrator
+const isAdmin = async (req, res, next) => {
+  // First ensure the user is authenticated
+  if (!req.user) {
+    return next(new UnauthorizedError('Authentication required'));
+  }
+  
+  // Check if the user has admin privileges
+  if (!req.user.isAdmin) {
+    return next(new ForbiddenError('Administrator access required'));
+  }
+  
+  next();
+};
+
 // Optional: middleware to check specific roles
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
@@ -51,4 +66,4 @@ const authorizeRoles = (...roles) => {
   };
 };
 
-module.exports = { authenticate, authorizeRoles }; 
+module.exports = { authenticate, isAdmin, authorizeRoles }; 
