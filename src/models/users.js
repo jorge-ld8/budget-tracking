@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   currency: {type: String, required: true, enum: {values: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD', 'CHF', 'JPY', 'CNY', 'INR', 'BRL', 'ARS', 'CLP', 'COP', 'MXN', 'PEN', 'PYG', 'UYU', 'VND', 'ZAR'], message: 'Invalid currency. {VALUE} is not supported.'} },
   isAdmin: {type: Boolean, default: false},
   createdAt: {type: Date, default: Date.now},
+  isDeleted: {type: Boolean, default: false, index: true}
 }, {timestamps: true});
 
 userSchema.pre('save', async function(next) {
