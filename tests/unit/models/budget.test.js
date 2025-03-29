@@ -98,112 +98,112 @@ describe('Budget Model', () => {
     expect(budget.isRecurring).toBe(false);
   });
   
-//   it('should support soft deletion methods', async () => {
-//     const budget = await Budget.create({
-//       amount: 500,
-//       period: 'monthly',
-//       category: new mongoose.Types.ObjectId(),
-//       startDate: new Date(),
-//       user: new mongoose.Types.ObjectId()
-//     });
+  it('should support soft deletion methods', async () => {
+    const budget = await Budget.create({
+      amount: 500,
+      period: 'monthly',
+      category: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
+      user: new mongoose.Types.ObjectId()
+    });
     
-//     await budget.softDelete();
-//     expect(budget.isDeleted).toBe(true);
+    await budget.softDelete();
+    expect(budget.isDeleted).toBe(true);
     
-//     // Test that it's excluded from regular queries
-//     const foundBudget = await Budget.findById(budget._id);
-//     expect(foundBudget).toBeNull();
+    // Test that it's excluded from regular queries
+    const foundBudget = await Budget.findById(budget._id);
+    expect(foundBudget).toBeNull();
     
-//     // Test it can be found with includeDeleted
-//     const query = Budget.findById(budget._id);
-//     query.includeDeleted = true;
-//     const deletedBudget = await query;
-//     expect(deletedBudget).not.toBeNull();
-//     expect(deletedBudget.isDeleted).toBe(true);
-//   });
+    // Test it can be found with includeDeleted
+    const query = Budget.findById(budget._id);
+    query.includeDeleted = true;
+    const deletedBudget = await query;
+    expect(deletedBudget).not.toBeNull();
+    expect(deletedBudget.isDeleted).toBe(true);
+  });
   
-//   it('should support restore method', async () => {
-//     const budget = await Budget.create({
-//       amount: 500,
-//       period: 'monthly',
-//       category: new mongoose.Types.ObjectId(),
-//       startDate: new Date(),
-//       user: new mongoose.Types.ObjectId()
-//     });
+  it('should support restore method', async () => {
+    const budget = await Budget.create({
+      amount: 500,
+      period: 'monthly',
+      category: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
+      user: new mongoose.Types.ObjectId()
+    });
     
-//     // Delete and then restore
-//     await budget.softDelete();
-//     expect(budget.isDeleted).toBe(true);
+    // Delete and then restore
+    await budget.softDelete();
+    expect(budget.isDeleted).toBe(true);
     
-//     await budget.restore();
-//     expect(budget.isDeleted).toBe(false);
+    await budget.restore();
+    expect(budget.isDeleted).toBe(false);
     
-//     // Verify it shows up in normal queries again
-//     const restoredBudget = await Budget.findById(budget._id);
-//     expect(restoredBudget).not.toBeNull();
-//     expect(restoredBudget.isDeleted).toBe(false);
-//   });
+    // Verify it shows up in normal queries again
+    const restoredBudget = await Budget.findById(budget._id);
+    expect(restoredBudget).not.toBeNull();
+    expect(restoredBudget.isDeleted).toBe(false);
+  });
   
-//   it('should use findDeleted static method to find deleted documents', async () => {
-//     // Create and delete a budget
-//     const budget = await Budget.create({
-//       amount: 500,
-//       period: 'monthly',
-//       category: new mongoose.Types.ObjectId(),
-//       startDate: new Date(),
-//       user: new mongoose.Types.ObjectId()
-//     });
-//     await budget.softDelete();
+  it('should use findDeleted static method to find deleted documents', async () => {
+    // Create and delete a budget
+    const budget = await Budget.create({
+      amount: 500,
+      period: 'monthly',
+      category: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
+      user: new mongoose.Types.ObjectId()
+    });
+    await budget.softDelete();
     
-//     // Use findDeleted to find it
-//     const deletedBudgets = await Budget.findDeleted({
-//       _id: budget._id
-//     });
+    // Use findDeleted to find it
+    const deletedBudgets = await Budget.findDeleted({
+      _id: budget._id
+    });
     
-//     expect(deletedBudgets.length).toBeGreaterThan(0);
-//     expect(deletedBudgets[0]._id.toString()).toBe(budget._id.toString());
-//     expect(deletedBudgets[0].isDeleted).toBe(true);
-//   });
+    expect(deletedBudgets.length).toBeGreaterThan(0);
+    expect(deletedBudgets[0]._id.toString()).toBe(budget._id.toString());
+    expect(deletedBudgets[0].isDeleted).toBe(true);
+  });
   
-//   it('should respect isDeleted filter in countDocuments', async () => {
-//     // Create a unique user ID to isolate this test
-//     const userId = new mongoose.Types.ObjectId();
+  it('should respect isDeleted filter in countDocuments', async () => {
+    // Create a unique user ID to isolate this test
+    const userId = new mongoose.Types.ObjectId();
     
-//     // Create 3 budgets, then delete 1
-//     await Budget.create({
-//       amount: 500,
-//       period: 'monthly',
-//       category: new mongoose.Types.ObjectId(),
-//       startDate: new Date(),
-//       user: userId
-//     });
+    // Create 3 budgets, then delete 1
+    await Budget.create({
+      amount: 500,
+      period: 'monthly',
+      category: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
+      user: userId
+    });
     
-//     await Budget.create({
-//       amount: 700,
-//       period: 'yearly',
-//       category: new mongoose.Types.ObjectId(),
-//       startDate: new Date(),
-//       user: userId
-//     });
+    await Budget.create({
+      amount: 700,
+      period: 'yearly',
+      category: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
+      user: userId
+    });
     
-//     const budget3 = await Budget.create({
-//       amount: 300,
-//       period: 'weekly',
-//       category: new mongoose.Types.ObjectId(),
-//       startDate: new Date(),
-//       user: userId
-//     });
-//     await budget3.softDelete();
+    const budget3 = await Budget.create({
+      amount: 300,
+      period: 'weekly',
+      category: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
+      user: userId
+    });
+    await budget3.softDelete();
     
-//     // Count active documents
-//     const activeCount = await Budget.countDocuments({ user: userId });
-//     expect(activeCount).toBe(2);
+    // Count active documents
+    const activeCount = await Budget.countDocuments({ user: userId });
+    expect(activeCount).toBe(2);
     
-//     // Count all documents including deleted
-//     const totalCount = await Budget.countDocuments(
-//       { user: userId },
-//       { includeDeleted: true }
-//     );
-//     expect(totalCount).toBe(3);
-//   });
+    // Count all documents including deleted
+    const totalCount = await Budget.countDocuments(
+      { user: userId },
+      { includeDeleted: true }
+    );
+    expect(totalCount).toBe(3);
+  });
 }); 
