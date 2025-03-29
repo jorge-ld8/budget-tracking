@@ -1,0 +1,34 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Create test env file
+        run: |
+          echo "PORT=3011" > .env.development
+          echo "MONGO_URI=mongodb://localhost:27017/budget-test" >> .env.development
+          echo "JWT_SECRET=test_secret" >> .env.development
+          echo "JWT_LIFETIME=1d" >> .env.development
+          echo "NODE_ENV=test" >> .env.development
+      
+      - name: Run tests
+        run: npm test 
