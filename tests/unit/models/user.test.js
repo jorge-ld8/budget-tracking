@@ -46,7 +46,7 @@ describe('User Model', () => {
     } catch (e) {
       error = e;
     }
-    
+
     expect(error).toBeDefined();
     expect(error.errors.username).toBeDefined();
     expect(error.errors.email).toBeDefined();
