@@ -114,6 +114,15 @@ npm run dev
 docker run --rm -v .:/app -v /app/node_modules -p 3012:3010 --name budgetContainer -e NODE_ENV=development budgetproject:latest npm run dev
 ```
 
+## 🔄 Continuous Integration
+
+This project uses GitHub Actions for automated testing. Tests run automatically when:
+
+- Code is pushed to the main or develop branch
+- A pull request is opened targeting these branches
+
+For more details, see the [GitHub Actions workflow documentation](.github/workflows/README.md).
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
