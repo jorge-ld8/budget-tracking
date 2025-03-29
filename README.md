@@ -53,7 +53,7 @@ docker-compose up -d
 docker-compose down
 ```
 
-## ❗ Troubleshooting
+## Troubleshooting
 
 ### Port Already In Use
 
@@ -70,28 +70,7 @@ The API documentation is available through Swagger UI:
 http://localhost:3012/api-docs
 ```
 
-## 🛠️ Development
-
-### Project Structure
-
-```
-├── src/
-│   ├── config/          # Configuration files
-│   ├── controllers/     # Request handlers
-│   ├── models/          # Database models
-│   ├── routes/          # API routes
-│   ├── middlewares/     # Express middlewares
-│   ├── interfaces/      # Base classes and interfaces
-│   ├── errors/          # Error handling
-│   ├── swagger.js       # Swagger configuration
-│   └── app.js           # Express application
-├── server.js            # Entry point
-├── .env                 # Environment variables
-├── .env.development     # Development environment variables
-├── Dockerfile           # Docker configuration
-├── docker-compose.yml   # Docker Compose configuration
-└── package.json         # Project dependencies
-```
+## Development
 
 ### Environment Variables
 
@@ -114,20 +93,18 @@ npm run dev
 docker run --rm -v .:/app -v /app/node_modules -p 3012:3010 --name budgetContainer -e NODE_ENV=development budgetproject:latest npm run dev
 ```
 
-## 🔄 Continuous Integration
+## Continuous Integration
 
 This project uses GitHub Actions for automated testing. Tests run automatically when:
 
 - Code is pushed to the main or develop branch
 - A pull request is opened targeting these branches
 
-For more details, see the [GitHub Actions workflow documentation](.github/workflows/README.md).
-
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
