@@ -48,12 +48,6 @@ budgetSchema.statics.findDeleted = function(query = {}) {
   return queryObj;
 };
 
-// Add a static method to find both deleted and non-deleted
-budgetSchema.statics.findWithDeleted = function(query = {}) {
-  const self = this;
-  self.includeDeleted = true;
-  return self.find(query);
-};
 
 // Override the countDocuments to respect the isDeleted filter
 budgetSchema.statics.countDocuments = function(query = {}, options = {}) {
