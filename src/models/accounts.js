@@ -51,13 +51,6 @@ accountSchema.statics.findDeleted = function(query = {}) {
   return queryObj;
 };
 
-// Add a static method to find both deleted and non-deleted
-accountSchema.statics.findWithDeleted = function(query = {}) {
-  const self = this;
-  self.includeDeleted = true;
-  return self.find(query);
-};
-
 // Override the countDocuments to respect the isDeleted filter
 accountSchema.statics.countDocuments = function(query = {}, options = {}) {
   // Allow override of isDeleted behavior through options
