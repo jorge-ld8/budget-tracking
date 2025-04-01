@@ -1,0 +1,10 @@
+[{"name":"electronics","type":"expense","color":"#bdbfd6","user":"67e3eff6d0800c2a9abd5962"},
+{"name":"tickets","type":"income","color":"#3d970d","user":"67e3eff6d0800c2a9abd5962"},
+{"name":"groceries","type":"income","color":"#c1b915","user":"67e3eff6d0800c2a9abd5962"},
+{"name":"clothing","type":"expense","color":"#a12a7c","user":"67e3eff6d0800c2a9abd5962"},
+{"name":"dining","type":"expense","color":"#eb191d","user":"67e3eff6d0800c2a9abd5962"},
+{"name":"utilities","type":"income","color":"#228098","user":"67e3eff6d0800c2a9abd5962"},
+{"name":"dining","type":"income","color":"#e70da0","user":"67e3eff6d0800c2a9abd5962"},
+{"name":"groceries","type":"expense","color":"#777a51","user":"67e3eff6d0800c2a9abd5962"},
+{"name":"travel","type":"income","color":"#de2305","user":"67e3eff6d0800c2a9abd5962"},
+{"name":"tickets","type":"expense","color":"#77634b","user":"67e3eff6d0800c2a9abd5962"}]
