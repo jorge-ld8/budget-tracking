@@ -5,14 +5,14 @@ An Express application for managing personal finances with user accounts, budget
 ## 🚀 Features
 
 - User authentication with JWT
-- Account management with soft delete functionality
+- Account management 
 - Expense tracking and categorization
 - Budget planning and monitoring
 - RESTful API with Swagger documentation
 
-## 📦 Prerequisites
+## Prerequisites
 
-- [Docker](https://www.docker.com/get-started) installed on your machine
+- Docker installed on your machine
 - Git for cloning the repository
 
 ## 🐳 Docker Setup
@@ -30,7 +30,7 @@ cd budget-project
 docker build -t budgetproject:latest .
 ```
 
-## 🏃‍♂️ Running the Application
+## Running the Application
 
 ### Using Docker run
 
@@ -62,7 +62,7 @@ If port 3012 is already in use:
 docker run --rm -v .:/app -v /app/node_modules --name budgetContainer -p 3013:3010 budgetproject:latest
 ```
 
-## 📚 API Documentation
+## API Documentation
 
 The API documentation is available through Swagger UI:
 
