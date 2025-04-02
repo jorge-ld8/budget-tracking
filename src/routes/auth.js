@@ -1,5 +1,11 @@
 const BaseRouter = require('../interfaces/BaseRouter');
+const rateLimiter = require('express-rate-limit');
 
+const limiter = rateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 3, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later'
+});
 /**
  * @swagger
  * tags:
@@ -104,7 +110,7 @@ class AuthRouter extends BaseRouter {
          *       409:
          *         description: Username or email already exists
          */
-        this.router.post('/register', this.controller.register);
+        this.router.post('/register', limiter, this.controller.register);
 
         /**
          * @swagger
@@ -151,7 +157,7 @@ class AuthRouter extends BaseRouter {
          *       401:
          *         description: Invalid credentials
          */
-        this.router.post('/login', this.controller.login);
+        this.router.post('/login', limiter, this.controller.login);
 
         /**
          * @swagger
