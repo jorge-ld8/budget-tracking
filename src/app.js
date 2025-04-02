@@ -11,6 +11,8 @@ const TransactionsRouter = require('./routes/transactions');
 const TransactionController = require('./controllers/transactions');
 const CategoriesRouter = require('./routes/categories');
 const CategoriesController = require('./controllers/categories');
+const BudgetsRouter = require('./routes/budgets');
+const BudgetsController = require('./controllers/budgets');
 const errorHandler = require('./middlewares/error-handler');
 const AuthRouter = require('./routes/auth');
 const AuthController = require('./controllers/auth');
@@ -56,6 +58,7 @@ app.use('/users', new UsersRouter(new UsersController()).getRouter());
 app.use('/accounts', new AccountRouter(new AccountController()).getRouter());
 app.use('/transactions', new TransactionsRouter(new TransactionController()).getRouter());
 app.use('/categories', new CategoriesRouter(new CategoriesController()).getRouter());
+app.use('/budgets', new BudgetsRouter(new BudgetsController()).getRouter());
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome to the budget tracking express api"});
