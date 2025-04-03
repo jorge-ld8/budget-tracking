@@ -18,4 +18,5 @@ config.js
 ## Docker files
 Dockerfile
 docker-compose.yml
-
+.gitignore
+.cursorrules

@@ -3,8 +3,20 @@ name: Run Tests
 on:
   push:
     branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'jest.config.js'
+      - '.github/workflows/test.yml'
   pull_request:
     branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'jest.config.js'
+      - '.github/workflows/test.yml'
 
 jobs:
   test:
