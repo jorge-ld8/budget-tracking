@@ -75,6 +75,8 @@ web_modules/
 # dotenv environment variable files
 .env
 .env.development
+.env.production
+.env.test
 .env.development.local
 .env.test.local
 .env.production.local
@@ -137,3 +139,5 @@ dist
 .pnp.*f
 
 next_steps.txt
+
+
