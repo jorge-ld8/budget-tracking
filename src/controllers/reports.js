@@ -71,7 +71,6 @@ class ReportsController extends BaseController {
       const totalSpending = spendingByCategory.reduce((sum, item) => sum + item.totalAmount, 0);
       
       res.status(200).json({
-        report: {
           type: 'spending_by_category',
           period: { startDate, endDate },
           data: spendingByCategory,
@@ -79,7 +78,6 @@ class ReportsController extends BaseController {
             totalSpending,
             categoriesCount: spendingByCategory.length
           }
-        }
       });
     } catch (error) {
       next(error);
@@ -183,7 +181,6 @@ class ReportsController extends BaseController {
       const totalExpense = transformedData.reduce((sum, item) => sum + item.expense, 0);
       
       res.status(200).json({
-        report: {
           type: 'income_vs_expenses',
           period: { startDate, endDate, groupBy },
           data: transformedData,
@@ -193,7 +190,6 @@ class ReportsController extends BaseController {
             balance: totalIncome - totalExpense,
             periodCount: transformedData.length
           }
-        }
       });
     } catch (error) {
       next(error);
@@ -241,7 +237,6 @@ class ReportsController extends BaseController {
       ]);
       
       res.status(200).json({
-        report: {
           type: 'monthly_trend',
           period: { 
             startDate: startDate.toISOString().split('T')[0], 
@@ -255,7 +250,6 @@ class ReportsController extends BaseController {
               : 0,
             monthsCount: monthlyTrend.length
           }
-        }
       });
     } catch (error) {
       next(error);
