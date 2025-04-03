@@ -1,12 +1,13 @@
 const app = require('./src/app');
-const connectDB = require('./src/config/config');
+const {connectDB, NODE_ENV} = require('./src/config/config');
 
 // load environment variables
-require('dotenv').config();
+// require('dotenv').config();
 // can be used to avoid using try catch in controllers
 require('express-async-errors');
 
-const envFile = process.env.NODE_ENV === 'development' ? '.env.development' : '.env';
+
+const envFile = NODE_ENV === 'development' ? '.env.development' : (NODE_ENV === 'production' ? '.env.production' : '.env');
 require('dotenv').config({ path: envFile });
 
 
