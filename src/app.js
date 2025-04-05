@@ -21,6 +21,11 @@ const AuthController = require('./controllers/auth');
 const { swaggerDocs } = require('./swagger');
 const path = require('path');
 const app = express();
+const { NODE_ENV} = require('./config/config');
+
+// Load environment variables
+const envFile = NODE_ENV === 'development' ? '.env.development' : (NODE_ENV === 'production' ? '.env.production' : '.env');
+require('dotenv').config({ path: envFile });
 
 // Security packages
 const xss = require('xss-clean');
@@ -33,6 +38,7 @@ const apiLimiter = rateLimiter({
   max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later'
 });
+
 
 // Middleware
 app.use(apiLimiter);
