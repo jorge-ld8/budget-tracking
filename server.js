@@ -13,6 +13,7 @@ require('dotenv').config({ path: envFile });
 
 const start = async () => {
   try {
+    console.log('NODE_ENV', NODE_ENV);
     await connectDB(process.env.MONGO_URI).then(() => {
   console.log('Connected to MongoDB');
     }).catch((err) => {

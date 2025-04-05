@@ -10,8 +10,7 @@ RUN apk add --no-cache python3 make g++ && \
 
 COPY . .
 
-EXPOSE 3010
+EXPOSE $PORT
 
-CMD ["npm", "run", "start"]
-
+CMD ["sh", "-c", "if [ \"$NODE_ENV\" = \"development\" ]; then npm run dev; else npm run start; fi"]
 
