@@ -1,22 +1,5 @@
-import { useState } from 'react'
 import './App.css'
-import Navbar from './components/Navbar'
-
-
-type CardProps = {
-  name: string
-}
-
-function Card({name}: CardProps) {
-  const [count, setCount] = useState(0)
-  return (
-    <div className="bg-darkgreen p-4 rounded-lg m-4">
-      <h1 className="text-3xl font-bold text-white">Hello {name} - {count}</h1>
-      <button onClick={() => setCount(count + 1)}>Click me</button>
-    </div>
-  )
-}
-
+import Navbar from './components/Navbar';
 
 function App() {
   return (
