@@ -55,7 +55,6 @@ class AuthController extends BaseController {
       };
 
       console.log('req.body', req.body);
-      console.log(await User.find());
       // Check if user exists
       const user = await User.findOne({ email });
       console.log('user', user);

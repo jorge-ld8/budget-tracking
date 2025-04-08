@@ -1,5 +1,6 @@
 const BaseRouter = require('../interfaces/BaseRouter');
 const rateLimiter = require('express-rate-limit');
+const { authenticate } = require('../middlewares/auth');
 
 const limiter = rateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -110,7 +111,7 @@ class AuthRouter extends BaseRouter {
          *       409:
          *         description: Username or email already exists
          */
-        this.router.post('/register', limiter, this.controller.register);
+        this.router.post('/register', limiter, authenticate, this.controller.register);
 
         /**
          * @swagger
@@ -181,7 +182,7 @@ class AuthRouter extends BaseRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.post('/logout', this.controller.logout);
+        this.router.post('/logout', authenticate, this.controller.logout);
 
         /**
          * @swagger
@@ -204,7 +205,7 @@ class AuthRouter extends BaseRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.get('/current-user', this.controller.getCurrentUser);
+        this.router.get('/current-user', authenticate, this.controller.getCurrentUser);
 
         /**
          * @swagger
@@ -236,7 +237,7 @@ class AuthRouter extends BaseRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.post('/change-password', this.controller.changePassword);
+        this.router.post('/change-password', authenticate, this.controller.changePassword);
     }
 }
 
