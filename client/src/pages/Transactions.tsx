@@ -9,6 +9,7 @@ import Modal from '../components/shared/Modal';
 import TransactionForm from '../components/transactions/TransactionForm';
 import TransactionList from '../components/transactions/TransactionList';
 import TransactionFiltersComponent from '../components/transactions/TransactionFilters';
+import { PaginationData } from '../types/common';
 
 const TransactionsPage: React.FC = () => {
   // State
@@ -19,29 +20,65 @@ const TransactionsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentTransaction, setCurrentTransaction] = useState<Transaction | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [currentFilters, setCurrentFilters] = useState<TransactionFilters>({});
+  const [paginationData, setPaginationData] = useState<PaginationData>({
+    page: 1,
+    limit: 10,
+    count: 0,
+    totalPages: 1
+  });
   
-  // Fetch all data on mount
+
   useEffect(() => {
+    fetchTransactionsData(currentFilters, paginationData.page, paginationData.limit);
+  }, [paginationData.page, paginationData.limit]);
+  
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setIsLoading(true);
+      try {
+        const [categoriesData, accountsData] = await Promise.all([
+          categoryService.getAll(),
+          accountService.getAll()
+        ]);
+        
+        setCategories(categoriesData);
+        setAccounts(accountsData);
+        console.log("accounts", accountsData);
+        
+        // Initial transactions fetch is handled by the other useEffect
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to load data';
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
     fetchInitialData();
   }, []);
   
-  // Method to fetch all required data
-  const fetchInitialData = async () => {
+  // Method to fetch transactions with pagination
+  const fetchTransactionsData = async (
+    filters: TransactionFilters = {}, 
+    page: number = 1, 
+    limit: number = 10
+  ) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      const [transactionsData, categoriesData, accountsData] = await Promise.all([
-        transactionService.getAll(),
-        categoryService.getAll(),
-        accountService.getAll()
-      ]);
+      const response = await transactionService.getAllPaginated(filters, page, limit);
       
-      setTransactions(transactionsData);
-      setCategories(categoriesData);
-      setAccounts(accountsData);
+      setTransactions(response.transactions);
+      setPaginationData({
+        count: response.count,
+        page: response.page,
+        limit: response.limit,
+        totalPages: response.totalPages
+      });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load data';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load transactions';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -50,18 +87,14 @@ const TransactionsPage: React.FC = () => {
   
   // Method to apply filters
   const applyFilters = async (filters: TransactionFilters) => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const filteredTransactions = await transactionService.getAll(filters as TransactionFormData);
-      setTransactions(filteredTransactions);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to filter transactions';
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
+    setCurrentFilters(filters);
+    // Reset to page 1 when applying new filters
+    fetchTransactionsData(filters, 1, paginationData.limit);
+  };
+  
+  // Method to handle page change
+  const handlePageChange = (page: number) => {
+    fetchTransactionsData(currentFilters, page, paginationData.limit);
   };
   
   // Modal control methods
@@ -88,18 +121,14 @@ const TransactionsPage: React.FC = () => {
           formData
         );
         
-        // Update the transactions list
-        setTransactions(prevTransactions => 
-          prevTransactions.map(t => 
-            t._id === updatedTransaction._id ? updatedTransaction : t
-          )
-        );
+        // Refresh the transactions list after update
+        fetchTransactionsData(currentFilters, paginationData.page, paginationData.limit);
       } else {
         // Create new transaction
-        const newTransaction = await transactionService.create(formData);
+        await transactionService.create(formData);
         
-        // Add to the transactions list
-        setTransactions(prevTransactions => [...prevTransactions, newTransaction]);
+        // Refresh the transactions list after create
+        fetchTransactionsData(currentFilters, paginationData.page, paginationData.limit);
       }
       
       // Close the modal
@@ -123,10 +152,8 @@ const TransactionsPage: React.FC = () => {
     try {
       await transactionService.delete(id);
       
-      // Remove from the transactions list
-      setTransactions(prevTransactions => 
-        prevTransactions.filter(t => t._id !== id)
-      );
+      // Refresh the transactions list after delete
+      fetchTransactionsData(currentFilters, paginationData.page, paginationData.limit);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete transaction';
       setError(errorMessage);
@@ -170,6 +197,8 @@ const TransactionsPage: React.FC = () => {
           accounts={accounts}
           onEdit={handleOpenModal}
           onDelete={handleDelete}
+          paginationData={paginationData}
+          onPageChange={handlePageChange}
         />
       )}
       

@@ -15,4 +15,17 @@ export interface DateRangeFilter {
     startDate?: string;
     endDate?: string;
   }
+
+// Pagination response from API
+export interface PaginationData {
+  count: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: PaginationData;
+}
   

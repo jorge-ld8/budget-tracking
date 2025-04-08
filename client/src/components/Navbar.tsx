@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import NavLink from './NavLink';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { logout } = useAuth();
   
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -26,7 +28,7 @@ const Navbar = () => {
             <NavLink to="/transactions">Transactions</NavLink>
             <NavLink to="/budgets">Budgets</NavLink>
             <NavLink to="/reports">Reports</NavLink>
-            <button className="text-white hover:text-white hover:opacity-50 px-3 py-2 rounded-md font-medium transition-colors duration-200">
+            <button className="text-white hover:text-white hover:opacity-50 px-3 py-2 rounded-md font-medium transition-colors duration-200" onClick={() => logout()}>
               Logout
             </button>
           </div>

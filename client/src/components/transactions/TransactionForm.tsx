@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Transaction, TransactionFormData, TransactionType } from '../../types/transaction';
+import { Transaction, TransactionType } from '../../types/transaction';
 import { Category } from '../../types/category';
 import { Account } from '../../types/account';
-import { validateTransactionForm, ValidationErrors } from '../../utils/validation';
 
 interface TransactionFormProps {
-  transaction?: Transaction | null;
+  transaction?: Transaction;
   categories: Category[];
   accounts: Account[];
-  onSubmit: (data: TransactionFormData) => Promise<void>;
+  onSubmit: (formData: Partial<Transaction>) => void;
   onCancel: () => void;
 }
 
@@ -19,195 +18,217 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   onSubmit,
   onCancel
 }) => {
-  const initialFormState: TransactionFormData = {
-    amount: transaction?.amount || 0,
-    type: transaction?.type || TransactionType.Expense,
-    description: transaction?.description || '',
-    date: transaction?.date ? new Date(transaction.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-    category: transaction?.category || '',
-    account: transaction?.account || ''
-  };
-  
-  const [formData, setFormData] = useState<TransactionFormData>(initialFormState);
-  const [errors, setErrors] = useState<ValidationErrors<TransactionFormData>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const [formData, setFormData] = useState<Partial<Transaction>>({
+    amount: 0,
+    type: TransactionType.Expense,
+    description: '',
+    date: new Date().toISOString().split('T')[0],
+    category: '',
+    account: ''
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   useEffect(() => {
     if (transaction) {
       setFormData({
-        amount: transaction.amount,
-        type: transaction.type,
-        description: transaction.description,
-        date: new Date(transaction.date).toISOString().split('T')[0],
-        category: transaction.category,
-        account: transaction.account
+        ...transaction,
+        date: new Date(transaction.date).toISOString().split('T')[0]
       });
     }
   }, [transaction]);
-  
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.amount || formData.amount <= 0) {
+      newErrors.amount = 'Amount must be greater than 0';
+    }
+    
+    if (!formData.description) {
+      newErrors.description = 'Description is required';
+    }
+    
+    if (!formData.category) {
+      newErrors.category = 'Category is required';
+    }
+    
+    if (!formData.account) {
+      newErrors.account = 'Account is required';
+    }
+    
+    if (!formData.date) {
+      newErrors.date = 'Date is required';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value, type } = e.target as HTMLInputElement;
     
     setFormData(prev => ({
       ...prev,
       [name]: type === 'number' ? parseFloat(value) : value
     }));
     
-    // Clear error when field is updated
-    if (errors[name as keyof TransactionFormData]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: undefined
-      }));
+    // Clear error when field is edited
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
-  
-  const handleSubmit = async (e: React.FormEvent) => {
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validationErrors = validateTransactionForm(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-    
-    setIsSubmitting(true);
-    try {
-      await onSubmit(formData);
-    } catch (error) {
-      console.error('Error submitting form:', error);
-    } finally {
-      setIsSubmitting(false);
+    if (validate()) {
+      onSubmit(formData);
     }
   };
-  
+
+  // Filter categories based on selected transaction type
+  const filteredCategories = categories.filter(cat => cat.type === formData.type);
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Type
-          </label>
-          <select
-            name="type"
-            value={formData.type}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            <option value="expense">Expense</option>
-            <option value="income">Income</option>
-          </select>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Amount
-          </label>
-          <input
-            type="number"
-            name="amount"
-            value={formData.amount}
-            onChange={handleChange}
-            min="0"
-            step="0.01"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
-          {errors.amount && (
-            <p className="mt-1 text-sm text-red-600">{errors.amount}</p>
-          )}
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Date
-          </label>
-          <input
-            type="date"
-            name="date"
-            value={formData.date}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Category
-          </label>
-          <select
-            name="category"
-            value={formData.category}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            <option value="">Select a category</option>
-            {categories
-              .filter(cat => cat.type === formData.type)
-              .map(category => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-          </select>
-          {errors.category && (
-            <p className="mt-1 text-sm text-red-600">{errors.category}</p>
-          )}
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Account
-          </label>
-          <select
-            name="account"
-            value={formData.account}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-          >
-            <option value="">Select an account</option>
-            {accounts.map(account => (
-              <option key={account._id} value={account._id}>
-                {account.name}
-              </option>
-            ))}
-          </select>
-          {errors.account && (
-            <p className="mt-1 text-sm text-red-600">{errors.account}</p>
-          )}
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1">
+          Transaction Type
+        </label>
+        <div className="flex space-x-4">
+          <div className="flex items-center">
+            <input
+              type="radio"
+              id="expense"
+              name="type"
+              value={TransactionType.Expense}
+              checked={formData.type === TransactionType.Expense}
+              onChange={handleChange}
+              className="h-4 w-4 text-indigo-600 border-gray-700 bg-gray-800 focus:ring-indigo-500"
+            />
+            <label htmlFor="expense" className="ml-2 text-gray-300">
+              Expense
+            </label>
+          </div>
+          <div className="flex items-center">
+            <input
+              type="radio"
+              id="income"
+              name="type"
+              value={TransactionType.Income}
+              checked={formData.type === TransactionType.Income}
+              onChange={handleChange}
+              className="h-4 w-4 text-indigo-600 border-gray-700 bg-gray-800 focus:ring-indigo-500"
+            />
+            <label htmlFor="income" className="ml-2 text-gray-300">
+              Income
+            </label>
+          </div>
         </div>
       </div>
       
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="amount" className="block text-sm font-medium text-gray-300 mb-1">
+          Amount
+        </label>
+        <input
+          type="number"
+          id="amount"
+          name="amount"
+          step="0.01"
+          value={formData.amount}
+          onChange={handleChange}
+          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-300"
+        />
+        {errors.amount && <p className="mt-1 text-sm text-red-500">{errors.amount}</p>}
+      </div>
+      
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-1">
           Description
         </label>
         <textarea
+          id="description"
           name="description"
+          rows={2}
           value={formData.description}
           onChange={handleChange}
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-        ></textarea>
-        {errors.description && (
-          <p className="mt-1 text-sm text-red-600">{errors.description}</p>
-        )}
+          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-300"
+        />
+        {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
       </div>
       
-      <div className="flex justify-end space-x-3 pt-4">
+      <div>
+        <label htmlFor="date" className="block text-sm font-medium text-gray-300 mb-1">
+          Date
+        </label>
+        <input
+          type="date"
+          id="date"
+          name="date"
+          value={formData.date}
+          onChange={handleChange}
+          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-300"
+        />
+        {errors.date && <p className="mt-1 text-sm text-red-500">{errors.date}</p>}
+      </div>
+      
+      <div>
+        <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-1">
+          Category
+        </label>
+        <select
+          id="category"
+          name="category"
+          value={formData.category as string}
+          onChange={handleChange}
+          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-300"
+        >
+          <option value="">Select a category</option>
+          {filteredCategories.map(category => (
+            <option key={category._id} value={category._id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+        {errors.category && <p className="mt-1 text-sm text-red-500">{errors.category}</p>}
+      </div>
+      
+      <div>
+        <label htmlFor="account" className="block text-sm font-medium text-gray-300 mb-1">
+          Account
+        </label>
+        <select
+          id="account"
+          name="account"
+          value={formData.account as string}
+          onChange={handleChange}
+          className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-gray-300"
+        >
+          <option value="">Select an account</option>
+          {accounts.map(account => (
+            <option key={account._id} value={account._id}>
+              {account.name}
+            </option>
+          ))}
+        </select>
+        {errors.account && <p className="mt-1 text-sm text-red-500">{errors.account}</p>}
+      </div>
+      
+      <div className="flex justify-end space-x-3">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-          disabled={isSubmitting}
+          className="px-4 py-2 border border-gray-700 text-gray-300 rounded-md bg-gray-800 hover:bg-gray-700"
         >
           Cancel
         </button>
         <button
           type="submit"
-          disabled={isSubmitting}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50"
+          className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
         >
-          {isSubmitting ? 'Saving...' : transaction ? 'Update' : 'Create'}
+          {transaction ? 'Update' : 'Create'} Transaction
         </button>
       </div>
     </form>
