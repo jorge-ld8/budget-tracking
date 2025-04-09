@@ -7,3 +7,10 @@ export interface Category extends Entity {
     icon: string;
     color: string;
   }
+
+  export interface CategoryFormData {
+    name: string;
+    type: TransactionType;
+    icon: string;
+    color: string;
+  }

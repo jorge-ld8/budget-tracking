@@ -29,6 +29,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
   paginationData,
   onPageChange
 }) => {
+    
 console.log("accounts", accounts);
 
   // Filter transactions by deleted status if specified
