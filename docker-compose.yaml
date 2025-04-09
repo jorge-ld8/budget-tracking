@@ -11,6 +11,9 @@ services:
       - ./client/.env
     depends_on:
       - backend
+    volumes:
+      - ./client:/app
+      - /app/node_modules
     
   backend:
     build:
