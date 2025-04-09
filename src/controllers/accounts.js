@@ -8,7 +8,6 @@ class AccountController extends BaseController {
   }
 
   async getAll(req, res) {
-    console.log("req.query", req.query);
     const { type, name, sort, fields, page, limit, numericFilters } = req.query;
 
     // Add user filter to query object - only return accounts belonging to the authenticated user

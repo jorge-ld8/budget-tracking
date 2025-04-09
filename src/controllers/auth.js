@@ -54,10 +54,8 @@ class AuthController extends BaseController {
         return next(new BadRequestError('Email and password are required'));
       };
 
-      console.log('req.body', req.body);
       // Check if user exists
       const user = await User.findOne({ email });
-      console.log('user', user);
       if (!user) {
         return next(new UnauthorizedError('Invalid credentials'));
       }
