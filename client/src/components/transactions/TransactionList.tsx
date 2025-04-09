@@ -29,8 +29,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
   paginationData,
   onPageChange
 }) => {
-    
-console.log("accounts", accounts);
+
 
   // Filter transactions by deleted status if specified
   const filteredTransactions = showDeleted
@@ -49,7 +48,6 @@ console.log("accounts", accounts);
   
   const getAccountName = (accountId: string): string => {
     const account = accounts.find(a => a._id === accountId);
-    console.log("account", account)
     return account ? account.name : 'Unknown Account';
   };
   

@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (token) {
         try {
           // Fetch user profile with the token
-          const response = await fetch('http://localhost:3010/auth/current-user', {
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/current-user`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:3010/auth/login', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -99,7 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = async () => {
-    const response = await fetch('http://localhost:3010/auth/logout', {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`

@@ -47,13 +47,13 @@ const Modal: React.FC<ModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 backdrop-blur-md bg-opacity-50 transition-opacity"
         onClick={onClose}
       ></div>
       
       <div className="flex items-center justify-center min-h-screen p-4">
         <div
-          className={`${sizeClasses[size]} w-full bg-white rounded-lg shadow-xl transform transition-all relative`}
+          className={`${sizeClasses[size]} w-full bg-gray-900 rounded-lg shadow-xl transform transition-all relative`}
           onClick={e => e.stopPropagation()}
         >
           <div className="flex items-center justify-between p-4 border-b">

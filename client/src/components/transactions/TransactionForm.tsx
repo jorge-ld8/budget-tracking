@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Transaction, TransactionType } from '../../types/transaction';
+import { Transaction, TransactionFormData, TransactionType } from '../../types/transaction';
 import { Category } from '../../types/category';
 import { Account } from '../../types/account';
 
@@ -7,7 +7,7 @@ interface TransactionFormProps {
   transaction?: Transaction;
   categories: Category[];
   accounts: Account[];
-  onSubmit: (formData: Partial<Transaction>) => void;
+  onSubmit: (formData: TransactionFormData) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -83,7 +83,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     e.preventDefault();
     
     if (validate()) {
-      onSubmit(formData);
+      onSubmit(formData as TransactionFormData);
     }
   };
 
@@ -92,6 +92,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+        <h2 className="text-2xl font-bold text-gray-300 mb-4">
+            {transaction ? 'Edit' : 'Add'} Transaction
+        </h2>
       <div>
         <label className="block text-sm font-medium text-gray-300 mb-1">
           Transaction Type

@@ -55,8 +55,7 @@ export abstract class GenericApiService<
 > extends BaseApiService implements ICrudService<T, F, C, U>{
     
     constructor(endpoint: string){
-        // super(`${process.env.REACT_APP_API_URL}/${endpoint}`);
-        super(`http://localhost:3010/${endpoint}`);
+        super(`${import.meta.env.VITE_API_URL}/${endpoint}`);
     }
 
     async getAll(filters?: F): Promise<T[]> {
