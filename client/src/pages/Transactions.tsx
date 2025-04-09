@@ -208,7 +208,7 @@ const TransactionsPage: React.FC = () => {
         onClose={handleCloseModal}
       >
         <TransactionForm
-          transaction={currentTransaction}
+          transaction={currentTransaction ?? undefined}
           categories={categories}
           accounts={accounts}
           onSubmit={handleSubmit}
