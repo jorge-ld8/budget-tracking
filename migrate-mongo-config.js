@@ -1,7 +1,8 @@
 // In this file you can configure migrate-mongo
+const { NODE_ENV} = require('./src/config/config');
 
-require('dotenv').config(); // Add this line at the top
-const envFile = process.env.NODE_ENV === 'development' ? '.env.development' : '.env';
+
+const envFile = NODE_ENV === 'development' ? '.env.development' : (NODE_ENV === 'production' ? '.env.production' : '.env');
 require('dotenv').config({ path: envFile });
 
 const config = {
