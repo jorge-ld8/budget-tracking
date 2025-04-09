@@ -11,6 +11,8 @@ class TransactionController extends BaseController {
 
   async getAll(req, res, next) {
     try {
+
+      
       const { type, description, category, account, sort, fields, page, limit, numericFilters, startDate, endDate } = req.query;
       
       // Create query object and add user filter

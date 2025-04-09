@@ -20,3 +20,5 @@ Dockerfile
 docker-compose.yml
 .gitignore
 .cursorrules
+
+client/
