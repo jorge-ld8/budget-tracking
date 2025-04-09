@@ -87,20 +87,31 @@ describe('Category Model', () => {
   });
 
   it('should update category fields correctly', async () => {
-    const category = new Category({
+    // Create initial category
+    const category = await Category.create({
       name: 'Test Category',
       type: 'expense',
       user: new mongoose.Types.ObjectId()
     });
-    await category.save();
     
-    // Update category fields
-    category.name = 'Updated Category';
-    category.color = '#00FF00';
-    await category.save();
+    // Update using Model.findByIdAndUpdate
+    const updatedCategory = await Category.findByIdAndUpdate(
+      category._id,
+      { 
+        name: 'Updated Category',
+        color: '#00FF00' 
+      },
+      { new: true, runValidators: true }
+    );
     
-    expect(category.name).toBe('Updated Category');
-    expect(category.color).toBe('#00FF00');
+    // Verify update returned correct values
+    expect(updatedCategory.name).toBe('Updated Category');
+    expect(updatedCategory.color).toBe('#00FF00');
+    
+    // Verify by retrieving from DB again
+    const retrievedCategory = await Category.findById(category._id);
+    expect(retrievedCategory.name).toBe('Updated Category');
+    expect(retrievedCategory.color).toBe('#00FF00');
   });
   
   it('should support soft deletion methods', async () => {
