@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const categorySchema = new Schema({
-  name: { type: String, required: true, trim: true },
+  name: { type: String, required: true, trim: true, unique: true },
   type: { type: String, required: true, enum: ['income', 'expense'] },
   icon: { type: String, default: 'default-icon' },
   color: { type: String, default: '#000000' },
