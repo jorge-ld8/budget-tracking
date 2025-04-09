@@ -10,11 +10,27 @@ const transactionSchema = new Schema({
   account: { type: Schema.Types.ObjectId, ref: 'Account', required: true },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   isDeleted: { type: Boolean, default: false, index: true }
-}, {timestamps: true});
+}, {
+  timestamps: true,
+  toJSON: { 
+    virtuals: true,
+    transform: function(doc, ret) {
+      if (ret.date) {
+        const date = new Date(ret.date);
+        ret.date = new Date(date.getTime() + (4 * 60 * 60 * 1000));
+      }
+      return ret;
+    }
+  },
+});
 
 // Update the updatedAt field before saving
 transactionSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
+  if (this.date) {
+    const date = new Date(this.date);
+    this.date = new Date(date.getTime() + (4 * 60 * 60 * 1000));
+  }
   next();
 });
 
