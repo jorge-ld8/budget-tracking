@@ -89,7 +89,7 @@ export abstract class GenericApiService<
       
     async update(id: string, data: U): Promise<T> {
         try {
-            const response = await this.http.put(`/${id}`, data);
+            const response = await this.http.patch(`/${id}`, data);
             return this.extractItem(response.data);
         } catch (error) {
             throw this.handleError(error);
