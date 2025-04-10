@@ -1,5 +1,6 @@
 const BaseRouter = require('../interfaces/BaseRouter');
 const { authenticate, isAdmin } = require('../middlewares/auth');
+const {upload} = require('../middlewares/fileUpload');
 
 /**
  * @swagger
@@ -333,7 +334,7 @@ class TransactionsRouter extends BaseRouter {
      *                 transaction:
      *                   $ref: '#/components/schemas/Transaction'
      */
-    this.router.post('/', this.controller.create);
+    this.router.post('/', upload.single('image'), this.controller.create);
 
     /**
      * @swagger

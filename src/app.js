@@ -39,6 +39,8 @@ const apiLimiter = rateLimiter({
   message: 'Too many requests from this IP, please try again later'
 });
 
+// In your Express app configuration
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Middleware
 app.use(apiLimiter);

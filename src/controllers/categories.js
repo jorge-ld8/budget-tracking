@@ -79,7 +79,7 @@ class CategoriesController extends BaseController {
     const category = new Category(categoryData);
     await category.save();
 
-    res.status(201).json({ ...category });
+    res.status(201).json({ category });
   }
 
   async update(req, res, next) {

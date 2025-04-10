@@ -134,6 +134,7 @@ class TransactionController extends BaseController {
 
   async create(req, res, next) {
     try {
+
       // Check if the account exists and belongs to the authenticated user
       const account = await Account.findOne({
         _id: req.body.account,
