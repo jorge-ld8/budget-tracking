@@ -134,8 +134,6 @@ class TransactionController extends BaseController {
 
   async create(req, res, next) {
     try {
-
-      // Check if the account exists and belongs to the authenticated user
       const account = await Account.findOne({
         _id: req.body.account,
         user: req.user._id
@@ -153,6 +151,7 @@ class TransactionController extends BaseController {
       // Create the transaction
       const transaction = new Transaction({
         ...req.body,
+        imgUrl: req.file ? req.file.path : null,
         user: req.user._id
       });
       
