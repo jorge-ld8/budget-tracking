@@ -18,6 +18,9 @@ describe('Account Model', () => {
     await mongod.stop();
   });
 
+  afterEach(async () => {
+    await Account.deleteMany();
+  });
 
   it('should create an account successfully', async () => {
     const accountData = {
@@ -52,19 +55,38 @@ describe('Account Model', () => {
     expect(error.errors.user).toBeDefined();
 });
 
-  it('should update balance correctly', async () => {
-    const account = new Account({
+  it('should update account fields correctly', async () => {
+    // Create initial account
+    const userId = new mongoose.Types.ObjectId();
+    const account = await Account.create({
       name: 'Test Account',
       type: 'bank',
-      user: new mongoose.Types.ObjectId(),
+      user: userId,
       balance: 100
     });
-    await account.save();
     
-    // Test balance operations
-    account.balance += 50;
-    await account.save();
-    expect(account.balance).toBe(150);
+    // Update using Model.findByIdAndUpdate
+    const updatedAccount = await Account.findByIdAndUpdate(
+      account._id,
+      { 
+        name: 'Updated Account',
+        type: 'credit',
+        balance: 250
+      },
+      { new: true, runValidators: true }
+    );
+    
+    // Verify update returned correct values
+    expect(updatedAccount.name).toBe('Updated Account');
+    expect(updatedAccount.type).toBe('credit');
+    expect(updatedAccount.balance).toBe(250);
+    
+    // Verify by retrieving from DB again
+    const retrievedAccount = await Account.findById(account._id);
+    expect(retrievedAccount.name).toBe('Updated Account');
+    expect(retrievedAccount.type).toBe('credit');
+    expect(retrievedAccount.balance).toBe(250);
+    expect(retrievedAccount.user.toString()).toBe(userId.toString());
   });
   
   it('should support soft deletion', async () => {
@@ -89,4 +111,3 @@ describe('Account Model', () => {
     expect(deletedAccount.isDeleted).toBe(true);
   });
 });
-

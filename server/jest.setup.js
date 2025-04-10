@@ -2,7 +2,7 @@ require('dotenv').config({ path: '.env.development' });
 
 // Set test-specific environment variables
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_secret';
-process.env.NODE_ENV = 'test';
+// process.env.NODE_ENV = 'test';
 
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
