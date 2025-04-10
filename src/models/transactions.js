@@ -8,6 +8,7 @@ const transactionSchema = new Schema({
   date: { type: Date, default: Date.now },
   category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
   account: { type: Schema.Types.ObjectId, ref: 'Account', required: true },
+  imgUrl: { type: String, required: false },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   isDeleted: { type: Boolean, default: false, index: true }
 }, {
