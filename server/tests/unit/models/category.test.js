@@ -18,6 +18,10 @@ describe('Category Model', () => {
     await mongod.stop();
   });
 
+  afterEach(async () => {
+    await Category.deleteMany();
+  });
+
   it('should create a category successfully', async () => {
     const categoryData = {
       name: 'Test Category',

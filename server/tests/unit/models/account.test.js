@@ -18,6 +18,9 @@ describe('Account Model', () => {
     await mongod.stop();
   });
 
+  afterEach(async () => {
+    await Account.deleteMany();
+  });
 
   it('should create an account successfully', async () => {
     const accountData = {
