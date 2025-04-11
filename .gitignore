@@ -143,5 +143,6 @@ next_steps.txt
 .cursorrules
 api-docs.json
 client/.vite
+src/uploads/images/
 
 

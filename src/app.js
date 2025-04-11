@@ -20,7 +20,8 @@ const AuthRouter = require('./routes/auth');
 const AuthController = require('./controllers/auth');
 const { swaggerDocs } = require('./swagger');
 const path = require('path');
-
+const fs = require('fs');
+const rfs = require('rotating-file-stream');
 
 const app = express();
 const { NODE_ENV} = require('./config/config');
@@ -64,7 +65,29 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(morgan('dev'));
+
+
+if (NODE_ENV === 'production'){
+    // Create a write stream for access logs
+    const accessLogStream = fs.createWriteStream(
+      path.join(__dirname, 'logs', 'access.log'),
+      { flags: 'a' }
+    );
+    
+    // Ensure logs directory exists
+    if (!fs.existsSync(path.join(__dirname, 'logs'))) {
+      fs.mkdirSync(path.join(__dirname, 'logs'), { recursive: true });
+    }
+
+    app.use(morgan('combined', {
+      stream: accessLogStream
+    }))
+}
+else{
+  app.use(morgan('dev'));
+}
+// morgan logger setup
+
 
 // Routes
 app.use('/auth', new AuthRouter(new AuthController()).getRouter());
