@@ -49,8 +49,8 @@ export abstract class BaseApiService{
 
 export abstract class GenericApiService<
     T extends Entity,
-    F = {},
-    C = {},
+    F = object,
+    C = object,
     U = Partial<T>
 > extends BaseApiService implements ICrudService<T, F, C, U>{
     

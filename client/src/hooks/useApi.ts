@@ -9,10 +9,10 @@ interface UseApiOptions<F> {
 
 export function useApi<
   T extends Entity,
-  C,
+  F = object,
+  C = object,
   U = Partial<C>,
-  F = {}
->(service: ICrudService<T, C, U, F>, options: UseApiOptions<F> = {}) {
+>(service: ICrudService<T, F, C, U>, options: UseApiOptions<F> = {}) {
   const { initialFilters = {} as F, loadOnMount = true } = options;
   
   const [data, setData] = useState<T[]>([]);

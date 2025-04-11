@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 export interface IHomeProps {
 }
 
-export default function Home (props: IHomeProps) {
+export default function Home () {
   console.log("Home Page");
   return (
     <>
