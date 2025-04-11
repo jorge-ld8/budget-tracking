@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import { Transaction, TransactionFormData, TransactionFilters } from '../types/transaction';
 import { transactionService } from '../api/services/transactionService';
@@ -109,27 +110,40 @@ const TransactionsPage: React.FC = () => {
   };
   
   // CRUD operations
-  const handleSubmit = async (formData: TransactionFormData) => {
+  const handleSubmit = async (formData: TransactionFormData, receiptImage?: File) => {
     setIsLoading(true);
     setError(null);
     
     try {
-      if (currentTransaction) {
-        // Update existing transaction
-        const updatedTransaction = await transactionService.update(
-          currentTransaction._id, 
-          formData
-        );
-        
-        // Refresh the transactions list after update
-        fetchTransactionsData(currentFilters, paginationData.page, paginationData.limit);
+      if (receiptImage) {
+        // If we have an image, use the special image upload methods
+        if (currentTransaction) {
+          // Update existing transaction with image
+          await transactionService.updateWithImage(
+            currentTransaction._id,
+            formData,
+            receiptImage
+          );
+        } else {
+          // Create new transaction with image
+          await transactionService.createWithImage(formData, receiptImage);
+        }
       } else {
-        // Create new transaction
-        await transactionService.create(formData);
-        
-        // Refresh the transactions list after create
-        fetchTransactionsData(currentFilters, paginationData.page, paginationData.limit);
+        // No image - use regular JSON API
+        if (currentTransaction) {
+          // Update existing transaction
+          await transactionService.update(
+            currentTransaction._id, 
+            formData
+          );
+        } else {
+          // Create new transaction
+          await transactionService.create(formData);
+        }
       }
+      
+      // Refresh the transactions list
+      fetchTransactionsData(currentFilters, paginationData.page, paginationData.limit);
       
       // Close the modal
       handleCloseModal();

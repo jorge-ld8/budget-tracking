@@ -11,6 +11,20 @@ export interface TransactionResponse {
   totalPages: number;
 }
 
+// Response data type definitions to fix any usage
+interface TransactionListResponse {
+  transactions: Transaction[];
+  count: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+interface TransactionItemResponse {
+  transaction: Transaction;
+  message?: string;
+}
+
 export class TransactionService extends GenericApiService<
   Transaction,
   TransactionFormData,
@@ -64,8 +78,63 @@ export class TransactionService extends GenericApiService<
       throw this.handleError(error);
     }
   }
+
+  // New method to create a transaction with an image
+  async createWithImage(formData: TransactionFormData, image: File): Promise<Transaction> {
+    try {
+      // Create a FormData object
+      const formDataToSend = new FormData();
+      
+      // Add all transaction fields
+      Object.keys(formData).forEach(key => {
+        formDataToSend.append(key, String(formData[key as keyof TransactionFormData]));
+      });
+      
+      // Add the image
+      formDataToSend.append('image', image);
+      
+      const response = await this.http.post('/', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      return this.extractItem(response.data);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
   
-  protected extractData(responseData: any): Transaction[] {
+  // New method to update a transaction with an image
+  async updateWithImage(id: string, formData: Partial<TransactionFormData>, image: File): Promise<Transaction> {
+    try {
+      // Create a FormData object
+      const formDataToSend = new FormData();
+      
+      // Add all transaction fields
+      Object.keys(formData).forEach(key => {
+        const value = formData[key as keyof Partial<TransactionFormData>];
+        if (value !== undefined) {
+          formDataToSend.append(key, String(value));
+        }
+      });
+      
+      // Add the image
+      formDataToSend.append('receipt', image);
+      
+      const response = await this.http.patch(`/${id}/with-receipt`, formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      return this.extractItem(response.data);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+  
+  protected extractData(responseData: TransactionListResponse): Transaction[] {
     // Store pagination data when it's available
     if (responseData.page !== undefined) {
       this.lastPaginationData = {
@@ -78,7 +147,7 @@ export class TransactionService extends GenericApiService<
     return responseData.transactions || [];
   }
   
-  protected extractItem(responseData: any): Transaction {
+  protected extractItem(responseData: TransactionItemResponse): Transaction {
     return responseData.transaction;
   }
   

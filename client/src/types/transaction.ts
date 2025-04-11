@@ -1,4 +1,4 @@
-import { DateRangeFilter, Entity, EntityFormData } from "./common";
+import { DateRangeFilter, Entity } from "./common";
 
 export enum TransactionType {
     Income = 'income',
@@ -13,9 +13,10 @@ export interface Transaction extends Entity {
     category: string;
     account: string;
     user: string;
+    imgUrl?: string;
 }
 
-export interface TransactionFormData extends EntityFormData {
+export interface TransactionFormData {
     amount: number;
     type: TransactionType;
     description: string;

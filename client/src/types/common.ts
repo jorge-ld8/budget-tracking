@@ -6,9 +6,9 @@ export interface Entity {
     isDeleted?: boolean;
   }
   
-  export interface EntityFormData {
-    // Common form fields
-  }
+//   export interface EntityFormData {
+//     // Common form fields
+//   }
 
   // Specific filter interfaces
 export interface DateRangeFilter {

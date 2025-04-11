@@ -32,6 +32,7 @@ const Login: React.FC = () => {
       await login(email, password);
       navigate('/dashboard');
     } catch (err) {
+      console.log("err", err);
       // Error is handled by the auth context
     }
   };
