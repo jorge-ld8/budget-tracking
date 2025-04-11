@@ -32,6 +32,11 @@ const { NODE_ENV} = require('./config/config');
 const envFile = NODE_ENV === 'development' ? '.env.development' : (NODE_ENV === 'production' ? '.env.production' : '.env');
 require('dotenv').config({ path: envFile });
 
+
+// Trust proxy for render deploy
+app.set('trust proxy', true);
+
+
 // Security packages
 const xss = require('xss-clean');
 const rateLimiter = require('express-rate-limit');
@@ -68,17 +73,17 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 
 if (NODE_ENV === 'production'){
-    // Create a write stream for access logs
-    const accessLogStream = fs.createWriteStream(
-      path.join(__dirname, 'logs', 'access.log'),
-      { flags: 'a' }
-    );
-    
-    // Ensure logs directory exists
-    if (!fs.existsSync(path.join(__dirname, 'logs'))) {
-      fs.mkdirSync(path.join(__dirname, 'logs'), { recursive: true });
-    }
-
+  if (!fs.existsSync(path.join(__dirname, 'logs'))) {
+    fs.mkdirSync(path.join(__dirname, 'logs'), { recursive: true });
+  }
+  
+  // Create a rotating write stream
+  const accessLogStream = rfs.createStream('access.log', {
+    interval: '1d', // Rotate daily
+    path: path.join(__dirname, 'logs'),
+    size: '10M', // Rotate when size exceeds 10MB
+    compress: 'gzip' // Compress rotated files
+  });
     app.use(morgan('combined', {
       stream: accessLogStream
     }))
