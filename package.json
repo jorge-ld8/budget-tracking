@@ -22,6 +22,7 @@
     "migration:status:dev": "NODE_ENV=development migrate-mongo status"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.787.0",
     "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
@@ -41,9 +42,11 @@
     "mongoose": "^8.11.0",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.2",
+    "multer-s3": "^3.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-dist": "^5.20.1",
     "swagger-ui-express": "^5.0.1",
+    "uploadthing": "^7.6.0",
     "uuid": "^11.1.0",
     "xss-clean": "^0.1.4"
   },

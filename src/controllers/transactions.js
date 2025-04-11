@@ -2,6 +2,7 @@ const Transaction = require('../models/transactions');
 const { NotFoundError, BadRequestError } = require('../errors');
 const BaseController = require('../interfaces/BaseController');
 const Account = require('../models/accounts');
+const { clampBigDecimal } = require('effect/Schema');
 
 
 class TransactionController extends BaseController {
@@ -134,6 +135,19 @@ class TransactionController extends BaseController {
 
   async create(req, res, next) {
     try {
+      console.log("req.body", req.body);
+      console.log("req.file", req.file);
+
+      let imageUrl = null;
+      if (req.file) {
+        // local upload (using multer)
+        imageUrl = req.file.location;
+      }
+      else if(req.body.imgUrl) {
+        // cloud upload (using uploadthing)
+        imageUrl = req.body.imgUrl;
+      }
+
       const account = await Account.findOne({
         _id: req.body.account,
         user: req.user._id
@@ -151,7 +165,7 @@ class TransactionController extends BaseController {
       // Create the transaction
       const transaction = new Transaction({
         ...req.body,
-        imgUrl: req.file ? req.file.path : null,
+        imgUrl: imageUrl,
         user: req.user._id
       });
       

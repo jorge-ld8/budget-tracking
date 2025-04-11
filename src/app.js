@@ -20,8 +20,12 @@ const AuthRouter = require('./routes/auth');
 const AuthController = require('./controllers/auth');
 const { swaggerDocs } = require('./swagger');
 const path = require('path');
+
+
 const app = express();
 const { NODE_ENV} = require('./config/config');
+
+
 
 // Load environment variables
 const envFile = NODE_ENV === 'development' ? '.env.development' : (NODE_ENV === 'production' ? '.env.production' : '.env');

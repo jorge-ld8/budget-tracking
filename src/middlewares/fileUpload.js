@@ -1,7 +1,10 @@
 const multer = require('multer');
+const multerS3 = require('multer-s3');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
+const s3Client = require('../config/s3Config');
+const env = require('../config/env');
 
 // Ensure upload directory exists
 const uploadDir = path.join(__dirname, '../uploads/images');
@@ -20,6 +23,15 @@ const storage = multer.diskStorage({
   }
 });
 
+const s3Storage = multerS3({
+  s3: s3Client,
+  bucket: env.AWS_S3_BUCKET_NAME,
+  acl: 'public-read',
+  metadata: function (req, file, cb) {
+    cb(null, { fieldName: file.fieldname });
+  }
+});
+
 // File filter for images
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
@@ -33,7 +45,7 @@ const fileFilter = (req, file, cb) => {
 
 // Multer middleware
 const upload = multer({
-  storage: storage,
+  storage: s3Storage,
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB max file size
   },
