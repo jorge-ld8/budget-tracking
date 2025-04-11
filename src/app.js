@@ -34,7 +34,9 @@ require('dotenv').config({ path: envFile });
 
 
 // Trust proxy for render deploy
-app.set('trust proxy', true);
+app.set('trust proxy', 1)
+app.get('/ip', (request, response) => response.send(request.ip))
+app.get('/x-forwarded-for', (request, response) => response.send(request.headers['x-forwarded-for']))
 
 
 // Security packages
