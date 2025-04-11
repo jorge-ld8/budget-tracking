@@ -16,4 +16,12 @@ export default defineConfig({
     port: parseInt(process.env.PORT || '5173'),
     host: true,
   },
+  build: {
+    target: 'esnext',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+      }
+    }
+  }
 })
