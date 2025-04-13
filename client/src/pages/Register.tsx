@@ -135,7 +135,7 @@ const Register: React.FC = () => {
               type="text"
               autoComplete="username"
               required
-              className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base"
+              className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base placeholder-gray-500"
               placeholder="Username"
               value={formData.username}
               onChange={handleChange}
@@ -153,7 +153,7 @@ const Register: React.FC = () => {
                 type="text"
                 autoComplete="given-name"
                 required
-                className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base"
+                className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base placeholder-gray-500"
                 placeholder="First Name"
                 value={formData.firstName}
                 onChange={handleChange}
@@ -170,7 +170,7 @@ const Register: React.FC = () => {
                 type="text"
                 autoComplete="family-name"
                 required
-                className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base"
+                className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base placeholder-gray-500"
                 placeholder="Last Name"
                 value={formData.lastName}
                 onChange={handleChange}
@@ -188,7 +188,7 @@ const Register: React.FC = () => {
               type="email"
               autoComplete="email"
               required
-              className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base"
+              className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base placeholder-gray-500"
               placeholder="you@example.com"
               value={formData.email}
               onChange={handleChange}
@@ -226,7 +226,7 @@ const Register: React.FC = () => {
                 type={showPassword ? "text" : "password"}
                 autoComplete="new-password"
                 required
-                className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base"
+                className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base placeholder-gray-500"
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
@@ -263,7 +263,7 @@ const Register: React.FC = () => {
                 type={showConfirmPassword ? "text" : "password"}
                 autoComplete="new-password"
                 required
-                className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base"
+                className="w-full px-4 py-3 border-0 bg-gray-800 text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-darkgreen focus:border-transparent text-base placeholder-gray-500"
                 placeholder="••••••••"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
