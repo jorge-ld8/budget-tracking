@@ -6,7 +6,7 @@ const accountSchema = new mongoose.Schema({
   type: { 
     type: String, 
     required: true, 
-    enum: ['cash', 'bank', 'credit', 'investment', 'other'],
+    enum: ['cash', 'savings', 'checking', 'credit', 'investment', 'other'],
     default: 'bank'
   },
   description: { type: String, trim: true },
