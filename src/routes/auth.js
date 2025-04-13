@@ -111,7 +111,7 @@ class AuthRouter extends BaseRouter {
          *       409:
          *         description: Username or email already exists
          */
-        this.router.post('/register', limiter, authenticate, this.controller.register);
+        this.router.post('/register', limiter, this.controller.register);
 
         /**
          * @swagger
