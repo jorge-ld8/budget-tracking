@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Account } from '../types/account';
 import { accountService, AccountFormData } from '../api/services/accountService';
-import Modal from '../components/common/Modal';
+import Modal from '../components/shared/Modal';
 import AccountForm from '../components/accounts/AccountForm';
 import AccountList from '../components/accounts/AccountList';
 import AccountFiltersComponent from '../components/accounts/AccountFilters';
@@ -25,7 +25,7 @@ const AccountsPage: React.FC = () => {
   
   useEffect(() => {
     fetchAccountsData(currentFilters, paginationData.page, paginationData.limit);
-  }, [paginationData.page, paginationData.limit]);
+  }, [paginationData.page, paginationData.limit, currentFilters]);
   
   // Method to fetch accounts with pagination
   const fetchAccountsData = async (
