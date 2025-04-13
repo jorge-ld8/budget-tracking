@@ -2,8 +2,12 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 
 interface User {
   _id: string;
+  username: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  currency: string;
+  isAdmin: boolean;
 }
 
 interface AuthContextType {
@@ -12,8 +16,18 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
   error: string | null;
+}
+
+export interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  currency: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -84,7 +98,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        // Extract the error message from the response
+        const errorMessage = data.error?.message || data.message || 'Login failed';
+        throw new Error(errorMessage);
       }
 
       localStorage.setItem('token', data.token);
@@ -92,6 +108,39 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(data.user);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Login failed');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (userData: RegisterData) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Extract the error message from the response
+        const errorMessage = data.error?.message || data.message || 'Registration failed';
+        throw new Error(errorMessage);
+      }
+
+      // Login the user immediately after successful registration
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setUser(data.user);
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Registration failed');
       throw error;
     } finally {
       setIsLoading(false);
@@ -121,6 +170,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: !!user,
     isLoading,
     login,
+    register,
     logout,
     error
   };

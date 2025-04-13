@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Login: React.FC = () => {
@@ -97,6 +97,13 @@ const Login: React.FC = () => {
             >
               {isLoading ? 'Signing in...' : 'Sign in'}
             </button>
+          </div>
+          
+          <div className="text-center text-gray-400 mt-4">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-darkgreen hover:text-darkgreen-light font-medium">
+              Create account
+            </Link>
           </div>
         </form>
       </div>
