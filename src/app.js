@@ -37,18 +37,20 @@ const xss = require('xss-clean');
 const rateLimiter = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
-   
-const apiLimiter = rateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later'
-});
 
-// In your Express app configuration
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+if (NODE_ENV === 'production'){
+  const apiLimiter = rateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later'
+  });
+  app.use(apiLimiter);
+}
 
 // Middleware
-app.use(apiLimiter);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use(helmet({
   contentSecurityPolicy: {
       directives: {
