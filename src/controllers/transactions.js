@@ -2,8 +2,9 @@ const Transaction = require('../models/transactions');
 const { NotFoundError, BadRequestError } = require('../errors');
 const BaseController = require('../interfaces/BaseController');
 const Account = require('../models/accounts');
-const { clampBigDecimal } = require('effect/Schema');
-
+const s3Client = require('../config/s3Config');
+const env = require('../config/env');
+const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
 
 class TransactionController extends BaseController {
   constructor() {
@@ -274,7 +275,7 @@ class TransactionController extends BaseController {
       // Update account balance
       const account = await Account.findOne({
         _id: transaction.account,
-        user: req.user._id
+        // user: req.user._id
       });
       
       if (!account) {
@@ -289,8 +290,22 @@ class TransactionController extends BaseController {
       
       await account.save();
       
-      // Soft delete
+      // Delete image from s3 if there is one
+      if (transaction.imgUrl) {
+        const lastSlashIndex = transaction.imgUrl.lastIndexOf('/');
+        const key = transaction.imgUrl.substring(lastSlashIndex + 1);
+
+        const params = {
+          Bucket: env.AWS_S3_BUCKET_NAME,
+          Key: key
+        };
+        const command = new DeleteObjectCommand(params);
+        await s3Client.send(command);
+      }
+
       await transaction.softDelete();
+
+      // Soft delete
       res.status(200).json({ message: 'Transaction soft deleted successfully' });
     } catch (error) {
       next(error);
