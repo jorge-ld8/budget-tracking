@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AccountFilters } from '../../types/account.filter';
+import { ACCOUNT_TYPES } from '../../constants/accountTypes';
 
 interface AccountFiltersComponentProps {
   onFilter: (filters: AccountFilters) => void;
@@ -67,12 +68,10 @@ const AccountFiltersComponent: React.FC<AccountFiltersComponentProps> = ({ onFil
               className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white 
                         focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">All Types</option>
-              <option value="bank">Bank</option>
-              <option value="credit">Credit Card</option>
-              <option value="investment">Investment</option>
-              <option value="cash">Cash</option>
-              <option value="other">Other</option>
+            <option value="">All Types</option>
+            {ACCOUNT_TYPES.map((type) => (
+              <option key={type.value} value={type.value}>{type.label}</option>
+            ))}
             </select>
           </div>
         </div>
