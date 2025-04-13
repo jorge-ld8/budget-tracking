@@ -25,8 +25,8 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages, onPage
     pages.push(1);
     
     // Calculate range around current page
-    let rangeStart = Math.max(2, currentPage - 1);
-    let rangeEnd = Math.min(totalPages - 1, currentPage + 1);
+    const rangeStart = Math.max(2, currentPage - 1);
+    const rangeEnd = Math.min(totalPages - 1, currentPage + 1);
     
     // Add ellipsis if there's a gap after page 1
     if (rangeStart > 2) {

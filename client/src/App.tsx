@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Transactions from './pages/Transactions';
+import Accounts from './pages/Accounts';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { AuthProvider } from './context/AuthContext';
@@ -40,6 +41,15 @@ function App() {
               <Navbar />
               <main className="container mx-auto px-4 py-8 mt-16 pt-4 text-gray-700">
                 <Transactions />
+              </main>
+            </>
+          } />
+          
+          <Route path="/accounts" element={
+            <>
+              <Navbar />
+              <main className="container mx-auto px-4 py-8 mt-16 pt-4 text-gray-700">
+                <Accounts />
               </main>
             </>
           } />
