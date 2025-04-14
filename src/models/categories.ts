@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
 const categorySchema = new Schema({
   name: { type: String, required: true, trim: true, unique: true },
@@ -12,7 +12,7 @@ const categorySchema = new Schema({
 
 // Update the updatedAt field before saving
 categorySchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
+  (this as any).updatedAt = Date.now();
   next();
 });
 
@@ -32,9 +32,9 @@ categorySchema.methods.restore = function() {
 categorySchema.pre(/^find/, function(next) {
   // In case you want to include deleted documents in some specific queries,
   // you can set this.includeDeleted = true in your query
-  if (this.includeDeleted !== true) {
+  if ((this as any).includeDeleted !== true) {
     // By default exclude deleted documents
-    this.where({ isDeleted: false });
+    (this as any).where({ isDeleted: false });
   }
   next();
 });
@@ -63,4 +63,4 @@ categorySchema.statics.countDocuments = function(query = {}, options = {}) {
 
 const Category = mongoose.model('Category', categorySchema);
 
-module.exports = Category; 
+export { Category }; 

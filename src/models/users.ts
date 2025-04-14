@@ -1,10 +1,17 @@
+import type * as MongooseTypes from 'mongoose';
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const validator = require('validator');
+
+
 
 const userSchema = new mongoose.Schema({
   username: {type: String, required: true, unique: true},
-  email: {type: String, required: true, unique: true, match: [/.+\@.+\..+/, 'Please fill a valid email address']},
+  email: {type: String, required: true, unique: true, validate: {
+    validator: validator.isEmail,
+    message: 'Invalid email address'
+  }},
   password: {type: String, required: true},
   firstName: {type: String, required: true, trim: true, minlength: 3, maxlength: 30},
   lastName: {type: String, required: true, trim: true, minlength: 3, maxlength: 30},
@@ -21,15 +28,15 @@ userSchema.pre('save', async function(next) {
 });
 
 // Method to compare passwords
-userSchema.methods.comparePassword = async function(candidatePassword) {
+userSchema.methods.comparePassword = async function(candidatePassword: string): Promise<boolean> {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
 // Method to generate JWT token
-userSchema.methods.generateAuthToken = function() {
+userSchema.methods.generateAuthToken = function(): string {
   return jwt.sign(
     { id: this._id, username: this.username },
-    process.env.JWT_SECRET,
+    process.env.JWT_SECRET || '',
     { expiresIn: process.env.JWT_EXPIRES_IN }
   );
 };
@@ -46,12 +53,11 @@ userSchema.methods.restore = function() {
 };
 
 // Create a mongoose query middleware that by default filters out deleted records
-// This automatically applies to find, findOne, findById, etc.
 userSchema.pre(/^find/, function(next) {
   // In case you want to include deleted documents in some specific queries,
   // you can set this.includeDeleted = true in your query
-  if (this.includeDeleted !== true) {
-    this.where({ isDeleted: false });
+  if ((this as any).includeDeleted !== true) {
+    (this as any).where({ isDeleted: false });
   }
   next();
 });
@@ -59,12 +65,12 @@ userSchema.pre(/^find/, function(next) {
 // Add a static method to find deleted documents when needed
 userSchema.statics.findDeleted = function(query = {}) {
   const queryObj = this.find({...query, isDeleted: true});
-  queryObj.includeDeleted = true; // Set it on the query object instead
+  (queryObj as any).includeDeleted = true;
   return queryObj;
 };
 
 // Override the countDocuments to respect the isDeleted filter
-userSchema.statics.countDocuments = function(query = {}, options = {}) {
+userSchema.statics.countDocuments = function(query: any = {}, options: { includeDeleted?: boolean } = {}) {
   // Allow override of isDeleted behavior through options
   if (options && options.includeDeleted) {
     // Don't add isDeleted filter if explicitly asked to include deleted items

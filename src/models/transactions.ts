@@ -1,5 +1,18 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+import { IBaseModel } from '../types/models/base.types';
+import { Types } from 'mongoose';
 const Schema = mongoose.Schema;
+
+interface ITransaction extends IBaseModel {
+  amount: number;
+  type: string;
+  description: string;
+  date: Date;
+  category: Types.ObjectId;
+  account: Types.ObjectId;
+  imgUrl?: string;
+  user: Types.ObjectId;
+}
 
 const transactionSchema = new Schema({
   amount: { type: Number, required: true },
@@ -27,7 +40,7 @@ const transactionSchema = new Schema({
 
 // Update the updatedAt field before saving
 transactionSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
+  (this as any).updatedAt = Date.now();
   if (this.date) {
     const date = new Date(this.date);
     this.date = new Date(date.getTime() + (4 * 60 * 60 * 1000));
@@ -51,22 +64,22 @@ transactionSchema.methods.restore = function() {
 transactionSchema.pre(/^find/, function(next) {
   // In case you want to include deleted documents in some specific queries,
   // you can set this.includeDeleted = true in your query
-  if (this.includeDeleted !== true) {
+  if ((this as any).includeDeleted !== true) {
     // By default exclude deleted documents
-    this.where({ isDeleted: false });
+    (this as any).where({ isDeleted: false });
   }
   next();
 });
 
 // Add a static method to find deleted documents when needed
-transactionSchema.statics.findDeleted = function(query = {}) {
+transactionSchema.statics.findDeleted = function(query: any = {}) {
   const queryObj = this.find({...query, isDeleted: true});
   queryObj.includeDeleted = true;
   return queryObj;
 };
 
 // Override the countDocuments to respect the isDeleted filter
-transactionSchema.statics.countDocuments = function(query = {}, options = {}) {
+transactionSchema.statics.countDocuments = function(query: any  = {}, options: any = {}) {
   // Allow override of isDeleted behavior through options
   if (options && options.includeDeleted) {
     // Don't add isDeleted filter if explicitly asked to include deleted items

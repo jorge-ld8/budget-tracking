@@ -1,5 +1,6 @@
-const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
+
 
 const budgetSchema = new Schema({
   amount: { type: Number, required: true },
@@ -14,7 +15,7 @@ const budgetSchema = new Schema({
 
 // Update the updatedAt field before saving
 budgetSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
+  (this as any).updatedAt = Date.now();
   next();
 });
 
@@ -34,9 +35,9 @@ budgetSchema.methods.restore = function() {
 budgetSchema.pre(/^find/, function(next) {
   // In case you want to include deleted documents in some specific queries,
   // you can set this.includeDeleted = true in your query
-  if (this.includeDeleted !== true) {
+  if ((this as any).includeDeleted !== true) {
     // By default exclude deleted documents
-    this.where({ isDeleted: false });
+    (this as any).where({ isDeleted: false });
   }
   next();
 });
@@ -66,4 +67,4 @@ budgetSchema.statics.countDocuments = function(query = {}, options = {}) {
 
 const Budget = mongoose.model('Budget', budgetSchema);
 
-module.exports = Budget; 
+export { Budget }; 

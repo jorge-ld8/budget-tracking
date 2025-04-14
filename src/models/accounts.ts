@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
 
-const accountSchema = new mongoose.Schema({
+const accountSchema = new Schema({
   name: { type: String, required: true, trim: true, unique: true },
   balance: { type: Number, required: true, default: 0 },
   type: { 
@@ -17,7 +18,7 @@ const accountSchema = new mongoose.Schema({
 
 // Update the updatedAt field before saving
 accountSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
+  (this as any).updatedAt = Date.now();
   next();
 });
 
@@ -37,9 +38,9 @@ accountSchema.methods.restore = function() {
 accountSchema.pre(/^find/, function(next) {
   // In case you want to include deleted documents in some specific queries,
   // you can set this.includeDeleted = true in your query
-  if (this.includeDeleted !== true) {
+  if ((this as any).includeDeleted !== true) {
     // By default exclude deleted documents
-    this.where({ isDeleted: false });
+    (this as any).where({ isDeleted: false });
   }
   next();
 });
@@ -127,4 +128,4 @@ accountSchema.statics.countDocuments = function(query = {}, options = {}) {
  */
 const Account = mongoose.model('Account', accountSchema);
 
-module.exports = Account; 
+export { Account }; 
