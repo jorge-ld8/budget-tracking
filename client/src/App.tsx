@@ -4,6 +4,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Transactions from './pages/Transactions';
 import Accounts from './pages/Accounts';
+import Budgets from './pages/Budgets';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { AuthProvider } from './context/AuthContext';
@@ -50,6 +51,15 @@ function App() {
               <Navbar />
               <main className="container mx-auto px-4 py-8 mt-16 pt-4 text-gray-700">
                 <Accounts />
+              </main>
+            </>
+          } />
+          
+          <Route path="/budgets" element={
+            <>
+              <Navbar />
+              <main className="container mx-auto px-4 py-8 mt-16 pt-4 text-gray-700">
+                <Budgets />
               </main>
             </>
           } />
