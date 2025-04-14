@@ -1,10 +1,10 @@
-const multer = require('multer');
-const multerS3 = require('multer-s3');
-const path = require('path');
-const { v4: uuidv4 } = require('uuid');
-const fs = require('fs');
-const s3Client = require('../config/s3Config');
-const env = require('../config/env');
+import multer from 'multer';
+import multerS3 from 'multer-s3';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import s3Client from '../config/s3Config';
+import env from '../config/env';
 
 // Ensure upload directory exists
 const uploadDir = path.join(__dirname, '../uploads/images');
@@ -33,7 +33,7 @@ const s3Storage = multerS3({
 });
 
 // File filter for images
-const fileFilter = (req, file, cb) => {
+const fileFilter = (req: Request, file: Express.Multer.File, cb: any) => {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
   
   if (allowedTypes.includes(file.mimetype)) {
@@ -52,4 +52,4 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
-module.exports = {upload};
+export { upload };

@@ -1,9 +1,11 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/users');
-const { UnauthorizedError, ForbiddenError } = require('../errors');
+import jwt from 'jsonwebtoken';
+import { User } from '../models/users';
+import { UnauthorizedError, ForbiddenError } from '../errors';
+import { Request, Response, NextFunction } from 'express';
+
 
 // Middleware to authenticate users
-const authenticate = async (req, res, next) => {
+const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get token from header
     const authHeader = req.headers.authorization;
@@ -66,4 +68,4 @@ const authorizeRoles = (...roles) => {
   };
 };
 
-module.exports = { authenticate, isAdmin, authorizeRoles }; 
+export { authenticate, isAdmin, authorizeRoles }; 
