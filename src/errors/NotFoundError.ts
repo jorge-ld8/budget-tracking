@@ -1,13 +1,13 @@
-const CustomError = require('./CustomError');
-const { StatusCodes } = require('http-status-codes');
+import { CustomError } from './CustomError';
+import { StatusCodes } from 'http-status-codes';
 /**
  * Error for resources that cannot be found (HTTP 404)
  */
 class NotFoundError extends CustomError {
-  constructor(message) {
+  constructor(message: string) {
     super(message || 'Resource not found');
     this.statusCode = StatusCodes.NOT_FOUND;
   }
 }
 
-module.exports = NotFoundError; 
+export { NotFoundError }; 
