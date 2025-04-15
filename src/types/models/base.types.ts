@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 interface IBaseSchema {
   _id: string;
@@ -11,9 +11,9 @@ interface IBaseSchema {
   generateAuthToken(): string;
 }
 
-interface IBaseModel extends mongoose.Model<IBaseSchema> {
-    getDeletedUsers(): Promise<IBaseSchema[]>;
-    findDeleted(): Promise<IBaseSchema[]>;
+interface IBaseModel<T extends IBaseSchema> extends Model<T> {
+    getDeletedUsers(): Promise<T[]>;
+    findDeleted({user}?: {user: Types.ObjectId}): Promise<T[]>;
 }
 
 export { IBaseModel, IBaseSchema };
