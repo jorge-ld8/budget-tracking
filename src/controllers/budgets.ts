@@ -1,7 +1,7 @@
-const Budget = require('../models/budgets');
-const Category = require('../models/categories');
-const { NotFoundError, BadRequestError } = require('../errors');
-const BaseController = require('../interfaces/BaseController');
+import { Budget } from '../models/budgets';
+import { Category } from '../models/categories';
+import { NotFoundError, BadRequestError } from '../errors';
+import { BaseController } from '../interfaces/BaseController';
 
 class BudgetsController extends BaseController {
   constructor() {
@@ -12,7 +12,7 @@ class BudgetsController extends BaseController {
     try {
       const { period, category, sort, fields, page, limit, startDate, endDate, numericFilters } = req.query;
 
-      const queryObject = {};
+      const queryObject : any = {};
       
       // Only return budgets that belong to the current user
       queryObject.user = req.user._id;
@@ -212,7 +212,7 @@ class BudgetsController extends BaseController {
       const { amount, period, category, startDate, endDate, isRecurring } = req.body;
       
       // Build update object with only provided fields
-      const updateData = {};
+      const updateData : any = {};
       
       if (amount !== undefined) {
         if (isNaN(amount) || amount <= 0) {
@@ -329,7 +329,7 @@ class BudgetsController extends BaseController {
     const { id } = req.params;
     
     // Set includeDeleted flag to allow finding deleted items
-    const query = Budget.findOne({
+    const query : any = Budget.findOne({
       _id: id,
       user: req.user._id
     });
@@ -352,8 +352,8 @@ class BudgetsController extends BaseController {
   async getDeletedBudgets(req, res) {
     const deletedBudgets = await Budget.findDeleted({
       user: req.user._id
-    }).populate('category', 'name type icon color');
-    
+    });
+
     res.status(200).json({ 
       deletedBudgets,
       count: deletedBudgets.length
@@ -433,4 +433,4 @@ class BudgetsController extends BaseController {
   }
 }
 
-module.exports = BudgetsController; 
+export { BudgetsController }; 

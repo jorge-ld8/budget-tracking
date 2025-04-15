@@ -1,10 +1,10 @@
-const Transaction = require('../models/transactions');
-const { NotFoundError, BadRequestError } = require('../errors');
-const BaseController = require('../interfaces/BaseController');
-const Account = require('../models/accounts');
-const s3Client = require('../config/s3Config');
-const env = require('../config/env');
-const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
+import { Transaction } from '../models/transactions';
+import { NotFoundError, BadRequestError } from '../errors';
+import { BaseController } from '../interfaces/BaseController';
+import { Account } from '../models/accounts';
+import s3Client from '../config/s3Config';
+import env from '../config/env';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 
 class TransactionController extends BaseController {
   constructor() {
@@ -13,12 +13,10 @@ class TransactionController extends BaseController {
 
   async getAll(req, res, next) {
     try {
-
-      
       const { type, description, category, account, sort, fields, page, limit, numericFilters, startDate, endDate } = req.query;
       
       // Create query object and add user filter
-      const queryObject = {
+      const queryObject : any = {
         user: req.user._id // Only return transactions belonging to the authenticated user
       };
       
@@ -171,7 +169,6 @@ class TransactionController extends BaseController {
       });
       
       await transaction.save();
-      
       // Update account balance
       if (transaction.type === 'income') {
         account.balance += transaction.amount;
@@ -315,7 +312,7 @@ class TransactionController extends BaseController {
   async restore(req, res, next) {
     try {
       // Set includeDeleted flag to allow finding deleted items
-      const query = Transaction.findOne({
+      const query : any = Transaction.findOne({
         _id: req.params.id,
         user: req.user._id
       });
@@ -425,7 +422,7 @@ class TransactionController extends BaseController {
       const { type, user, account, category, startDate, endDate, page, limit, sort } = req.query;
       
       // Create query object without user filter (admin can see all)
-      const queryObject = {};
+      const queryObject : any = {};
       
       // Optional filters
       if (user) {
@@ -530,7 +527,7 @@ class TransactionController extends BaseController {
       }
       
       // Check if user exists
-      const User = require('../models/users');
+      const User = require('../models/users.ts');
       const user = await User.findById(req.body.user);
       
       if (!user) {
@@ -618,7 +615,7 @@ class TransactionController extends BaseController {
       }
       
       // Update transaction
-      const updatedFields = {};
+      const updatedFields : any = {};
       if (amount) updatedFields.amount = amount;
       if (description) updatedFields.description = description;
       if (category) updatedFields.category = category;
@@ -682,4 +679,5 @@ class TransactionController extends BaseController {
   }
 }
 
-module.exports = TransactionController;
+export { TransactionController };
+

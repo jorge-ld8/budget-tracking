@@ -1,6 +1,6 @@
-const Account = require('../models/accounts');
-const { NotFoundError, BadRequestError } = require('../errors');
-const BaseController = require('../interfaces/BaseController');
+import { NotFoundError, BadRequestError } from '../errors';
+import { BaseController } from '../interfaces/BaseController';
+import { Account } from '../models/accounts';
 
 class AccountController extends BaseController {
   constructor() {
@@ -11,7 +11,7 @@ class AccountController extends BaseController {
     const { type, name, sort, fields, page, limit, numericFilters } = req.query;
 
     // Add user filter to query object - only return accounts belonging to the authenticated user
-    const queryObject = {
+    const queryObject : any = {
       user: req.user._id
     };
     
@@ -218,7 +218,7 @@ class AccountController extends BaseController {
 
   async restore(req, res, next) {
     // Set includeDeleted flag to allow finding deleted items
-    const query = Account.findOne({
+    const query : any = Account.findOne({
       _id: req.params.id,
       user: req.user._id
     });
@@ -254,7 +254,7 @@ class AccountController extends BaseController {
       const { type, user, name, sort, fields, page, limit, numericFilters } = req.query;
       
       // Create query object without user filter (admin can see all)
-      const queryObject = {};
+      const queryObject : any = {};
       
       // Optional filters
       if (user) {
@@ -361,7 +361,7 @@ class AccountController extends BaseController {
   async createAdmin(req, res, next) {
     try {
       // Check if user exists
-      const User = require('../models/users');
+      const User = require('../models/users.ts');
       const user = await User.findById(req.body.user);
       
       if (!user) {
@@ -389,7 +389,7 @@ class AccountController extends BaseController {
       const { name, type, description, isActive, balance, user } = req.body;
       
       // Update account without user filter
-      const updatedFields = {};
+      const updatedFields : any = {};
       if (name !== undefined) updatedFields.name = name;
       if (type !== undefined) updatedFields.type = type;
       if (description !== undefined) updatedFields.description = description;
@@ -443,7 +443,7 @@ class AccountController extends BaseController {
   async restoreAdmin(req, res, next) {
     try {
       // Set includeDeleted flag to allow finding deleted items
-      const query = Account.findById(req.params.id);
+      const query : any = Account.findById(req.params.id);
       query.includeDeleted = true;
       
       const account = await query;
@@ -468,7 +468,7 @@ class AccountController extends BaseController {
   async getDeletedAccountsAdmin(req, res, next) {
     try {
       // Find all deleted accounts (not filtered by user)
-      const deletedAccounts = await Account.findDeleted({});
+      const deletedAccounts = await Account.findDeleted();
       
       res.status(200).json({ 
         deletedAccounts,
@@ -480,4 +480,4 @@ class AccountController extends BaseController {
   }
 }
 
-module.exports = AccountController; 
+export { AccountController }; 

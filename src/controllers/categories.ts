@@ -1,6 +1,6 @@
-const Category = require('../models/categories');
-const { NotFoundError, BadRequestError } = require('../errors');
-const BaseController = require('../interfaces/BaseController');
+import { Category, ICategory } from '../models/categories';
+import { NotFoundError, BadRequestError } from '../errors';
+import { BaseController } from '../interfaces/BaseController';
 
 class CategoriesController extends BaseController {
   constructor() {
@@ -10,7 +10,7 @@ class CategoriesController extends BaseController {
   async getAll(req, res) {
     const { type, name, sort, fields, page, limit, user } = req.query;
 
-    const queryObject = {};
+    const queryObject : any = {};
     
     // Only return categories that belong to the current user
     queryObject.user = req.user._id;
@@ -123,7 +123,7 @@ class CategoriesController extends BaseController {
     const { id } = req.params;
     
     // Set includeDeleted flag to allow finding deleted items
-    const query = Category.findOne({
+    const query : any = Category.findOne({
       _id: id,
       user: req.user._id
     });
@@ -173,4 +173,4 @@ class CategoriesController extends BaseController {
   }
 }
 
-module.exports = CategoriesController;
+export { CategoriesController };

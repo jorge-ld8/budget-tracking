@@ -1,7 +1,6 @@
-const Transaction = require('../models/transactions');
-const Category = require('../models/categories');
-const BaseController = require('../interfaces/BaseController');
-const { BadRequestError } = require('../errors');
+import { BaseController } from '../interfaces/BaseController';
+import { BadRequestError } from '../errors';
+import { Transaction } from '../models/transactions';
 
 class ReportsController extends BaseController {
   constructor() {
@@ -257,4 +256,4 @@ class ReportsController extends BaseController {
   }
 }
 
-module.exports = ReportsController;
+export { ReportsController };

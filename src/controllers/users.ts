@@ -1,6 +1,6 @@
-const User = require('../models/users');
-const { NotFoundError, BadRequestError } = require('../errors');
-const BaseController = require('../interfaces/BaseController');
+import { IUser, User } from '../models/users';
+import { NotFoundError, BadRequestError } from '../errors';
+import { BaseController } from '../interfaces/BaseController';
 
 class UsersController extends BaseController {
   constructor() {
@@ -10,7 +10,7 @@ class UsersController extends BaseController {
   async getAll(req, res) {
     const { currency, name, sort, fields, page, limit, numericFilters } = req.query;
 
-    const queryObject = {};
+    const queryObject: any = {};
     if (currency) {
       queryObject.currency = currency;
     }
@@ -42,7 +42,7 @@ class UsersController extends BaseController {
         }
       });
     }
-    let result = User.find(queryObject);
+    let result : any= User.find(queryObject);
 
     if (sort) {
       const sortFields = sort.split(',').join(' ');
@@ -115,7 +115,7 @@ class UsersController extends BaseController {
   
   async restore(req, res, next) {
     // Set includeDeleted flag to allow finding deleted items
-    const query = User.findById(req.params.id);
+    const query : any = User.findById(req.params.id);
     query.includeDeleted = true;
     
     const user = await query;
@@ -140,4 +140,4 @@ class UsersController extends BaseController {
   }
 }
 
-module.exports = UsersController;
+export { UsersController };
