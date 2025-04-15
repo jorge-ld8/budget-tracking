@@ -1,7 +1,16 @@
 import mongoose from 'mongoose';
-import { Schema } from 'mongoose';
+import { Schema, Types } from 'mongoose';
+import { IBaseModel } from '../types/models/base.types';
 
-const categorySchema = new Schema({
+interface ICategory extends IBaseModel {
+  name: string;
+  type: string;
+  icon: string;
+  color: string;
+  user: Types.ObjectId;
+}
+
+const categorySchema = new Schema<ICategory>({
   name: { type: String, required: true, trim: true, unique: true },
   type: { type: String, required: true, enum: ['income', 'expense'] },
   icon: { type: String, default: 'default-icon' },
@@ -63,4 +72,4 @@ categorySchema.statics.countDocuments = function(query = {}, options = {}) {
 
 const Category = mongoose.model('Category', categorySchema);
 
-export { Category }; 
+export { Category, ICategory }; 

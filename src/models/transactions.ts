@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import { IBaseModel } from '../types/models/base.types';
-import { Types } from 'mongoose';
-const Schema = mongoose.Schema;
+import { Types, Schema } from 'mongoose';
 
 interface ITransaction extends IBaseModel {
   amount: number;
@@ -14,7 +13,7 @@ interface ITransaction extends IBaseModel {
   user: Types.ObjectId;
 }
 
-const transactionSchema = new Schema({
+const transactionSchema = new Schema<ITransaction>({
   amount: { type: Number, required: true },
   type: { type: String, required: true, enum: ['income', 'expense'] },
   description: { type: String, required: true, trim: true },
@@ -160,4 +159,4 @@ transactionSchema.statics.countDocuments = function(query: any  = {}, options: a
 
 const Transaction = mongoose.model('Transaction', transactionSchema);
 
-module.exports = Transaction; 
+export { Transaction, ITransaction }; 

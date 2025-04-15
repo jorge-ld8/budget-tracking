@@ -1,12 +1,22 @@
-import type * as MongooseTypes from 'mongoose';
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const validator = require('validator');
+import mongoose from 'mongoose';
+import { Schema } from 'mongoose';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import validator from 'validator';
+import { IBaseModel } from '../types/models/base.types';
 
 
+interface IUser extends IBaseModel {
+  username: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  currency: string;
+  isAdmin: boolean;
+}
 
-const userSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema<IUser>({
   username: {type: String, required: true, unique: true},
   email: {type: String, required: true, unique: true, validate: {
     validator: validator.isEmail,
@@ -134,4 +144,5 @@ userSchema.statics.countDocuments = function(query: any = {}, options: { include
  *           description: Whether the user is soft deleted
  */
 const User = mongoose.model('User', userSchema);
-module.exports = User;
+
+export { User, IUser };

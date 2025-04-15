@@ -1,7 +1,17 @@
 import mongoose from 'mongoose';
-import { Schema } from 'mongoose';
+import { Schema, Types } from 'mongoose';
+import { IBaseModel } from '../types/models/base.types';
 
-const accountSchema = new Schema({
+interface IAccount extends IBaseModel {
+  name: string;
+  balance: number;
+  type: string;
+  description: string;
+  isActive: boolean;
+  user: Types.ObjectId;
+}
+
+const accountSchema = new Schema<IAccount>({
   name: { type: String, required: true, trim: true, unique: true },
   balance: { type: Number, required: true, default: 0 },
   type: { 
@@ -128,4 +138,4 @@ accountSchema.statics.countDocuments = function(query = {}, options = {}) {
  */
 const Account = mongoose.model('Account', accountSchema);
 
-export { Account }; 
+export { Account, IAccount }; 
