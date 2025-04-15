@@ -1,27 +1,28 @@
-const express = require('express');
+import { Router } from 'express';
+import { BaseController } from './BaseController';
 
 class BaseRouter {
-  constructor(controller) {
-    this.router = express.Router();
+  protected router: Router;
+  protected controller: BaseController;
+
+  constructor(controller: BaseController) {
+    this.router = Router();
     this.controller = controller;
     this.initializeRoutes();
   }
 
-  // To be implemented by child classes
   initializeRoutes() {
     throw new Error('Method initializeRoutes() must be implemented');
   }
 
-  // Common middleware for this router
-  applyMiddleware(middleware) {
+  applyMiddleware(middleware: any) {
     this.router.use(middleware);
     return this;
   }
 
-  // Return the configured router
   getRouter() {
     return this.router;
   }
 }
 
-module.exports = BaseRouter; 
+export { BaseRouter }; 
