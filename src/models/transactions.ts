@@ -1,17 +1,7 @@
 import mongoose from 'mongoose';
-import { IBaseSchema, IBaseModel } from '../types/models/base.types';
-import { Types, Schema } from 'mongoose';
+import { Schema } from 'mongoose';
+import { ITransaction, ITransactionModel } from '../types/models/transaction.types';
 
-interface ITransaction extends IBaseSchema {
-  amount: number;
-  type: string;
-  description: string;
-  date: Date;
-  category: Types.ObjectId;
-  account: Types.ObjectId;
-  imgUrl?: string;
-  user: Types.ObjectId;
-}
 
 const transactionSchema = new Schema<ITransaction>({
   amount: { type: Number, required: true },
@@ -157,6 +147,6 @@ transactionSchema.statics.countDocuments = function(query: any  = {}, options: a
  *           example: false
  */
 
-const Transaction = mongoose.model<ITransaction, IBaseModel>('Transaction', transactionSchema);
+const Transaction = mongoose.model<ITransaction, ITransactionModel>('Transaction', transactionSchema);
 
 export { Transaction, ITransaction }; 

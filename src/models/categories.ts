@@ -1,14 +1,6 @@
 import mongoose from 'mongoose';
-import { Schema, Types } from 'mongoose';
-import { IBaseSchema, IBaseModel } from '../types/models/base.types';
-
-interface ICategory extends IBaseSchema {
-  name: string;
-  type: string;
-  icon: string;
-  color: string;
-  user: Types.ObjectId;
-}
+import { Schema } from 'mongoose';
+import { ICategory, ICategoryModel } from '../types/models/categories.types';
 
 const categorySchema = new Schema<ICategory>({
   name: { type: String, required: true, trim: true, unique: true },
@@ -70,6 +62,6 @@ categorySchema.statics.countDocuments = function(query = {}, options = {}) {
   return mongoose.Model.countDocuments.call(this, query, options);
 };
 
-const Category = mongoose.model<ICategory, IBaseModel>('Category', categorySchema);
+const Category = mongoose.model<ICategory, ICategoryModel>('Category', categorySchema);
 
 export { Category, ICategory }; 

@@ -1,20 +1,9 @@
 import mongoose from 'mongoose';
-import { Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
-import { IBaseSchema, IBaseModel } from '../types/models/base.types';
+import { IUser, IUserModel } from '../types/models/user.types';
 
-
-interface IUser extends IBaseSchema {
-  username: string;
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  currency: string;
-  isAdmin: boolean;
-}
 
 const userSchema = new mongoose.Schema<IUser>({
   username: {type: String, required: true, unique: true},
@@ -143,6 +132,6 @@ userSchema.statics.countDocuments = function(query: any = {}, options: { include
  *           type: boolean
  *           description: Whether the user is soft deleted
  */
-const User = mongoose.model<IUser, IBaseModel>('User', userSchema);
+const User = mongoose.model<IUser, IUserModel>('User', userSchema);
 
 export { User, IUser };

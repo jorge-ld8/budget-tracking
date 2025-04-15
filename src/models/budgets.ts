@@ -1,17 +1,6 @@
 import mongoose from 'mongoose';
-import { Schema, Types } from 'mongoose';
-import { IBaseSchema, IBaseModel } from '../types/models/base.types';
-
-interface IBudget extends IBaseSchema {
-  amount: number;
-  period: string;
-  category: Types.ObjectId;
-  startDate: Date;
-  endDate: Date;
-  isRecurring: boolean;
-  user: Types.ObjectId;
-}
-
+import { Schema } from 'mongoose';
+import { IBudget, IBudgetModel } from '../types/models/budgets.types';
 
 const budgetSchema = new Schema<IBudget>({
   amount: { type: Number, required: true },
@@ -76,6 +65,6 @@ budgetSchema.statics.countDocuments = function(query = {}, options = {}) {
   return mongoose.Model.countDocuments.call(this, query, options);
 };
 
-const Budget = mongoose.model<IBudget, IBaseModel>('Budget', budgetSchema);
+const Budget = mongoose.model<IBudget, IBudgetModel>('Budget', budgetSchema);
 
 export { Budget, IBudget }; 

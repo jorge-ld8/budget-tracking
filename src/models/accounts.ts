@@ -1,15 +1,6 @@
 import mongoose from 'mongoose';
-import { Schema, Types } from 'mongoose';
-import { IBaseSchema, IBaseModel } from '../types/models/base.types';
-
-interface IAccount extends IBaseSchema {
-  name: string;
-  balance: number;
-  type: string;
-  description: string;
-  isActive: boolean;
-  user: Types.ObjectId;
-}
+import { Schema } from 'mongoose';
+import { IAccount, IAccountModel } from '../types/models/accounts.types';
 
 const accountSchema = new Schema<IAccount>({
   name: { type: String, required: true, trim: true, unique: true },
@@ -136,6 +127,6 @@ accountSchema.statics.countDocuments = function(query = {}, options = {}) {
  *           default: false
  *           example: false
  */
-const Account = mongoose.model<IAccount, IBaseModel>('Account', accountSchema);
+const Account = mongoose.model<IAccount, IAccountModel>('Account', accountSchema);
 
 export { Account, IAccount }; 
