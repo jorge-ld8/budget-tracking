@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 class BaseController {
   protected service: any;
 
-  constructor(service: any) {
+  constructor(service?: any) {
     this.service = service;
   }
 

@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { Schema, Types } from 'mongoose';
-import { IBaseModel } from '../types/models/base.types';
+import { IBaseSchema, IBaseModel } from '../types/models/base.types';
 
-interface IAccount extends IBaseModel {
+interface IAccount extends IBaseSchema {
   name: string;
   balance: number;
   type: string;
@@ -136,6 +136,6 @@ accountSchema.statics.countDocuments = function(query = {}, options = {}) {
  *           default: false
  *           example: false
  */
-const Account = mongoose.model('Account', accountSchema);
+const Account = mongoose.model<IAccount, IBaseModel>('Account', accountSchema);
 
 export { Account, IAccount }; 

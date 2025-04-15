@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import { IBaseModel } from '../types/models/base.types';
+import { IBaseSchema, IBaseModel } from '../types/models/base.types';
 import { Types, Schema } from 'mongoose';
 
-interface ITransaction extends IBaseModel {
+interface ITransaction extends IBaseSchema {
   amount: number;
   type: string;
   description: string;
@@ -157,6 +157,6 @@ transactionSchema.statics.countDocuments = function(query: any  = {}, options: a
  *           example: false
  */
 
-const Transaction = mongoose.model('Transaction', transactionSchema);
+const Transaction = mongoose.model<ITransaction, IBaseModel>('Transaction', transactionSchema);
 
 export { Transaction, ITransaction }; 

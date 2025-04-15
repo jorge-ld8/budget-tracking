@@ -3,10 +3,10 @@ import { Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
-import { IBaseModel } from '../types/models/base.types';
+import { IBaseSchema, IBaseModel } from '../types/models/base.types';
 
 
-interface IUser extends IBaseModel {
+interface IUser extends IBaseSchema {
   username: string;
   email: string;
   password: string;
@@ -143,6 +143,6 @@ userSchema.statics.countDocuments = function(query: any = {}, options: { include
  *           type: boolean
  *           description: Whether the user is soft deleted
  */
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model<IUser, IBaseModel>('User', userSchema);
 
 export { User, IUser };

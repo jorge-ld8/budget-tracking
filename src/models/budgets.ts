@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { Schema, Types } from 'mongoose';
-import { IBaseModel } from '../types/models/base.types';
+import { IBaseSchema, IBaseModel } from '../types/models/base.types';
 
-interface IBudget extends IBaseModel {
+interface IBudget extends IBaseSchema {
   amount: number;
   period: string;
   category: Types.ObjectId;
@@ -76,6 +76,6 @@ budgetSchema.statics.countDocuments = function(query = {}, options = {}) {
   return mongoose.Model.countDocuments.call(this, query, options);
 };
 
-const Budget = mongoose.model('Budget', budgetSchema);
+const Budget = mongoose.model<IBudget, IBaseModel>('Budget', budgetSchema);
 
 export { Budget, IBudget }; 

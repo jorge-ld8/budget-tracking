@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { Schema, Types } from 'mongoose';
-import { IBaseModel } from '../types/models/base.types';
+import { IBaseSchema, IBaseModel } from '../types/models/base.types';
 
-interface ICategory extends IBaseModel {
+interface ICategory extends IBaseSchema {
   name: string;
   type: string;
   icon: string;
@@ -70,6 +70,6 @@ categorySchema.statics.countDocuments = function(query = {}, options = {}) {
   return mongoose.Model.countDocuments.call(this, query, options);
 };
 
-const Category = mongoose.model('Category', categorySchema);
+const Category = mongoose.model<ICategory, IBaseModel>('Category', categorySchema);
 
 export { Category, ICategory }; 
