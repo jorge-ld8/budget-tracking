@@ -1,8 +1,8 @@
-import { CustomError } from './CustomError';
-import { BadRequestError } from './BadRequestError';
-import { UnauthorizedError } from './UnauthorizedError';
-import { ForbiddenError } from './ForbiddenError';
-import { NotFoundError } from './NotFoundError';
+import { CustomError } from './CustomError.ts';
+import { BadRequestError } from './BadRequestError.ts';
+import { UnauthorizedError } from './UnauthorizedError.ts';
+import { ForbiddenError } from './ForbiddenError.ts';
+import { NotFoundError } from './NotFoundError.ts';
 
 
 export { CustomError, BadRequestError, UnauthorizedError, ForbiddenError, NotFoundError };  

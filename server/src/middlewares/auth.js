@@ -1,11 +1,9 @@
-import jwt from 'jsonwebtoken';
-import User from '../models/users.ts';
-import { UnauthorizedError, ForbiddenError } from '../errors/index.ts';
-import type { Request, Response, NextFunction } from 'express';
-
+const jwt = require('jsonwebtoken');
+const User = require('../models/users.ts');
+const { UnauthorizedError, ForbiddenError } = require('../errors');
 
 // Middleware to authenticate users
-const authenticate = async (req: Request & { user: any }, res: Response, next: NextFunction) => {
+const authenticate = async (req, res, next) => {
   try {
     // Get token from header
     const authHeader = req.headers.authorization;
@@ -44,7 +42,7 @@ const authenticate = async (req: Request & { user: any }, res: Response, next: N
 };
 
 // Middleware to check if user is an administrator
-const isAdmin = async (req: Request & { user: any }, res: Response, next: NextFunction) => {
+const isAdmin = async (req, res, next) => {
   // First ensure the user is authenticated
   if (!req.user) {
     return next(new UnauthorizedError('Authentication required'));
@@ -59,8 +57,8 @@ const isAdmin = async (req: Request & { user: any }, res: Response, next: NextFu
 };
 
 // Optional: middleware to check specific roles
-const authorizeRoles = (...roles: string[]) => {
-  return (req: Request & { user: any }, res: Response, next: NextFunction) => {
+const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return next(new ForbiddenError(`Role ${req.user.role} is not authorized to access this resource`));
     }
@@ -68,4 +66,4 @@ const authorizeRoles = (...roles: string[]) => {
   };
 };
 
-export { authenticate, isAdmin, authorizeRoles }; 
+module.exports = { authenticate, isAdmin, authorizeRoles }; 

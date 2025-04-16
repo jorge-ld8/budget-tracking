@@ -1,5 +1,6 @@
-const BaseRouter = require('../interfaces/BaseRouter');
-const { authenticate, isAdmin } = require('../middlewares/auth');
+import { BaseRouter } from '../interfaces/BaseRouter.ts';
+import { authenticate, isAdmin } from '../middlewares/auth.ts';
+import type { AccountController } from '../types/controllers.ts';
 
 /**
  * @swagger
@@ -108,9 +109,13 @@ const { authenticate, isAdmin } = require('../middlewares/auth');
  *           description: Operation to perform on the balance
  */
 
-class AccountRouter extends BaseRouter {
+class AccountRouter extends BaseRouter<AccountController> {
+    constructor(controller: AccountController) {
+        super(controller);
+    }
+    
     async initializeRoutes() {
-        this.router.use(authenticate);
+        this.router.use(authenticate as any);
         
         /**
          * @swagger
@@ -472,7 +477,7 @@ class AccountRouter extends BaseRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.get('/deleted/all', this.controller.getDeletedAccounts);
+        this.router.get('/deleted/all', this.controller.getDeleted);
 
         /**
          * @swagger
@@ -512,14 +517,14 @@ class AccountRouter extends BaseRouter {
         this.router.post('/:id/restore', this.controller.restore);
         
         // Admin routes without Swagger documentation
-        this.router.get('/admin/all', isAdmin, this.controller.getAllAdmin);
-        this.router.get('/admin/deleted/all', isAdmin, this.controller.getDeletedAccountsAdmin);
-        this.router.get('/admin/:id', isAdmin, this.controller.getByIdAdmin);
-        this.router.post('/admin', isAdmin, this.controller.createAdmin);
-        this.router.patch('/admin/:id', isAdmin, this.controller.updateAdmin);
-        this.router.delete('/admin/:id', isAdmin, this.controller.deleteAdmin);
-        this.router.post('/admin/:id/restore', isAdmin, this.controller.restoreAdmin);
+        this.router.get('/admin/all', isAdmin as any, this.controller.getAllAdmin);
+        this.router.get('/admin/deleted/all', isAdmin as any, this.controller.getDeleted);
+        this.router.get('/admin/:id', isAdmin as any, this.controller.getByIdAdmin);
+        this.router.post('/admin', isAdmin as any, this.controller.createAdmin);
+        this.router.patch('/admin/:id', isAdmin as any, this.controller.updateAdmin);
+        this.router.delete('/admin/:id', isAdmin as any, this.controller.deleteAdmin);
+        this.router.post('/admin/:id/restore', isAdmin as any, this.controller.restoreAdmin);
     }
 }
 
-module.exports = AccountRouter; 
+export default AccountRouter; 

@@ -1,6 +1,6 @@
-import { IBaseModel, IBaseSchema } from "./base.types";
+import { IBaseModel, IBaseSchema } from "./base.types.ts";
 
-interface IUser extends IBaseSchema {
+export interface IUser extends IBaseSchema {
     username: string;
     email: string;
     password: string;
@@ -10,6 +10,4 @@ interface IUser extends IBaseSchema {
     isAdmin: boolean;
   }
 
-  interface IUserModel extends IBaseModel<IUser> {}
-
-  export { IUser, IUserModel };
+export interface IUserModel extends IBaseModel<IUser> {}

@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
-import { IBudget, IBudgetModel } from '../types/models/budgets.types';
+import type { IBudgetSchema, IBudgetModel } from '../types/models/budgets.types.ts';
 
-const budgetSchema = new Schema<IBudget>({
+const budgetSchema = new Schema<IBudgetSchema>({
   amount: { type: Number, required: true },
   period: { type: String, required: true, enum: ['daily', 'weekly', 'monthly', 'yearly'] },
   category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
@@ -65,6 +65,6 @@ budgetSchema.statics.countDocuments = function(query = {}, options = {}) {
   return mongoose.Model.countDocuments.call(this, query, options);
 };
 
-const Budget = mongoose.model<IBudget, IBudgetModel>('Budget', budgetSchema);
+const Budget = mongoose.model<IBudgetSchema, IBudgetModel>('Budget', budgetSchema);
 
-export { Budget, IBudget }; 
+export default Budget;

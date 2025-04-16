@@ -1,7 +1,7 @@
-import { IBaseModel, IBaseSchema } from "./base.types";
-import { Types } from "mongoose";
+import type { IBaseModel, IBaseSchema } from "./base.types.ts";
+import  { Types } from "mongoose";
 
-interface IBudgetSchema extends IBaseSchema {
+export interface IBudgetSchema extends IBaseSchema {
     amount: number;
     period: string;
     category: Types.ObjectId;
@@ -11,6 +11,4 @@ interface IBudgetSchema extends IBaseSchema {
     user: Types.ObjectId;
   }
 
-  interface IBudgetModel extends IBaseModel<IBudgetSchema> {}
-
-  export { IBudgetSchema as IBudget, IBudgetModel };
+  export interface IBudgetModel extends IBaseModel<IBudgetSchema> {}

@@ -1,7 +1,7 @@
-import { IBaseModel, IBaseSchema } from "./base.types";
-import { Types } from "mongoose";
+import type { IBaseModel, IBaseSchema } from "./base.types.ts";
+import  { Types } from "mongoose";
 
-interface IAccountSchema extends IBaseSchema {
+export interface IAccountSchema extends IBaseSchema {
     name: string;
     balance: number;
     type: string;
@@ -10,6 +10,4 @@ interface IAccountSchema extends IBaseSchema {
     user: Types.ObjectId;
   }
 
-  interface IAccountModel extends IBaseModel<IAccountSchema> {}
-
-  export { IAccountSchema as IAccount, IAccountModel }; 
+  export interface IAccountModel extends IBaseModel<IAccountSchema> {}

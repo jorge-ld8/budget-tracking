@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { BaseController } from './BaseController';
+import type { CrudController } from '../types/controllers.ts';
 
-class BaseRouter {
+class BaseRouter<T extends CrudController> {
   protected router: Router;
-  protected controller: BaseController;
+  protected controller: T;
 
-  constructor(controller: BaseController) {
+  constructor(controller: T) {
     this.router = Router();
     this.controller = controller;
     this.initializeRoutes();

@@ -3,11 +3,11 @@ import multerS3 from 'multer-s3';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
-import s3Client from '../config/s3Config';
-import env from '../config/env';
+import s3Client from '../config/s3Config.js';
+import env from '../config/env.js';
 
 // Ensure upload directory exists
-const uploadDir = path.join(__dirname, '../uploads/images');
+const uploadDir = path.join(import.meta.url, '../uploads/images');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -52,4 +52,4 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
-export { upload };
+export default upload;

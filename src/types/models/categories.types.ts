@@ -1,7 +1,7 @@
-import { IBaseModel, IBaseSchema } from "./base.types";
-import { Types } from "mongoose";
+import type { IBaseModel, IBaseSchema } from "./base.types.ts";
+import  { Types } from "mongoose";
 
-interface ICategorySchema  extends IBaseSchema {
+export interface ICategorySchema extends IBaseSchema {
     name: string;
     type: string;
     icon: string;
@@ -9,6 +9,4 @@ interface ICategorySchema  extends IBaseSchema {
     user: Types.ObjectId;
   }
 
-  interface ICategoryModel extends IBaseModel<ICategorySchema> {}
-
-  export { ICategorySchema as ICategory, ICategoryModel };
+export interface ICategoryModel extends IBaseModel<ICategorySchema> {}

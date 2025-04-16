@@ -1,10 +1,22 @@
-const { authenticate } = require('../middlewares/auth');
-const BaseRouter = require('../interfaces/BaseRouter');
+import { authenticate } from '../middlewares/auth.ts';
+import type { ReportsController } from '../types/controllers.ts';
+import { Router } from 'express';
+class ReportsRouter{
+  private router: Router;
+  private controller: ReportsController;
 
-class ReportsRouter extends BaseRouter {
+  constructor(controller: ReportsController) {
+    this.router = Router();
+    this.controller = controller;
+  }
+
+  getRouter() {
+    return this.router;
+  }
+
   initializeRoutes() {
     // Apply authentication middleware to all routes
-    this.router.use(authenticate);
+    this.router.use(authenticate as any);
 
     /**
      * @swagger
@@ -102,4 +114,4 @@ class ReportsRouter extends BaseRouter {
   }
 }
 
-module.exports = ReportsRouter;
+export default ReportsRouter;

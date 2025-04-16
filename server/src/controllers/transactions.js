@@ -1,10 +1,8 @@
-import Transaction from '../models/transactions.ts';
-import { NotFoundError, BadRequestError } from '../errors/index.ts';
-import { BaseController } from '../interfaces/BaseController.ts';
-import Account from '../models/accounts.ts';
-import s3Client from '../config/s3Config.js';
-import env from '../config/env.js';
-import { DeleteObjectCommand } from '@aws-sdk/client-s3';
+const Transaction = require('../models/transactions.ts');
+const { NotFoundError, BadRequestError } = require('../errors');
+const BaseController = require('../interfaces/BaseController');
+const Account = require('../models/accounts');
+
 
 class TransactionController extends BaseController {
   constructor() {
@@ -13,10 +11,12 @@ class TransactionController extends BaseController {
 
   async getAll(req, res, next) {
     try {
+
+      
       const { type, description, category, account, sort, fields, page, limit, numericFilters, startDate, endDate } = req.query;
       
       // Create query object and add user filter
-      const queryObject : any = {
+      const queryObject = {
         user: req.user._id // Only return transactions belonging to the authenticated user
       };
       
@@ -134,19 +134,7 @@ class TransactionController extends BaseController {
 
   async create(req, res, next) {
     try {
-      console.log("req.body", req.body);
-      console.log("req.file", req.file);
-
-      let imageUrl = null;
-      if (req.file) {
-        // local upload (using multer)
-        imageUrl = req.file.location;
-      }
-      else if(req.body.imgUrl) {
-        // cloud upload (using uploadthing)
-        imageUrl = req.body.imgUrl;
-      }
-
+      // Check if the account exists and belongs to the authenticated user
       const account = await Account.findOne({
         _id: req.body.account,
         user: req.user._id
@@ -164,11 +152,11 @@ class TransactionController extends BaseController {
       // Create the transaction
       const transaction = new Transaction({
         ...req.body,
-        imgUrl: imageUrl,
         user: req.user._id
       });
       
       await transaction.save();
+      
       // Update account balance
       if (transaction.type === 'income') {
         account.balance += transaction.amount;
@@ -272,7 +260,7 @@ class TransactionController extends BaseController {
       // Update account balance
       const account = await Account.findOne({
         _id: transaction.account,
-        // user: req.user._id
+        user: req.user._id
       });
       
       if (!account) {
@@ -287,22 +275,8 @@ class TransactionController extends BaseController {
       
       await account.save();
       
-      // Delete image from s3 if there is one
-      if (transaction.imgUrl) {
-        const lastSlashIndex = transaction.imgUrl.lastIndexOf('/');
-        const key = transaction.imgUrl.substring(lastSlashIndex + 1);
-
-        const params = {
-          Bucket: env.AWS_S3_BUCKET_NAME,
-          Key: key
-        };
-        const command = new DeleteObjectCommand(params);
-        await s3Client.send(command);
-      }
-
-      await transaction.softDelete();
-
       // Soft delete
+      await transaction.softDelete();
       res.status(200).json({ message: 'Transaction soft deleted successfully' });
     } catch (error) {
       next(error);
@@ -312,7 +286,7 @@ class TransactionController extends BaseController {
   async restore(req, res, next) {
     try {
       // Set includeDeleted flag to allow finding deleted items
-      const query : any = Transaction.findOne({
+      const query = Transaction.findOne({
         _id: req.params.id,
         user: req.user._id
       });
@@ -354,7 +328,7 @@ class TransactionController extends BaseController {
     }
   }
   
-  async getDeleted(req, res, next) {
+  async getDeletedTransactions(req, res, next) {
     try {
       // Only find deleted transactions belonging to the authenticated user
       const deletedTransactions = await Transaction.findDeleted({ user: req.user._id });
@@ -422,7 +396,7 @@ class TransactionController extends BaseController {
       const { type, user, account, category, startDate, endDate, page, limit, sort } = req.query;
       
       // Create query object without user filter (admin can see all)
-      const queryObject : any = {};
+      const queryObject = {};
       
       // Optional filters
       if (user) {
@@ -615,7 +589,7 @@ class TransactionController extends BaseController {
       }
       
       // Update transaction
-      const updatedFields : any = {};
+      const updatedFields = {};
       if (amount) updatedFields.amount = amount;
       if (description) updatedFields.description = description;
       if (category) updatedFields.category = category;
@@ -677,22 +651,6 @@ class TransactionController extends BaseController {
       next(error);
     }
   }
-
-  async restoreAdmin(req, res, next) {
-    try {
-      const { id } = req.params;
-      const transaction = await Transaction.findById(id);
-      
-      if (!transaction) {
-        return next(new NotFoundError('Transaction not found'));
-      }
-      
-      await transaction.restore();
-      res.status(200).json({ message: 'Transaction restored successfully', transaction });
-    } catch (error) {
-      next(error);
-    }
-  }
 }
 
-export default TransactionController;
+module.exports = TransactionController;

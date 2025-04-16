@@ -1,6 +1,6 @@
-const BaseRouter = require('../interfaces/BaseRouter');
-const { authenticate } = require('../middlewares/auth');
-
+import { BaseRouter } from '../interfaces/BaseRouter.ts';
+import { authenticate } from '../middlewares/auth.ts';
+import type { UserController } from '../types/controllers.ts';
 /**
  * @swagger
  * components:
@@ -54,9 +54,9 @@ const { authenticate } = require('../middlewares/auth');
  *   description: User management API
  */
 
-class UsersRouter extends BaseRouter {
+class UsersRouter extends BaseRouter<UserController> {
     async initializeRoutes() {
-        this.router.use(authenticate);
+        this.router.use(authenticate as any);
 
         /**
          * @swagger
@@ -276,7 +276,7 @@ class UsersRouter extends BaseRouter {
          *                 count:
          *                   type: integer
          */
-        this.router.get('/deleted/all', this.controller.getDeletedUsers);
+        this.router.get('/deleted/all', this.controller.getDeleted);
 
         /**
          * @swagger
@@ -303,4 +303,4 @@ class UsersRouter extends BaseRouter {
     }
 }
 
-module.exports = UsersRouter;
+export default UsersRouter;

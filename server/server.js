@@ -1,4 +1,4 @@
-const app = require('./src/app');
+const app = require('./src/app.ts');
 const {connectDB, NODE_ENV} = require('./src/config/config');
 
 // load environment variables

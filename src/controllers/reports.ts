@@ -1,6 +1,6 @@
-import { BaseController } from '../interfaces/BaseController';
-import { BadRequestError } from '../errors';
-import { Transaction } from '../models/transactions';
+import { BaseController } from '../interfaces/BaseController.ts';
+import { BadRequestError } from '../errors/index.ts';
+import Transaction from '../models/transactions.ts';
 
 class ReportsController extends BaseController {
   constructor() {
@@ -256,4 +256,4 @@ class ReportsController extends BaseController {
   }
 }
 
-export { ReportsController };
+export default ReportsController;

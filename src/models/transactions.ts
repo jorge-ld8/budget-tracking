@@ -1,9 +1,8 @@
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
-import { ITransaction, ITransactionModel } from '../types/models/transaction.types';
+import type { ITransactionSchema, ITransactionModel } from '../types/models/transaction.types.ts';
 
-
-const transactionSchema = new Schema<ITransaction>({
+const transactionSchema = new Schema<ITransactionSchema>({
   amount: { type: Number, required: true },
   type: { type: String, required: true, enum: ['income', 'expense'] },
   description: { type: String, required: true, trim: true },
@@ -147,6 +146,6 @@ transactionSchema.statics.countDocuments = function(query: any  = {}, options: a
  *           example: false
  */
 
-const Transaction = mongoose.model<ITransaction, ITransactionModel>('Transaction', transactionSchema);
+const Transaction = mongoose.model<ITransactionSchema, ITransactionModel>('Transaction', transactionSchema);
 
-export { Transaction, ITransaction }; 
+export default Transaction;

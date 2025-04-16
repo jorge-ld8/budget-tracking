@@ -1,15 +1,17 @@
-import { NotFoundError, BadRequestError } from '../errors/index.ts';
-import Account from '../models/accounts.ts';
-import type { AccountController as IAccountController } from '../types/controllers.ts';
+const Account = require('../models/accounts');
+const { NotFoundError, BadRequestError } = require('../errors');
+const BaseController = require('../interfaces/BaseController');
 
-class AccountController implements IAccountController {
-  constructor() {}
+class AccountController extends BaseController {
+  constructor() {
+    super();
+  }
 
   async getAll(req, res) {
     const { type, name, sort, fields, page, limit, numericFilters } = req.query;
 
     // Add user filter to query object - only return accounts belonging to the authenticated user
-    const queryObject : any = {
+    const queryObject = {
       user: req.user._id
     };
     
@@ -216,7 +218,7 @@ class AccountController implements IAccountController {
 
   async restore(req, res, next) {
     // Set includeDeleted flag to allow finding deleted items
-    const query : any = Account.findOne({
+    const query = Account.findOne({
       _id: req.params.id,
       user: req.user._id
     });
@@ -252,7 +254,7 @@ class AccountController implements IAccountController {
       const { type, user, name, sort, fields, page, limit, numericFilters } = req.query;
       
       // Create query object without user filter (admin can see all)
-      const queryObject : any = {};
+      const queryObject = {};
       
       // Optional filters
       if (user) {
@@ -387,7 +389,7 @@ class AccountController implements IAccountController {
       const { name, type, description, isActive, balance, user } = req.body;
       
       // Update account without user filter
-      const updatedFields : any = {};
+      const updatedFields = {};
       if (name !== undefined) updatedFields.name = name;
       if (type !== undefined) updatedFields.type = type;
       if (description !== undefined) updatedFields.description = description;
@@ -441,7 +443,7 @@ class AccountController implements IAccountController {
   async restoreAdmin(req, res, next) {
     try {
       // Set includeDeleted flag to allow finding deleted items
-      const query : any = Account.findById(req.params.id);
+      const query = Account.findById(req.params.id);
       query.includeDeleted = true;
       
       const account = await query;
@@ -463,10 +465,10 @@ class AccountController implements IAccountController {
     }
   }
 
-  async getDeleted(req, res, next) {
+  async getDeletedAccountsAdmin(req, res, next) {
     try {
       // Find all deleted accounts (not filtered by user)
-      const deletedAccounts = await Account.findDeleted();
+      const deletedAccounts = await Account.findDeleted({});
       
       res.status(200).json({ 
         deletedAccounts,
@@ -478,4 +480,4 @@ class AccountController implements IAccountController {
   }
 }
 
-export default AccountController; 
+module.exports = AccountController; 

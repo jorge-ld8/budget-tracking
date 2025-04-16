@@ -1,6 +1,6 @@
-import User from '../models/users.ts';
-import { BadRequestError, UnauthorizedError } from '../errors/index.ts';
-import { BaseController } from '../interfaces/BaseController.ts';
+const User = require('../models/users.ts');
+const { BadRequestError, UnauthorizedError, ConflictError } = require('../errors');
+const BaseController = require('../interfaces/BaseController');
 
 class AuthController extends BaseController {
   constructor() {
@@ -33,7 +33,7 @@ class AuthController extends BaseController {
       const token = user.generateAuthToken();
       
       // Return user info without password
-      const userObj : any = user.toObject();
+      const userObj = user.toObject();
       delete userObj.password;
       
       res.status(201).json({
@@ -67,14 +67,14 @@ class AuthController extends BaseController {
       }
       
       // Update last login
-      (user as any).lastLogin = Date.now();
+      user.lastLogin = Date.now();
       await user.save();
       
       // Generate token
       const token = user.generateAuthToken();
       
       // Return user info without password
-      const userObj : any = user.toObject();
+      const userObj = user.toObject();
       delete userObj.password;
       
       res.status(200).json({
@@ -105,7 +105,7 @@ class AuthController extends BaseController {
       // Verify current password
       const isMatch = await user.comparePassword(currentPassword);
       if (!isMatch) {
-        const error = new UnauthorizedError('Current password is incorrect');
+        const error = createCustomError('Current password is incorrect', 401);
         return next(error);
       }
       
@@ -133,4 +133,4 @@ class AuthController extends BaseController {
   }
 }
 
-export default AuthController;
+module.exports = AuthController;

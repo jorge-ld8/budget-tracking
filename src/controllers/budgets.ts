@@ -1,7 +1,7 @@
-import { Budget } from '../models/budgets';
-import { Category } from '../models/categories';
-import { NotFoundError, BadRequestError } from '../errors';
-import { BaseController } from '../interfaces/BaseController';
+import Category from '../models/categories.ts';
+import Budget from '../models/budgets.ts';
+import { NotFoundError, BadRequestError } from '../errors/index.ts';
+import { BaseController } from '../interfaces/BaseController.ts';
 
 class BudgetsController extends BaseController {
   constructor() {
@@ -405,7 +405,7 @@ class BudgetsController extends BaseController {
     });
   }
   
-  async getCurrentBudgets(req, res) {
+  async getCurrent(req, res) {
     const today = new Date();
     
     // Get budgets that are currently active
@@ -431,6 +431,355 @@ class BudgetsController extends BaseController {
       count: budgets.length
     });
   }
+
+  async getAllAdmin(req, res, next) {
+    try {
+      const { period, category, sort, fields, page, limit, startDate, endDate, user, numericFilters } = req.query;
+
+      const queryObject : any = {};
+      
+      // Admin can filter by user
+      if (user) {
+        queryObject.user = user;
+      }
+      
+      if (period) {
+        queryObject.period = period;
+      }
+      
+      if (category) {
+        queryObject.category = category;
+      }
+      
+      // Date range filtering
+      if (startDate || endDate) {
+        if (startDate) {
+          queryObject.startDate = queryObject.startDate || {};
+          queryObject.startDate.$gte = new Date(startDate);
+        }
+        
+        if (endDate) {
+          queryObject.$or = queryObject.$or || [];
+          queryObject.$or.push({ endDate: { $lte: new Date(endDate), $ne: null } });
+          queryObject.$or.push({
+            startDate: { $lte: new Date(endDate) },
+            $or: [
+              { isRecurring: true },
+              { endDate: null }
+            ]
+          });
+        }
+      }
+      
+      // Numeric filters
+      if (numericFilters) {
+        const operatorMap = {
+          '>': '$gt',
+          '>=': '$gte',
+          '<': '$lt',
+          '<=': '$lte',
+          '=': '$eq',
+          '!=': '$ne'
+        };
+        const regex = /\b(<|>|>=|<=|=|!=)\b/g;
+        let filters = numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);
+        const options = ['amount'];
+        filters.split(',').forEach((item) => {
+          const [field, operator, value] = item.split('-');
+          if (options.includes(field)) {
+            queryObject[field] = { [operator]: Number(value) };
+          }
+        });
+      }
+      
+      let result = Budget.find(queryObject);
+
+      // Populate category and user details
+      result = result.populate('category', 'name type icon color')
+                    .populate('user', 'username email firstName lastName');
+
+      if (sort) {
+        const sortFields = sort.split(',').join(' ');
+        result = result.sort(sortFields);
+      } else {
+        result = result.sort('-createdAt');
+      }
+      
+      if (fields) {
+        const fieldsList = fields.split(',').join(' ');
+        result = result.select(fieldsList);
+      }
+      
+      // Pagination
+      const pageNumber = Number(page) || 1;
+      const limitNumber = Number(limit) || 10;
+      const skip = (pageNumber - 1) * limitNumber;
+      
+      result = result.skip(skip).limit(limitNumber);
+      
+      const budgets = await result;
+      const totalDocuments = await Budget.countDocuments(queryObject);
+      
+      res.status(200).json({ 
+        budgets, 
+        count: budgets.length,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(totalDocuments / limitNumber)
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getByIdAdmin(req, res, next) {
+    try {
+      const { id } = req.params;
+      
+      const budget = await Budget.findById(id)
+        .populate('category', 'name type icon color')
+        .populate('user', 'username email firstName lastName');
+      
+      if (!budget) {
+        return next(new NotFoundError('Budget not found'));
+      }
+      
+      res.status(200).json({ budget });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async createAdmin(req, res, next) {
+    try {
+      const { amount, period, category, startDate, endDate, isRecurring, user } = req.body;
+      
+      // Validate period
+      if (!['daily', 'weekly', 'monthly', 'yearly'].includes(period)) {
+        return next(new BadRequestError('Period must be daily, weekly, monthly, or yearly'));
+      }
+      
+      // Validate that amount is a positive number
+      if (isNaN(amount) || amount <= 0) {
+        return next(new BadRequestError('Amount must be a positive number'));
+      }
+      
+      // Validate dates
+      const start = new Date(startDate);
+      if (isNaN(start.getTime())) {
+        return next(new BadRequestError('Invalid start date'));
+      }
+      
+      if (endDate) {
+        const end = new Date(endDate);
+        if (isNaN(end.getTime())) {
+          return next(new BadRequestError('Invalid end date'));
+        }
+        
+        if (end <= start) {
+          return next(new BadRequestError('End date must be after start date'));
+        }
+      }
+      
+      // Check if user exists
+      const User = require('../models/users.ts');
+      const userExists = await User.findById(user);
+      
+      if (!userExists) {
+        return next(new NotFoundError('User not found'));
+      }
+      
+      // Verify that the category exists
+      const categoryExists = await Category.findById(category);
+      
+      if (!categoryExists) {
+        return next(new BadRequestError('Category not found'));
+      }
+      
+      // Create the budget
+      const budget = new Budget({
+        amount,
+        period,
+        category,
+        startDate,
+        endDate,
+        isRecurring: isRecurring !== undefined ? isRecurring : true,
+        user
+      });
+      
+      const savedBudget = await budget.save();
+      
+      // Populate category and user details for the response
+      await savedBudget.populate('category', 'name type icon color');
+      await savedBudget.populate('user', 'username email firstName lastName');
+      
+      res.status(201).json({ budget: savedBudget });
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        return next(new BadRequestError(`Validation Error: ${error.message}`));
+      }
+      next(error);
+    }
+  }
+
+  async updateAdmin(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { amount, period, category, startDate, endDate, isRecurring, user } = req.body;
+      
+      // Build update object with only provided fields
+      const updateData : any = {};
+      
+      if (amount !== undefined) {
+        if (isNaN(amount) || amount <= 0) {
+          return next(new BadRequestError('Amount must be a positive number'));
+        }
+        updateData.amount = amount;
+      }
+      
+      if (period !== undefined) {
+        if (!['daily', 'weekly', 'monthly', 'yearly'].includes(period)) {
+          return next(new BadRequestError('Period must be daily, weekly, monthly, or yearly'));
+        }
+        updateData.period = period;
+      }
+      
+      if (category !== undefined) {
+        // Verify that the category exists
+        const categoryExists = await Category.findById(category);
+        
+        if (!categoryExists) {
+          return next(new BadRequestError('Category not found'));
+        }
+        
+        updateData.category = category;
+      }
+      
+      if (user !== undefined) {
+        // Verify the user exists
+        const User = require('../models/users.ts');
+        const userExists = await User.findById(user);
+        
+        if (!userExists) {
+          return next(new NotFoundError('User not found'));
+        }
+        
+        updateData.user = user;
+      }
+      
+      if (startDate !== undefined) {
+        const start = new Date(startDate);
+        if (isNaN(start.getTime())) {
+          return next(new BadRequestError('Invalid start date'));
+        }
+        updateData.startDate = startDate;
+      }
+      
+      if (endDate !== undefined) {
+        const end = new Date(endDate);
+        if (isNaN(end.getTime())) {
+          return next(new BadRequestError('Invalid end date'));
+        }
+        
+        // If both start and end dates are being updated, check their relationship
+        if (updateData.startDate) {
+          const start = new Date(updateData.startDate);
+          if (end <= start) {
+            return next(new BadRequestError('End date must be after start date'));
+          }
+        } else {
+          // If only end date is being updated, get the current budget to check against its start date
+          const currentBudget = await Budget.findById(id);
+          
+          if (!currentBudget) {
+            return next(new NotFoundError('Budget not found'));
+          }
+          
+          const currentStart = new Date(currentBudget.startDate);
+          if (end <= currentStart) {
+            return next(new BadRequestError('End date must be after start date'));
+          }
+        }
+        
+        updateData.endDate = endDate;
+      }
+      
+      if (isRecurring !== undefined) {
+        updateData.isRecurring = isRecurring;
+      }
+      
+      const budget = await Budget.findByIdAndUpdate(
+        id,
+        updateData, 
+        { new: true, runValidators: true }
+      )
+      .populate('category', 'name type icon color')
+      .populate('user', 'username email firstName lastName');
+      
+      if (!budget) {
+        return next(new NotFoundError('Budget not found'));
+      }
+      
+      res.status(200).json({ budget });
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        return next(new BadRequestError(`Validation Error: ${error.message}`));
+      }
+      next(error);
+    }
+  }
+
+  async deleteAdmin(req, res, next) {
+    try {
+      const { id } = req.params;
+      
+      const budget = await Budget.findById(id);
+      
+      if (!budget) {
+        return next(new NotFoundError('Budget not found'));
+      }
+      
+      if (budget.isDeleted) {
+        return next(new BadRequestError('Budget is already deleted'));
+      }
+      
+      await budget.softDelete();
+      res.status(200).json({ 
+        message: 'Budget soft deleted successfully',
+        budgetId: budget._id  
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async restoreAdmin(req, res, next) {
+    try {
+      const { id } = req.params;
+      
+      // Set includeDeleted flag to allow finding deleted items
+      const query : any = Budget.findById(id);
+      query.includeDeleted = true;
+      
+      const budget = await query;
+      
+      if (!budget) {
+        return next(new NotFoundError('Budget not found'));
+      }
+      
+      if (!budget.isDeleted) {
+        return next(new BadRequestError('Budget is not deleted'));
+      }
+      
+      await budget.restore();
+      res.status(200).json({ 
+        message: 'Budget restored successfully', 
+        budget 
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
-export { BudgetsController }; 
+export default BudgetsController;   

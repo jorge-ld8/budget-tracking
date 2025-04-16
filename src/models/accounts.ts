@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
-import { IAccount, IAccountModel } from '../types/models/accounts.types';
+import type { IAccountSchema, IAccountModel } from '../types/models/accounts.types.ts';
 
-const accountSchema = new Schema<IAccount>({
+const accountSchema = new Schema<IAccountSchema>({
   name: { type: String, required: true, trim: true, unique: true },
   balance: { type: Number, required: true, default: 0 },
   type: { 
@@ -127,6 +127,6 @@ accountSchema.statics.countDocuments = function(query = {}, options = {}) {
  *           default: false
  *           example: false
  */
-const Account = mongoose.model<IAccount, IAccountModel>('Account', accountSchema);
+const Account = mongoose.model<IAccountSchema, IAccountModel>('Account', accountSchema);
 
-export { Account, IAccount }; 
+export default Account;

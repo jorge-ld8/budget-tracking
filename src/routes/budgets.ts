@@ -1,6 +1,6 @@
-const BaseRouter = require('../interfaces/BaseRouter');
-const { authenticate } = require('../middlewares/auth');
-
+import { authenticate } from '../middlewares/auth.ts';
+import type { BudgetController } from '../types/controllers.ts';
+import { BaseRouter } from '../interfaces/BaseRouter.ts';
 /**
  * @swagger
  * components:
@@ -74,10 +74,13 @@ const { authenticate } = require('../middlewares/auth');
  *   description: Budget management API
  */
 
-class BudgetsRouter extends BaseRouter {
-  async initializeRoutes() {
-    this.router.use(authenticate);
+class BudgetsRouter extends BaseRouter<BudgetController> {
+  constructor(controller: BudgetController) {
+    super(controller);
+  }
 
+  async initializeRoutes() {
+    this.router.use(authenticate as any);
     /**
      * @swagger
      * /budgets:
@@ -235,7 +238,7 @@ class BudgetsRouter extends BaseRouter {
      *                 count:
      *                   type: integer
      */
-    this.router.get('/deleted', this.controller.getDeletedBudgets);
+    this.router.get('/deleted', this.controller.getDeleted);
 
     /**
      * @swagger
@@ -261,7 +264,7 @@ class BudgetsRouter extends BaseRouter {
      *                 count:
      *                   type: integer
      */
-    this.router.get('/current', this.controller.getCurrentBudgets);
+    this.router.get('/current', this.controller.getCurrent);
 
     /**
      * @swagger
@@ -479,4 +482,4 @@ class BudgetsRouter extends BaseRouter {
   }
 }
 
-module.exports = BudgetsRouter; 
+export default BudgetsRouter; 

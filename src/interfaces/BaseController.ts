@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 
 class BaseController {
   protected service: any;
@@ -26,6 +26,14 @@ class BaseController {
 
   async delete(req: Request, res: Response, next: NextFunction) {
     throw new Error('Method delete() must be implemented');
+  }
+
+  async restore(req: Request, res: Response, next: NextFunction) {
+    throw new Error('Method restore() must be implemented');
+  }
+
+  async getDeleted(req: Request, res: Response, next: NextFunction) {
+    throw new Error('Method getDeleted() must be implemented');
   }
 
   // Error handling helper

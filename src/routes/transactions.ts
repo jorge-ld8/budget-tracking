@@ -1,6 +1,8 @@
-const BaseRouter = require('../interfaces/BaseRouter');
-const { authenticate, isAdmin } = require('../middlewares/auth');
-const {upload} = require('../middlewares/fileUpload');
+import { BaseRouter } from '../interfaces/BaseRouter.ts';
+import type { TransactionController } from '../types/controllers.ts';
+import { authenticate, isAdmin } from '../middlewares/auth.ts';
+import upload from '../middlewares/fileUpload.ts';
+
 
 /**
  * @swagger
@@ -74,9 +76,13 @@ const {upload} = require('../middlewares/fileUpload');
  *   description: Transaction management API
  */
 
-class TransactionsRouter extends BaseRouter {
+class TransactionsRouter extends BaseRouter<TransactionController> {
+  constructor(controller: TransactionController) {
+    super(controller);
+  }
+
   async initializeRoutes() {
-    this.router.use(authenticate);
+    this.router.use(authenticate as any);
 
     /**
      * @swagger
@@ -226,7 +232,7 @@ class TransactionsRouter extends BaseRouter {
      *                   isDeleted: true
      *               count: 1
      */
-    this.router.get('/deleted/all', this.controller.getDeletedTransactions);
+    this.router.get('/deleted/all', this.controller.getDeleted);
 
     /**
      * @swagger
@@ -538,12 +544,12 @@ class TransactionsRouter extends BaseRouter {
     this.router.get('/category/:categoryId', this.controller.getByCategory);
 
     // Admin routes without Swagger documentation
-    this.router.get('/admin/all', isAdmin, this.controller.getAllAdmin);
-    this.router.get('/admin/:id', isAdmin, this.controller.getByIdAdmin);
-    this.router.post('/admin', isAdmin, this.controller.createAdmin);
-    this.router.patch('/admin/:id', isAdmin, this.controller.updateAdmin);
-    this.router.delete('/admin/:id', isAdmin, this.controller.deleteAdmin);
+    this.router.get('/admin/all', isAdmin as any, this.controller.getAllAdmin);
+    this.router.get('/admin/:id', isAdmin as any, this.controller.getByIdAdmin);
+    this.router.post('/admin', isAdmin as any, this.controller.createAdmin);
+    this.router.patch('/admin/:id', isAdmin as any, this.controller.updateAdmin);
+    this.router.delete('/admin/:id', isAdmin as any, this.controller.deleteAdmin);
   }
 }
 
-module.exports = TransactionsRouter; 
+export default TransactionsRouter; 

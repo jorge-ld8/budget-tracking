@@ -1,7 +1,7 @@
-const BaseRouter = require('../interfaces/BaseRouter');
-const rateLimiter = require('express-rate-limit');
-const { authenticate } = require('../middlewares/auth');
-
+import type { AuthController } from '../types/controllers.ts';
+import rateLimiter from 'express-rate-limit';
+import { authenticate } from '../middlewares/auth.ts';
+import { Router } from 'express';
 const limiter = rateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
     limit: 3, // limit each IP to 100 requests per windowMs
@@ -20,7 +20,7 @@ const limiter = rateLimiter({
  *   schemas:
  *     LoginRequest:
  *       type: object
- *       required:
+ *       required:  
  *         - username
  *         - password
  *       properties:
@@ -78,7 +78,19 @@ const limiter = rateLimiter({
  *           description: New password
  */
 
-class AuthRouter extends BaseRouter {
+class AuthRouter {
+    private router: Router;
+    private controller: AuthController;
+
+    constructor(controller: AuthController) {
+        this.router = Router();
+        this.controller = controller;
+    }
+
+    getRouter() {
+        return this.router;
+    }
+
     async initializeRoutes() {
         /**
          * @swagger
@@ -182,7 +194,7 @@ class AuthRouter extends BaseRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.post('/logout', authenticate, this.controller.logout);
+        this.router.post('/logout', authenticate as any, this.controller.logout);
 
         /**
          * @swagger
@@ -205,7 +217,7 @@ class AuthRouter extends BaseRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.get('/current-user', authenticate, this.controller.getCurrentUser);
+        this.router.get('/current-user', authenticate as any, this.controller.getCurrentUser);
 
         /**
          * @swagger
@@ -237,8 +249,8 @@ class AuthRouter extends BaseRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.post('/change-password', authenticate, this.controller.changePassword);
+        this.router.post('/change-password', authenticate as any, this.controller.changePassword);
     }
 }
 
-module.exports = AuthRouter;
+export default AuthRouter;

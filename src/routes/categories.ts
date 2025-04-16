@@ -1,5 +1,6 @@
-const BaseRouter = require('../interfaces/BaseRouter');
-const { authenticate } = require('../middlewares/auth');
+import { authenticate } from '../middlewares/auth.ts';
+import type { CategoryController } from '../types/controllers.ts';
+import { BaseRouter } from '../interfaces/BaseRouter.ts';
 
 /**
  * @swagger
@@ -53,9 +54,13 @@ const { authenticate } = require('../middlewares/auth');
  *   description: Category management API
  */
 
-class CategoriesRouter extends BaseRouter {
+class CategoriesRouter extends BaseRouter<CategoryController> {
+  constructor(controller: CategoryController) {
+    super(controller);
+  }
+
   async initializeRoutes() {
-    this.router.use(authenticate);
+    this.router.use(authenticate as any);
 
     /**
      * @swagger
@@ -183,7 +188,7 @@ class CategoriesRouter extends BaseRouter {
      *                 count:
      *                   type: integer
      */
-    this.router.get('/deleted', this.controller.getDeletedCategories);
+    this.router.get('/deleted', this.controller.getDeleted);
 
     /**
      * @swagger
@@ -299,8 +304,8 @@ class CategoriesRouter extends BaseRouter {
     /**
      * @swagger
      * /categories/{id}:
-     *   delete:
      *     summary: Soft delete a category
+     *   delete:
      *     tags: [Categories]
      *     security:
      *       - bearerAuth: []
@@ -357,4 +362,4 @@ class CategoriesRouter extends BaseRouter {
   }
 }
 
-module.exports = CategoriesRouter;
+export default CategoriesRouter;

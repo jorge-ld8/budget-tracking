@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
-import { IUser, IUserModel } from '../types/models/user.types';
+import type { IUser, IUserModel } from '../types/models/user.types.ts';
 
 
 const userSchema = new mongoose.Schema<IUser>({
@@ -133,5 +133,5 @@ userSchema.statics.countDocuments = function(query: any = {}, options: { include
  *           description: Whether the user is soft deleted
  */
 const User = mongoose.model<IUser, IUserModel>('User', userSchema);
+export default User;
 
-export { User, IUser };

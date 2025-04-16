@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const env = require('./env');
+import mongoose from 'mongoose';
+import env from './env.js';
 
 const connectDB = (url) => (mongoose.connect(url));
 
-module.exports = {connectDB, NODE_ENV: env.NODE_ENV};
+export default {connectDB, NODE_ENV: env.NODE_ENV};

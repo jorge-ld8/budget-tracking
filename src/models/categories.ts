@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
-import { ICategory, ICategoryModel } from '../types/models/categories.types';
+import type { ICategorySchema, ICategoryModel } from '../types/models/categories.types.ts';
 
-const categorySchema = new Schema<ICategory>({
+const categorySchema = new Schema<ICategorySchema>({
   name: { type: String, required: true, trim: true, unique: true },
   type: { type: String, required: true, enum: ['income', 'expense'] },
   icon: { type: String, default: 'default-icon' },
@@ -62,6 +62,6 @@ categorySchema.statics.countDocuments = function(query = {}, options = {}) {
   return mongoose.Model.countDocuments.call(this, query, options);
 };
 
-const Category = mongoose.model<ICategory, ICategoryModel>('Category', categorySchema);
+const Category = mongoose.model<ICategorySchema, ICategoryModel>('Category', categorySchema);
 
-export { Category, ICategory }; 
+export default Category;

@@ -1,4 +1,4 @@
-import { CustomError } from './CustomError';
+import { CustomError } from './CustomError.ts';
 import { StatusCodes } from 'http-status-codes';
 /**
  * Error for resources that cannot be found (HTTP 404)
