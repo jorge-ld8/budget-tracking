@@ -1,9 +1,10 @@
-import Account from '../../../src/models/accounts.ts';
+import Account from '../../../src/models/accounts.js';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import type { IAccountSchema } from '../../../src/types/models/accounts.types.js';
 
 describe('Account Model', () => {
-  let mongod;
+  let mongod: MongoMemoryServer;
 
   // Setup before running any tests
   beforeAll(async () => {
@@ -19,7 +20,7 @@ describe('Account Model', () => {
   });
 
   afterEach(async () => {
-    await Account.deleteMany();
+    await Account.deleteMany({});
   });
 
   it('should create an account successfully', async () => {
@@ -36,14 +37,14 @@ describe('Account Model', () => {
     expect(savedAccount._id).toBeDefined();
     expect(savedAccount.name).toBe(accountData.name);
     expect(savedAccount.type).toBe(accountData.type);
-    expect(savedAccount.user).toBe(accountData.user);
+    expect(savedAccount.user).toEqual(accountData.user);
     expect(savedAccount.balance).toBe(accountData.balance);
   });
 
   it('should fail validation without required fields', async () => {
     const account = new Account({});
     
-    let error;
+    let error: any;
     try {
       await account.validate();
     } catch (e) {
@@ -53,7 +54,7 @@ describe('Account Model', () => {
     expect(error).toBeDefined();
     expect(error.errors.name).toBeDefined();
     expect(error.errors.user).toBeDefined();
-});
+  });
 
   it('should update account fields correctly', async () => {
     // Create initial account
@@ -77,16 +78,16 @@ describe('Account Model', () => {
     );
     
     // Verify update returned correct values
-    expect(updatedAccount.name).toBe('Updated Account');
-    expect(updatedAccount.type).toBe('credit');
-    expect(updatedAccount.balance).toBe(250);
+    expect(updatedAccount?.name).toBe('Updated Account');
+    expect(updatedAccount?.type).toBe('credit');
+    expect(updatedAccount?.balance).toBe(250);
     
     // Verify by retrieving from DB again
     const retrievedAccount = await Account.findById(account._id);
-    expect(retrievedAccount.name).toBe('Updated Account');
-    expect(retrievedAccount.type).toBe('credit');
-    expect(retrievedAccount.balance).toBe(250);
-    expect(retrievedAccount.user.toString()).toBe(userId.toString());
+    expect(retrievedAccount?.name).toBe('Updated Account');
+    expect(retrievedAccount?.type).toBe('credit');
+    expect(retrievedAccount?.balance).toBe(250);
+    expect(retrievedAccount?.user.toString()).toBe(userId.toString());
   });
   
   it('should support soft deletion', async () => {
@@ -104,10 +105,10 @@ describe('Account Model', () => {
     expect(foundAccount).toBeNull();
     
     // Test it can be found with includeDeleted
-    const query = Account.findById(account._id);
+    const query: any = Account.findById(account._id);
     query.includeDeleted = true;
     const deletedAccount = await query;
     expect(deletedAccount).not.toBeNull();
-    expect(deletedAccount.isDeleted).toBe(true);
+    expect(deletedAccount?.isDeleted).toBe(true);
   });
-});
+}); 

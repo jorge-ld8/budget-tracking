@@ -1,7 +1,7 @@
 import { Model, Types } from 'mongoose';
 
 export interface IBaseSchema { 
-  _id: string;
+  _id: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
   isDeleted: boolean;
@@ -13,5 +13,5 @@ export interface IBaseSchema {
 
 export interface IBaseModel<T extends IBaseSchema> extends Model<T> {
     getDeletedUsers(): Promise<T[]>;
-    findDeleted({user}?: {user: Types.ObjectId}): Promise<T[]>;}
+    findDeleted({user, _id}?: {user?: Types.ObjectId, _id?: Types.ObjectId}): Promise<T[]>;}
 
