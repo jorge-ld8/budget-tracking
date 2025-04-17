@@ -41,11 +41,11 @@ const options = {
   // Import swaggerDefinitions
   swaggerDefinition,
   // Path to the API docs
-  apis: ['./src/routes/*.js', './src/models/*.js'],
+  apis: ['./src/routes/*.ts', './src/models/*.ts'],
 };
 
 // Initialize swagger-jsdoc
-const swaggerSpec = swaggerJSDoc(options);
+const swaggerSpec = swaggerJSDoc(options as any);
 
 const swaggerDocs = (app, port) => {
   // Route for swagger docs
@@ -68,4 +68,4 @@ const swaggerDocs = (app, port) => {
   
 };
 
-export default { swaggerDocs }; 
+export default swaggerDocs; 

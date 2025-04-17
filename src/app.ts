@@ -19,7 +19,7 @@ import ReportsController from './controllers/reports.ts';
 import errorHandler from './middlewares/error-handler.ts';
 import AuthRouter from './routes/auth.ts';
 import AuthController from './controllers/auth.ts';
-import swaggerDoc from './swagger.js';
+import swaggerDoc from './swagger.ts';
 import path from 'path';
 import fs from 'fs';
 import env from './config/config.js';
@@ -100,18 +100,14 @@ else{
   app.use(morgan('dev'));
 }
 
-console.log("auth.router", new AuthRouter(new AuthController()).getRouter());
-console.log("users.router", Object.keys(new UsersRouter(new UsersController()).getRouter()));
 // Routes
 app.use('/auth', new AuthRouter(new AuthController()).getRouter());
-// app.use('/auth', new UsersRouter(new UsersController()).getRouter());
 app.use('/users', new UsersRouter(new UsersController()).getRouter());
 app.use('/accounts', new AccountRouter(new AccountController()).getRouter());
 app.use('/transactions', new TransactionsRouter(new TransactionController()).getRouter());
 app.use('/categories', new CategoriesRouter(new CategoriesController()).getRouter());
 app.use('/budgets', new BudgetsRouter(new BudgetsController()).getRouter());
 app.use('/reports', new ReportsRouter(new ReportsController()).getRouter());
-
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome to the budget tracking express api"});
 });
@@ -122,7 +118,7 @@ app.get('/health', (req, res) => {
 });
 
 // swagger docs
-swaggerDoc.swaggerDocs(app, process.env.PORT);
+swaggerDoc(app, process.env.PORT);
 
 app.use(notFound as any);
 app.use(errorHandler as any);

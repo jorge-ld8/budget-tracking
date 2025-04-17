@@ -8,6 +8,7 @@ class ReportsRouter{
   constructor(controller: ReportsController) {
     this.router = Router();
     this.controller = controller;
+    this.initializeRoutes();
   }
 
   getRouter() {

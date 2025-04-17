@@ -85,6 +85,7 @@ class AuthRouter {
     constructor(controller: AuthController) {
         this.router = Router();
         this.controller = controller;
+        this.initializeRoutes();
     }
 
     getRouter() {
