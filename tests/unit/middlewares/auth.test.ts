@@ -3,16 +3,10 @@ import type { Request, Response, NextFunction } from 'express';
 import { jest } from '@jest/globals';
 import jwt from 'jsonwebtoken';
 import { describe, it, beforeEach, expect } from '@jest/globals';
-
-// jest.mock('jsonwebtoken', () => ({
-//     verify: jest.fn().mockReturnValue({ id: '123456789012' })
-//   }));
-
-jwt.verify = jest.fn().mockReturnValue({ id: '123456789012' }) as jest.Mock;
-
 import { authenticate } from '../../../src/middlewares/auth.js';
 import User from '../../../src/models/users.ts';
 
+jwt.verify = jest.fn().mockReturnValue({ id: '123456789012' }) as jest.Mock;
 // Extend Express Request interface to include user property
 declare global {
   namespace Express {

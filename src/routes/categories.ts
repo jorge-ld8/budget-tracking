@@ -304,8 +304,8 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
     /**
      * @swagger
      * /categories/{id}:
-     *     summary: Soft delete a category
      *   delete:
+     *     summary: Soft delete a category
      *     tags: [Categories]
      *     security:
      *       - bearerAuth: []
