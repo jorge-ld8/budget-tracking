@@ -1,9 +1,9 @@
-const Transaction = require('../../../src/models/transactions.ts');
-const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+import Transaction from '../../../src/models/transactions.js';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 describe('Transaction Model', () => {
-  let mongod;
+  let mongod: MongoMemoryServer;
 
   // Setup before running any tests
   beforeAll(async () => {
@@ -44,7 +44,7 @@ describe('Transaction Model', () => {
   it('should fail validation without required fields', async () => {
     const transaction = new Transaction({});
     
-    let error;
+    let error: any;
     try {
       await transaction.validate();
     } catch (e) {
@@ -70,7 +70,7 @@ describe('Transaction Model', () => {
       user: new mongoose.Types.ObjectId()
     });
     
-    let error;
+    let error: any;
     try {
       await transaction.validate();
     } catch (e) {
@@ -138,11 +138,11 @@ describe('Transaction Model', () => {
     expect(foundTransaction).toBeNull();
     
     // Test it can be found with includeDeleted
-    const query = Transaction.findById(transaction._id);
+    const query: any = Transaction.findById(transaction._id);
     query.includeDeleted = true;
     const deletedTransaction = await query;
     expect(deletedTransaction).not.toBeNull();
-    expect(deletedTransaction.isDeleted).toBe(true);
+    expect(deletedTransaction?.isDeleted).toBe(true);
   });
   
   it('should support restore method', async () => {
@@ -165,7 +165,7 @@ describe('Transaction Model', () => {
     // Verify it shows up in normal queries again
     const restoredTransaction = await Transaction.findById(transaction._id);
     expect(restoredTransaction).not.toBeNull();
-    expect(restoredTransaction.isDeleted).toBe(false);
+    expect(restoredTransaction?.isDeleted).toBe(false);
   });
   
   it('should use findDeleted static method to find deleted documents', async () => {
@@ -234,4 +234,4 @@ describe('Transaction Model', () => {
     );
     expect(totalCount).toBe(3);
   });
-});
+}); 

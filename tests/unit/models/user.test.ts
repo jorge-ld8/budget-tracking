@@ -1,15 +1,32 @@
-// tests/models/user.test.js
-const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const User = require('../../../src/models/users.ts');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+// tests/models/user.test.ts
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import User from '../../../src/models/users.js';
+import { jest } from '@jest/globals';
+import jwt from 'jsonwebtoken';
 
-jest.mock('jsonwebtoken');
-jest.mock('bcrypt')
+// Mock modules
+// jest.mock('jsonwebtoken', () => ({
+//   sign: jest.fn().mockReturnValue('mock-jwt-token')
+// }));
+
+jest.mock('jsonwebtoken', () => ({
+  sign: jest.fn().mockReturnValue('mocked_token'),
+  verify: jest.fn().mockReturnValue({ id: 'mock-user-id' }),
+}));
+
+// jest.mock('bcrypt', () => ({
+//   hash: jest.fn().mockResolvedValue('hashed_password' as never),
+//   compare: jest.fn().mockImplementation((candidatePassword) => {
+//     return Promise.resolve(candidatePassword === 'Password123!');
+//   })
+// }));
+
+// jest.mock('jsonwebtoken');
+jest.mock('bcrypt');
 
 describe('User Model', () => {
-  let mongod;
+  let mongod: MongoMemoryServer;
 
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
@@ -23,15 +40,8 @@ describe('User Model', () => {
   });
 
   beforeEach(async () => {
-    await User.deleteMany();
-
-    // Mock hash function to return a predictable value
-    bcrypt.hash.mockResolvedValue('hashed_password');
-    
-    // Mock compare function to return true when password matches 'Password123!'
-    bcrypt.compare.mockImplementation((candidatePassword) => {
-      return Promise.resolve(candidatePassword === 'Password123!');
-    });
+    await User.deleteMany({});
+    jest.clearAllMocks();
   });
 
   it('should create a user successfully', async () => {
@@ -57,7 +67,7 @@ describe('User Model', () => {
   it('should fail validation without required fields', async () => {
     const user = new User({});
     
-    let error;
+    let error: any;
     try {
       await user.validate();
     } catch (e) {
@@ -80,7 +90,7 @@ describe('User Model', () => {
       currency: 'USD'
     });
 
-    let error;
+    let error: any;
     try {
       await user.validate();
     } catch (e) {
@@ -101,7 +111,7 @@ describe('User Model', () => {
       currency: 'invalid-currency'
     });
 
-    let error;
+    let error: any;
     try {
       await user.validate();
     } catch (e) {
@@ -130,11 +140,11 @@ describe('User Model', () => {
     expect(foundUser).toBeNull();
     
     // Test it can be found with includeDeleted
-    const query = User.findById(user._id);
+    const query: any = User.findById(user._id);
     query.includeDeleted = true;
     const deletedUser = await query;
     expect(deletedUser).not.toBeNull();
-    expect(deletedUser.isDeleted).toBe(true);
+    expect(deletedUser?.isDeleted).toBe(true);
   });
   
   it('should support restore method', async () => {
@@ -157,7 +167,7 @@ describe('User Model', () => {
     // Verify it shows up in normal queries again
     const restoredUser = await User.findById(user._id);
     expect(restoredUser).not.toBeNull();
-    expect(restoredUser.isDeleted).toBe(false);
+    expect(restoredUser?.isDeleted).toBe(false);
   });
   
   it('should use findDeleted static method to find deleted documents', async () => {
@@ -247,25 +257,29 @@ describe('User Model', () => {
   });
 
   it('should generate a JWT Auth token', async () => {
-    const user = await User.create({
-      username: 'testuser',
-      email: 'test@example.com',
-      password: 'Password123!',
-      firstName: 'Test',
-      lastName: 'User',
-      currency: 'USD'
-    });
+        const user = await User.create({
+            username: 'testuser',
+            email: 'test@example.com',
+            password: 'Password123!',
+            firstName: 'Test',
+            lastName: 'User',
+            currency: 'USD'
+        });
 
-    // Mock the JWT verify method
-    jwt.verify.mockReturnValue({ id: user._id });
-    jwt.sign.mockReturnValue('mocked_token');
+        jest.spyOn(jwt, 'sign').mockReturnValue('mocked_token');
+        jest.spyOn(jwt, 'verify').mockReturnValue({ id: user._id.toString() });
 
-    const token = user.generateAuthToken();
-    expect(token).toBeDefined();
-    expect(typeof token).toBe('string');
-    expect(token.length).toBeGreaterThan(0);
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    expect(decoded.id).toBe(user._id);
+        // Mock the JWT verify method
+        // (jwt.verify as jest.Mock).mockReturnValue({ id: user._id });
+        // (jwt.sign as jest.Mock).mockReturnValue('mocked_token');
+    
+        const token = user.generateAuthToken();
+        expect(token).toBeDefined();
+        expect(typeof token).toBe('string');
+        expect(token.length).toBeGreaterThan(0);
+    
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(decoded);
+        expect(decoded.id).toBe(user._id.toString());
   });
-});
+}); 

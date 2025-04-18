@@ -1,5 +1,5 @@
-const dotenv = require('dotenv');
-const path = require('path');
+import dotenv from 'dotenv';
+import path from 'path';
 
 // Determine which .env file to use
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -12,7 +12,7 @@ dotenv.config({
   path: path.resolve(process.cwd(), envFile) 
 });
 
-module.exports = {
+export default {
   NODE_ENV,
   PORT: process.env.PORT || 5000,
   MONGO_URI: process.env.MONGO_URI,
