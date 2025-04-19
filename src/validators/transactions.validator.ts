@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { Types } from "mongoose";
 
 const transactionType = z.enum(["income", "expense"]);
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
