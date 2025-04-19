@@ -1,6 +1,9 @@
 import { authenticate } from '../middlewares/auth.ts';
 import type { BudgetController } from '../types/controllers.ts';
 import { BaseRouter } from '../interfaces/BaseRouter.ts';
+import { validateRequest } from '../middlewares/validateRequest.ts';
+import { createBudgetSchema, updateBudgetSchema, idSchema, typeSchema, periodSchema } from '../validators/budget.validator.ts';
+import { z } from 'zod';
 /**
  * @swagger
  * components:
@@ -213,7 +216,9 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      *                 budget:
      *                   $ref: '#/components/schemas/Budget'
      */
-    this.router.post('/', this.controller.create);
+    this.router.post('/', 
+      validateRequest(z.object({ body: createBudgetSchema })) as any, 
+      this.controller.create);
     
     /**
      * @swagger
@@ -299,7 +304,9 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      *       400:
      *         description: Invalid budget period
      */
-    this.router.get('/period/:period', this.controller.getByPeriod);
+    this.router.get('/period/:period', 
+      validateRequest(z.object({ params: periodSchema })) as any, 
+      this.controller.getByPeriod);
 
     /**
      * @swagger
@@ -334,7 +341,9 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      *       400:
      *         description: Invalid category type
      */
-    this.router.get('/category-type/:type', this.controller.getByCategoryType);
+    this.router.get('/category-type/:type', 
+      validateRequest(z.object({ params: typeSchema })) as any, 
+      this.controller.getByCategoryType);
 
     /**
      * @swagger
@@ -364,7 +373,9 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      *       404:
      *         description: Budget not found
      */
-    this.router.get('/:id', this.controller.getById);
+    this.router.get('/:id', 
+      validateRequest(z.object({ params: idSchema })) as any, 
+      this.controller.getById);
 
     /**
      * @swagger
@@ -419,7 +430,9 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      *       400:
      *         description: Validation error
      */
-    this.router.patch('/:id', this.controller.update);
+    this.router.patch('/:id', 
+      validateRequest(z.object({ params: idSchema, body: updateBudgetSchema })) as any, 
+      this.controller.update);
 
     /**
      * @swagger
@@ -444,7 +457,9 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      *       400:
      *         description: Budget is already deleted
      */
-    this.router.delete('/:id', this.controller.delete);
+    this.router.delete('/:id', 
+      validateRequest(z.object({ params: idSchema })) as any, 
+      this.controller.delete);
 
     /**
      * @swagger
@@ -478,7 +493,9 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      *       400:
      *         description: Budget is not deleted
      */
-    this.router.patch('/:id/restore', this.controller.restore);
+    this.router.patch('/:id/restore', 
+      validateRequest(z.object({ params: idSchema })) as any, 
+      this.controller.restore);
   }
 }
 
