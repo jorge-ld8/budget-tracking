@@ -19,7 +19,6 @@ export interface CrudController {
 export interface AccountController extends CrudController {
   toggleActive(req: Request, res: Response, next: NextFunction): Promise<void>;
   updateBalance(req: Request, res: Response, next: NextFunction): Promise<void>;
-  findByUser(req: Request, res: Response, next: NextFunction): Promise<void>;
 }
 
 export interface TransactionController extends CrudController {

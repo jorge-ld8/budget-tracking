@@ -1,7 +1,9 @@
 import { BaseRouter } from '../interfaces/BaseRouter.ts';
 import { authenticate, isAdmin } from '../middlewares/auth.ts';
 import type { AccountController } from '../types/controllers.ts';
-
+import { validateRequest } from '../middlewares/validateRequest.ts';
+import { idSchema, createAccountSchema, updateAccountSchema, balanceUpdateSchema } from '../validators/accounts.validator.ts';
+import { z } from 'zod';
 /**
  * @swagger
  * tags:
@@ -62,7 +64,6 @@ import type { AccountController } from '../types/controllers.ts';
  *       required:
  *         - name
  *         - type
- *         - user
  *       properties:
  *         name:
  *           type: string
@@ -75,9 +76,6 @@ import type { AccountController } from '../types/controllers.ts';
  *         description:
  *           type: string
  *           description: Optional account description
- *         user:
- *           type: string
- *           description: ID of the user who owns this account
  *     AccountUpdateRequest:
  *       type: object
  *       properties:
@@ -229,7 +227,9 @@ class AccountRouter extends BaseRouter<AccountController> {
          *       401:
          *         description: Unauthorized
          */
-        this.router.get('/:id', this.controller.getById);
+        this.router.get('/:id', 
+            validateRequest(z.object({ params: idSchema })) as any, 
+            this.controller.getById);
 
         /**
          * @swagger
@@ -260,7 +260,9 @@ class AccountRouter extends BaseRouter<AccountController> {
          *       401:
          *         description: Unauthorized
          */
-        this.router.post('/', this.controller.create);
+        this.router.post('/', 
+            validateRequest(z.object({ body: createAccountSchema })) as any, 
+            this.controller.create);
 
         /**
          * @swagger
@@ -300,7 +302,9 @@ class AccountRouter extends BaseRouter<AccountController> {
          *       401:
          *         description: Unauthorized
          */
-        this.router.patch('/:id', this.controller.update);
+        this.router.patch('/:id', 
+            validateRequest(z.object({ params: idSchema, body: updateAccountSchema })) as any, 
+            this.controller.update);
 
         /**
          * @swagger
@@ -335,32 +339,10 @@ class AccountRouter extends BaseRouter<AccountController> {
          *       401:
          *         description: Unauthorized
          */
-        this.router.delete('/:id', this.controller.delete);
+        this.router.delete('/:id', 
+            validateRequest(z.object({ params: idSchema })) as any, 
+            this.controller.delete);
 
-        /**
-         * @swagger
-         * /accounts/user:
-         *   get:
-         *     summary: Get accounts for the authenticated user
-         *     tags: [Accounts]
-         *     security:
-         *       - bearerAuth: []
-         *     responses:
-         *       200:
-         *         description: List of accounts for the authenticated user
-         *         content:
-         *           application/json:
-         *             schema:
-         *               type: object
-         *               properties:
-         *                 accounts:
-         *                   type: array
-         *                   items:
-         *                     $ref: '#/components/schemas/Account'
-         *       401:
-         *         description: Unauthorized
-         */
-        this.router.get('/user', this.controller.findByUser);
 
         /**
          * @swagger
@@ -415,7 +397,9 @@ class AccountRouter extends BaseRouter<AccountController> {
          *       401:
          *         description: Unauthorized
          */
-        this.router.patch('/:id/balance', this.controller.updateBalance);
+        this.router.patch('/:id/balance', 
+            validateRequest(z.object({ params: idSchema, body: balanceUpdateSchema })) as any,
+             this.controller.updateBalance);
 
         /**
          * @swagger
@@ -449,7 +433,9 @@ class AccountRouter extends BaseRouter<AccountController> {
          *       401:
          *         description: Unauthorized
          */
-        this.router.patch('/:id/toggle-active', this.controller.toggleActive);
+        this.router.patch('/:id/toggle-active', 
+            validateRequest(z.object({ params: idSchema })) as any, 
+            this.controller.toggleActive);
         
         /**
          * @swagger
@@ -514,7 +500,9 @@ class AccountRouter extends BaseRouter<AccountController> {
          *       401:
          *         description: Unauthorized
          */
-        this.router.post('/:id/restore', this.controller.restore);
+        this.router.post('/:id/restore', 
+            validateRequest(z.object({ params: idSchema })) as any, 
+            this.controller.restore);
         
         // Admin routes without Swagger documentation
         this.router.get('/admin/all', isAdmin as any, this.controller.getAllAdmin);
