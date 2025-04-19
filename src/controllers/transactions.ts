@@ -134,9 +134,6 @@ class TransactionController extends BaseController {
 
   async create(req, res, next) {
     try {
-      console.log("req.body", req.body);
-      console.log("req.file", req.file);
-
       let imageUrl = null;
       if (req.file) {
         // local upload (using multer)
@@ -369,11 +366,11 @@ class TransactionController extends BaseController {
   
   async getByAccount(req, res, next) {
     try {
-      const { accountId } = req.params;
+      const { id } = req.params;
       
       // First check if the account belongs to the user
       const accountExists = await Account.findOne({
-        _id: accountId,
+        _id: id,
         user: req.user._id
       });
       
@@ -383,7 +380,7 @@ class TransactionController extends BaseController {
       
       // Find transactions for this account that belong to the authenticated user
       const transactions = await Transaction.find({ 
-        account: accountId,
+        account: id,
         user: req.user._id
       }).sort('-date');
       
@@ -398,11 +395,11 @@ class TransactionController extends BaseController {
   
   async getByCategory(req, res, next) {
     try {
-      const { categoryId } = req.params;
+      const { id } = req.params;
       
       // Find transactions for this category that belong to the authenticated user
       const transactions = await Transaction.find({ 
-        category: categoryId,
+        category: id,
         user: req.user._id
       }).sort('-date');
       

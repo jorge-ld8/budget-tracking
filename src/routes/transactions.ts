@@ -2,6 +2,9 @@ import { BaseRouter } from '../interfaces/BaseRouter.ts';
 import type { TransactionController } from '../types/controllers.ts';
 import { authenticate, isAdmin } from '../middlewares/auth.ts';
 import upload from '../middlewares/fileUpload.ts';
+import { validateRequest } from '../middlewares/validateRequest.ts';
+import { createTransactionSchema, updateTransactionSchema, idSchema } from '../validators/transactions.validator.ts';
+import { z } from 'zod';
 
 
 /**
@@ -271,7 +274,9 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *       404:
      *         description: Transaction not found
      */
-    this.router.get('/:id', this.controller.getById);
+    this.router.get('/:id', 
+      validateRequest(z.object({ params: idSchema })) as any, 
+       this.controller.getById);
 
     /**
      * @swagger
@@ -340,7 +345,9 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *                 transaction:
      *                   $ref: '#/components/schemas/Transaction'
      */
-    this.router.post('/', upload.single('image'), this.controller.create);
+    this.router.post('/', 
+      validateRequest(z.object({ body: createTransactionSchema })) as any, 
+      upload.single('image'), this.controller.create);
 
     /**
      * @swagger
@@ -403,7 +410,9 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *       404:
      *         description: Transaction not found
      */
-    this.router.patch('/:id', this.controller.update);
+    this.router.patch('/:id', 
+      validateRequest(z.object({ body: updateTransactionSchema, params: idSchema })) as any, 
+      this.controller.update);
 
     /**
      * @swagger
@@ -434,7 +443,9 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *       404:
      *         description: Transaction not found
      */
-    this.router.delete('/:id', this.controller.delete);
+    this.router.delete('/:id', 
+      validateRequest(z.object({ params: idSchema })) as any, 
+      this.controller.delete);
 
     /**
      * @swagger
@@ -479,17 +490,19 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *       400:
      *         description: Transaction is not deleted
      */
-    this.router.post('/:id/restore', this.controller.restore);
+    this.router.post('/:id/restore', 
+      validateRequest(z.object({ params: idSchema })) as any, 
+      this.controller.restore);
 
     /**
      * @swagger
-     * /transactions/account/{accountId}:
+     * /transactions/account/{id}:
      *   get:
      *     summary: Get transactions by account
      *     tags: [Transactions]
      *     parameters:
      *       - in: path
-     *         name: accountId
+     *         name: id
      *         schema:
      *           type: string
      *         required: true
@@ -510,17 +523,19 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *                 count:
      *                   type: integer
      */
-    this.router.get('/account/:accountId', this.controller.getByAccount);
+    this.router.get('/account/:id', 
+      validateRequest(z.object({ params: idSchema })) as any, 
+      this.controller.getByAccount);
 
     /**
      * @swagger
-     * /transactions/category/{categoryId}:
+     * /transactions/category/{id}:
      *   get:
      *     summary: Get transactions by category
      *     tags: [Transactions]
      *     parameters:
      *       - in: path
-     *         name: categoryId
+     *         name: id
      *         schema:
      *           type: string
      *         required: true
@@ -541,7 +556,9 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *                 count:
      *                   type: integer
      */
-    this.router.get('/category/:categoryId', this.controller.getByCategory);
+    this.router.get('/category/:id', 
+      validateRequest(z.object({ params: idSchema })) as any, 
+      this.controller.getByCategory);
 
     // Admin routes without Swagger documentation
     this.router.get('/admin/all', isAdmin as any, this.controller.getAllAdmin);
