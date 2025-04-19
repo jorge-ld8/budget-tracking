@@ -4,18 +4,18 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'server/src/**'
-      - 'server/package.json'
-      - 'server/package-lock.json'
-      - 'server/jest.config.js'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'jest.config.js'
       - '.github/workflows/test.yml'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'server/src/**'
-      - 'server/package.json'
-      - 'server/package-lock.json'
-      - 'server/jest.config.js'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'jest.config.js'
       - '.github/workflows/test.yml'
 
 jobs:
