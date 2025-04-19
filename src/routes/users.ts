@@ -1,6 +1,9 @@
 import { BaseRouter } from '../interfaces/BaseRouter.ts';
 import { authenticate } from '../middlewares/auth.ts';
+import { validateRequest } from '../middlewares/validateRequest.ts';
+import { idSchema, createUserSchema, updateUserSchema } from '../validators/users.validator.ts';
 import type { UserController } from '../types/controllers.ts';
+import { z } from 'zod';
 /**
  * @swagger
  * components:
@@ -149,7 +152,9 @@ class UsersRouter extends BaseRouter<UserController> {
          *       404:
          *         description: User not found
          */
-        this.router.get('/:id', this.controller.getById);
+        this.router.get('/:id', 
+            validateRequest(z.object({ params: idSchema })) as any,
+            this.controller.getById);
 
         /**
          * @swagger
@@ -195,7 +200,9 @@ class UsersRouter extends BaseRouter<UserController> {
          *                 user:
          *                   $ref: '#/components/schemas/User'
          */
-        this.router.post('/', this.controller.create);
+        this.router.post('/', 
+            validateRequest(z.object({ body: createUserSchema })) as any,
+            this.controller.create);
 
         /**
          * @swagger
@@ -232,7 +239,9 @@ class UsersRouter extends BaseRouter<UserController> {
          *       404:
          *         description: User not found
          */
-        this.router.patch('/:id', this.controller.update);
+        this.router.patch('/:id', 
+            validateRequest(z.object({ params: idSchema, body: updateUserSchema })) as any,
+            this.controller.update);
 
         /**
          * @swagger
@@ -253,7 +262,9 @@ class UsersRouter extends BaseRouter<UserController> {
          *       404:
          *         description: User not found
          */
-        this.router.delete('/:id', this.controller.delete);
+        this.router.delete('/:id', 
+            validateRequest(z.object({ params: idSchema })) as any,
+            this.controller.delete);
         
         /**
          * @swagger
@@ -299,7 +310,9 @@ class UsersRouter extends BaseRouter<UserController> {
          *       404:
          *         description: User not found
          */
-        this.router.post('/:id/restore', this.controller.restore);
+        this.router.post('/:id/restore', 
+            validateRequest(z.object({ params: idSchema })) as any,
+            this.controller.restore);
     }
 }
 
