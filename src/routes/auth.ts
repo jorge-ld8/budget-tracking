@@ -2,6 +2,9 @@ import type { AuthController } from '../types/controllers.ts';
 import rateLimiter from 'express-rate-limit';
 import { authenticate } from '../middlewares/auth.ts';
 import { Router } from 'express';
+import { registerSchema, loginSchema, changePasswordSchema } from '../validators/auth.validator.ts';
+import { z } from 'zod';
+import { validateRequest } from '../middlewares/validateRequest.ts';
 const limiter = rateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
     limit: 3, // limit each IP to 100 requests per windowMs
@@ -124,7 +127,9 @@ class AuthRouter {
          *       409:
          *         description: Username or email already exists
          */
-        this.router.post('/register', limiter, this.controller.register);
+        this.router.post('/register', limiter, 
+            validateRequest(z.object({ body: registerSchema })) as any, 
+            this.controller.register);
 
         /**
          * @swagger
@@ -171,7 +176,9 @@ class AuthRouter {
          *       401:
          *         description: Invalid credentials
          */
-        this.router.post('/login', limiter, this.controller.login);
+        this.router.post('/login', limiter, 
+            validateRequest(z.object({ body: loginSchema })) as any, 
+            this.controller.login);
 
         /**
          * @swagger
@@ -250,7 +257,9 @@ class AuthRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.post('/change-password', authenticate as any, this.controller.changePassword);
+        this.router.post('/change-password', authenticate as any, 
+            validateRequest(z.object({ body: changePasswordSchema })) as any, 
+            this.controller.changePassword);
     }
 }
 
