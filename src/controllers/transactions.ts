@@ -119,7 +119,7 @@ class TransactionController extends BaseController {
       const { id } = req.params;
       const transaction = await Transaction.findOne({ 
         _id: id,
-        user: req.user._id // Only find if it belongs to the authenticated user
+        user: req.user._id
       });
       
       if (!transaction) {
@@ -286,6 +286,7 @@ class TransactionController extends BaseController {
       
       // Delete image from s3 if there is one
       if (transaction.imgUrl) {
+        // get only the key from the url
         const lastSlashIndex = transaction.imgUrl.lastIndexOf('/');
         const key = transaction.imgUrl.substring(lastSlashIndex + 1);
 

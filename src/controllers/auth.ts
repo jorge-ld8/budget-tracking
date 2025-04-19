@@ -49,11 +49,6 @@ class AuthController extends BaseController {
     try {
       const { email, password } = req.body;
       
-      // Check if email and password are provided
-      if (!email || !password) {
-        return next(new BadRequestError('Email and password are required'));
-      };
-
       // Check if user exists
       const user = await User.findOne({ email });
       if (!user) {

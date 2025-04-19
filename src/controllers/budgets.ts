@@ -143,31 +143,19 @@ class BudgetsController extends BaseController {
     try {
       const { amount, period, category, startDate, endDate, isRecurring } = req.body;
       
-      // Validate period
-      if (!['daily', 'weekly', 'monthly', 'yearly'].includes(period)) {
-        return next(new BadRequestError('Period must be daily, weekly, monthly, or yearly'));
-      }
-      
-      // Validate that amount is a positive number
-      if (isNaN(amount) || amount <= 0) {
-        return next(new BadRequestError('Amount must be a positive number'));
-      }
-      
       // Validate dates
       const start = new Date(startDate);
       if (isNaN(start.getTime())) {
         return next(new BadRequestError('Invalid start date'));
       }
       
-      if (endDate) {
-        const end = new Date(endDate);
-        if (isNaN(end.getTime())) {
-          return next(new BadRequestError('Invalid end date'));
-        }
-        
-        if (end <= start) {
-          return next(new BadRequestError('End date must be after start date'));
-        }
+      const end = new Date(endDate);
+      if (isNaN(end.getTime())) {
+        return next(new BadRequestError('Invalid end date'));
+      }
+      
+      if (end <= start) {
+        return next(new BadRequestError('End date must be after start date'));
       }
       
       // Verify that the category exists and belongs to the user
@@ -209,83 +197,36 @@ class BudgetsController extends BaseController {
   async update(req, res, next) {
     try {
       const { id } = req.params;
-      const { amount, period, category, startDate, endDate, isRecurring } = req.body;
+      const { category, startDate, endDate } = req.body;
       
       // Build update object with only provided fields
-      const updateData : any = {};
-      
-      if (amount !== undefined) {
-        if (isNaN(amount) || amount <= 0) {
-          return next(new BadRequestError('Amount must be a positive number'));
-        }
-        updateData.amount = amount;
-      }
-      
-      if (period !== undefined) {
-        if (!['daily', 'weekly', 'monthly', 'yearly'].includes(period)) {
-          return next(new BadRequestError('Period must be daily, weekly, monthly, or yearly'));
-        }
-        updateData.period = period;
-      }
-      
-      if (category !== undefined) {
-        // Verify that the category exists and belongs to the user
-        const categoryExists = await Category.findOne({
-          _id: category,
-          user: req.user._id
-        });
+      const categoryExists = await Category.findOne({
+        _id: category,
+        user: req.user._id
+      });
         
-        if (!categoryExists) {
-          return next(new BadRequestError('Category not found or does not belong to the user'));
-        }
-        
-        updateData.category = category;
+      if (!categoryExists) {
+        return next(new BadRequestError('Category not found or does not belong to the user'));
       }
-      
-      if (startDate !== undefined) {
-        const start = new Date(startDate);
-        if (isNaN(start.getTime())) {
-          return next(new BadRequestError('Invalid start date'));
-        }
-        updateData.startDate = startDate;
-      }
-      
-      if (endDate !== undefined) {
-        const end = new Date(endDate);
-        if (isNaN(end.getTime())) {
-          return next(new BadRequestError('Invalid end date'));
-        }
-        
-        // If both start and end dates are being updated, check their relationship
-        if (updateData.startDate) {
-          const start = new Date(updateData.startDate);
-          if (end <= start) {
-            return next(new BadRequestError('End date must be after start date'));
-          }
-        } else {
+
+      if (!startDate) {
           // If only end date is being updated, get the current budget to check against its start date
           const currentBudget = await Budget.findOne({
             _id: id,
             user: req.user._id
           });
-          
+        
           if (!currentBudget) {
             return next(new NotFoundError('Budget not found'));
           }
-          
+          const end = new Date(endDate);
           const currentStart = new Date(currentBudget.startDate);
           if (end <= currentStart) {
             return next(new BadRequestError('End date must be after start date'));
           }
-        }
-        
-        updateData.endDate = endDate;
       }
-      
-      if (isRecurring !== undefined) {
-        updateData.isRecurring = isRecurring;
-      }
-      
+
+      const updateData : any = req.body;
       const budget = await Budget.findOneAndUpdate(
         { _id: id, user: req.user._id },
         updateData, 
@@ -362,11 +303,6 @@ class BudgetsController extends BaseController {
   
   async getByPeriod(req, res, next) {
     const { period } = req.params;
-    
-    if (!['daily', 'weekly', 'monthly', 'yearly'].includes(period)) {
-      return next(new BadRequestError('Invalid budget period. Must be daily, weekly, monthly, or yearly'));
-    }
-    
     const budgets = await Budget.find({
       period,
       user: req.user._id
@@ -381,11 +317,6 @@ class BudgetsController extends BaseController {
   async getByCategoryType(req, res, next) {
     const { type } = req.params;
     
-    if (!['income', 'expense'].includes(type)) {
-      return next(new BadRequestError('Invalid category type. Must be income or expense'));
-    }
-    
-    // First, get all categories of the given type that belong to the user
     const categories = await Category.find({
       type,
       user: req.user._id

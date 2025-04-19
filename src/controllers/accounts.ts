@@ -140,11 +140,6 @@ class AccountController implements IAccountController {
   async updateBalance(req, res, next) {
     const { id } = req.params;
     const { amount, operation } = req.body;
-    
-    if (!amount || !operation || !['add', 'subtract'].includes(operation)) {
-      return next(new BadRequestError('Invalid request. Amount and operation (add/subtract) are required.'));
-    }
-
     // Find account and ensure it belongs to the authenticated user
     const account = await Account.findOne({
       _id: id,

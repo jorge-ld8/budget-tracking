@@ -157,10 +157,6 @@ class CategoriesController extends BaseController {
   async getByType(req, res, next) {
     const { type } = req.params;
     
-    if (!['income', 'expense'].includes(type)) {
-      return next(new BadRequestError('Invalid category type. Must be income or expense'));
-    }
-    
     const categories = await Category.find({
       type,
       user: req.user._id

@@ -12,16 +12,8 @@ class ReportsController extends BaseController {
     try {
       const { startDate, endDate } = req.query;
       
-      if (!startDate || !endDate) {
-        return next(new BadRequestError('Start date and end date are required'));
-      }
-      
       const startDateObj = new Date(startDate);
       const endDateObj = new Date(endDate);
-      
-      if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-        return next(new BadRequestError('Invalid date format'));
-      }
       
       // Aggregate transactions by category
       const spendingByCategory = await Transaction.aggregate([
@@ -88,16 +80,8 @@ class ReportsController extends BaseController {
     try {
       const { startDate, endDate, groupBy = 'month' } = req.query;
       
-      if (!startDate || !endDate) {
-        return next(new BadRequestError('Start date and end date are required'));
-      }
-      
       const startDateObj = new Date(startDate);
       const endDateObj = new Date(endDate);
-      
-      if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
-        return next(new BadRequestError('Invalid date format'));
-      }
       
       // Define group by format
       let groupByFormat;

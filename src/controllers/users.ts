@@ -105,8 +105,8 @@ class UsersController extends BaseController {
 
   async update(req, res, next) {
     const { id } = req.params;
-    const { username, email, password, firstName, lastName } = req.body;
-    const user = await User.findByIdAndUpdate(id, { username, email, password, firstName, lastName }, 
+    
+    const user = await User.findByIdAndUpdate(id, req.body, 
       { new: true , runValidators: true });
     if (!user) {
       return next(new NotFoundError('User not found'));
