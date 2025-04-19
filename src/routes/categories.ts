@@ -1,6 +1,9 @@
 import { authenticate } from '../middlewares/auth.ts';
 import type { CategoryController } from '../types/controllers.ts';
 import { BaseRouter } from '../interfaces/BaseRouter.ts';
+import { validateRequest } from '../middlewares/validateRequest.ts';
+import { createCategorySchema, updateCategorySchema, idSchema, typeSchema } from '../validators/categories.validator.ts';
+import { z } from 'zod';
 
 /**
  * @swagger
@@ -163,7 +166,9 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      *                 category:
      *                   $ref: '#/components/schemas/Category'
      */
-    this.router.post('/', this.controller.create);
+    this.router.post('/', 
+      validateRequest(z.object({ body: createCategorySchema })) as any, 
+      this.controller.create);
     
     /**
      * @swagger
@@ -223,7 +228,9 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      *       400:
      *         description: Invalid category type
      */
-    this.router.get('/type/:type', this.controller.getByType);
+    this.router.get('/type/:type', 
+      validateRequest(z.object({ params: typeSchema })) as any, 
+      this.controller.getByType);
 
     /**
      * @swagger
@@ -253,7 +260,9 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      *       404:
      *         description: Category not found
      */
-    this.router.get('/:id', this.controller.getById);
+    this.router.get('/:id', 
+      validateRequest(z.object({ params: idSchema })) as any, 
+      this.controller.getById);
 
     /**
      * @swagger
@@ -299,7 +308,9 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      *       404:
      *         description: Category not found
      */
-    this.router.patch('/:id', this.controller.update);
+    this.router.patch('/:id', 
+      validateRequest(z.object({ params: idSchema, body: updateCategorySchema })) as any, 
+      this.controller.update);
 
     /**
      * @swagger
@@ -324,7 +335,9 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      *       400:
      *         description: Category is already deleted
      */
-    this.router.delete('/:id', this.controller.delete);
+    this.router.delete('/:id', 
+      validateRequest(z.object({ params: idSchema })) as any, 
+      this.controller.delete);
 
     /**
      * @swagger
@@ -358,7 +371,9 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      *       400:
      *         description: Category is not deleted
      */
-    this.router.patch('/:id/restore', this.controller.restore);
+    this.router.patch('/:id/restore', 
+      validateRequest(z.object({ params: idSchema })) as any, 
+      this.controller.restore);
   }
 }
 
