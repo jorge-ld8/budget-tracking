@@ -204,16 +204,6 @@ class AccountController implements IAccountController {
     res.status(200).json({ account });
   }
 
-  async findByUser(req, res, next) {
-    // We'll only allow users to find their own accounts
-    // Instead of using the userId parameter, we'll use the authenticated user's ID
-    const userId = req.user._id;
-    
-    const accounts = await Account.find({ user: userId });
-    
-    res.status(200).json({ accounts });
-  }
-
   async restore(req, res, next) {
     // Set includeDeleted flag to allow finding deleted items
     const query : any = Account.findOne({
