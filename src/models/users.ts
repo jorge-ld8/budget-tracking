@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
 import type { IUser, IUserModel } from '../types/models/user.types.ts';
-
+import { CURRENCIES } from '../utils/constants.ts';
 
 const userSchema = new mongoose.Schema<IUser>({
   username: {type: String, required: true, unique: true},
@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema<IUser>({
   password: {type: String, required: true},
   firstName: {type: String, required: true, trim: true, minlength: 3, maxlength: 30},
   lastName: {type: String, required: true, trim: true, minlength: 3, maxlength: 30},
-  currency: {type: String, required: true, enum: {values: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD', 'CHF', 'JPY', 'CNY', 'INR', 'BRL', 'ARS', 'CLP', 'COP', 'MXN', 'PEN', 'PYG', 'UYU', 'VND', 'ZAR'], message: 'Invalid currency. {VALUE} is not supported.'} },
+  currency: {type: String, required: true, enum: {values: CURRENCIES, message: 'Invalid currency. {VALUE} is not supported.'} },
   isAdmin: {type: Boolean, default: false},
   createdAt: {type: Date, default: Date.now},
   isDeleted: {type: Boolean, default: false, index: true}
