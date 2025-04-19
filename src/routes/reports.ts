@@ -1,6 +1,10 @@
 import { authenticate } from '../middlewares/auth.ts';
 import type { ReportsController } from '../types/controllers.ts';
 import { Router } from 'express';
+import { validateRequest } from '../middlewares/validateRequest.ts';
+import { spendingByCategorySchema, incomeVsExpensesSchema, monthlyTrendSchema } from '../validators/reports.validator.ts';
+import { z } from 'zod';
+
 class ReportsRouter{
   private router: Router;
   private controller: ReportsController;
@@ -50,7 +54,9 @@ class ReportsRouter{
      *       401:
      *         description: Unauthorized
      */
-    this.router.get('/spending-by-category', this.controller.getSpendingByCategory);
+    this.router.get('/spending-by-category', 
+      validateRequest(z.object({ query: spendingByCategorySchema })) as any, 
+      this.controller.getSpendingByCategory);
 
     /**
      * @swagger
@@ -89,7 +95,9 @@ class ReportsRouter{
      *       401:
      *         description: Unauthorized
      */
-    this.router.get('/income-vs-expenses', this.controller.getIncomeVsExpenses);
+    this.router.get('/income-vs-expenses', 
+      validateRequest(z.object({ query: incomeVsExpensesSchema })) as any, 
+      this.controller.getIncomeVsExpenses);
 
     /**
      * @swagger
@@ -111,7 +119,9 @@ class ReportsRouter{
      *       401:
      *         description: Unauthorized
      */
-    this.router.get('/monthly-trend', this.controller.getMonthlyTrend);
+    this.router.get('/monthly-trend', 
+      validateRequest(z.object({ query: monthlyTrendSchema })) as any, 
+      this.controller.getMonthlyTrend);
   }
 }
 
