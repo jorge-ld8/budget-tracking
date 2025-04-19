@@ -1,4 +1,4 @@
-import { authenticate } from '../middlewares/auth.ts';
+import { authenticate, isAdmin } from '../middlewares/auth.ts';
 import type { BudgetController } from '../types/controllers.ts';
 import { BaseRouter } from '../interfaces/BaseRouter.ts';
 import { validateRequest } from '../middlewares/validateRequest.ts';
@@ -496,6 +496,15 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
     this.router.patch('/:id/restore', 
       validateRequest(z.object({ params: idSchema })) as any, 
       this.controller.restore);
+
+    // Admin routes without Swagger documentation
+    this.router.get('/admin/all', isAdmin as any, this.controller.getAllAdmin);
+    this.router.get('/admin/deleted/all', isAdmin as any, this.controller.getDeleted); 
+    this.router.get('/admin/:id', isAdmin as any, this.controller.getByIdAdmin);
+    this.router.post('/admin', isAdmin as any, this.controller.createAdmin);
+    this.router.patch('/admin/:id', isAdmin as any, this.controller.updateAdmin);
+    this.router.delete('/admin/:id', isAdmin as any, this.controller.deleteAdmin);
+    this.router.post('/admin/:id/restore', isAdmin as any, this.controller.restoreAdmin);
   }
 }
 
