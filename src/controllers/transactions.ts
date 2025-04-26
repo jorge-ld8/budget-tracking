@@ -72,7 +72,7 @@ class TransactionController extends BaseController {
       }
 
       // Build query
-      let query = Transaction.find(queryObject);
+      let query : any = Transaction.find(queryObject);
 
       // Sorting
       if (sort) {

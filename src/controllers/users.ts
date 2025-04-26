@@ -181,7 +181,7 @@ class UsersController extends BaseController {
       }
       
       // Set up query
-      let result = User.find(queryObject);
+      let result : any = User.find(queryObject);
       
       // Sort options
       if (sort) {

@@ -82,7 +82,7 @@ class BudgetsController extends BaseController {
         });
       }
       
-      let result = Budget.find(queryObject);
+      let result : any = Budget.find(queryObject);
 
       // Add category details to the result
       result = result.populate('category', 'name type icon color');
@@ -423,7 +423,7 @@ class BudgetsController extends BaseController {
         });
       }
       
-      let result = Budget.find(queryObject);
+      let result : any = Budget.find(queryObject);
 
       // Populate category and user details
       result = result.populate('category', 'name type icon color')

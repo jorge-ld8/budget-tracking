@@ -22,7 +22,7 @@ class CategoriesController extends BaseController {
       queryObject.name = { $regex: name, $options: 'i' };
     }
     
-    let result = Category.find(queryObject);
+    let result : any = Category.find(queryObject);
 
     if (sort) {
       const sortFields = sort.split(',').join(' ');
@@ -186,7 +186,7 @@ class CategoriesController extends BaseController {
         queryObject.name = { $regex: name, $options: 'i' };
       }
       
-      let result = Category.find(queryObject);
+      let result : any = Category.find(queryObject);
 
       // Populate user information
       result = result.populate('user', 'username email firstName lastName');

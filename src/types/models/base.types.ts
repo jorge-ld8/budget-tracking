@@ -1,7 +1,7 @@
-import { Model, Types } from 'mongoose';
+import { Model, Types, Document } from 'mongoose';
 
-export interface IBaseSchema { 
-  _id: Types.ObjectId;
+export interface IBaseSchema extends Document { 
+  _id: Types.ObjectId;D
   createdAt: Date;
   updatedAt: Date;
   isDeleted: boolean;
@@ -9,9 +9,11 @@ export interface IBaseSchema {
   restore(): Promise<void>;
   comparePassword(candidatePassword: string): Promise<boolean>;
   generateAuthToken(): string;
+  save(): Promise<this>;
 }
 
 export interface IBaseModel<T extends IBaseSchema> extends Model<T> {
-    getDeletedUsers(): Promise<T[]>;
-    findDeleted({user, _id}?: {user?: Types.ObjectId, _id?: Types.ObjectId}): Promise<T[]>;}
+    getDeletedUsers(): Promise<IBaseModel<T>[]>;
+    findDeleted({user, _id}?: {user?: Types.ObjectId, _id?: Types.ObjectId}): Promise<IBaseModel<T>>;
+}
 

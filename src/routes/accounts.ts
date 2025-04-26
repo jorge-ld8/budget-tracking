@@ -195,7 +195,7 @@ class AccountRouter extends BaseRouter<AccountController> {
          *       401:
          *         description: Unauthorized
          */
-        this.router.get('/', this.controller.getAll);
+        this.router.get('/',(req, res, next) => this.controller.getAll(req, res, next));
 
         /**
          * @swagger
@@ -229,7 +229,7 @@ class AccountRouter extends BaseRouter<AccountController> {
          */
         this.router.get('/:id', 
             validateRequest(z.object({ params: idSchema })) as any, 
-            this.controller.getById);
+            (req, res, next) => this.controller.getById(req, res, next));
 
         /**
          * @swagger
@@ -262,7 +262,7 @@ class AccountRouter extends BaseRouter<AccountController> {
          */
         this.router.post('/', 
             validateRequest(z.object({ body: createAccountSchema })) as any, 
-            this.controller.create);
+            (req, res, next) => this.controller.create(req, res, next));
 
         /**
          * @swagger
@@ -304,7 +304,7 @@ class AccountRouter extends BaseRouter<AccountController> {
          */
         this.router.patch('/:id', 
             validateRequest(z.object({ params: idSchema, body: updateAccountSchema })) as any, 
-            this.controller.update);
+            (req, res, next) => this.controller.update(req, res, next));
 
         /**
          * @swagger
@@ -341,7 +341,7 @@ class AccountRouter extends BaseRouter<AccountController> {
          */
         this.router.delete('/:id', 
             validateRequest(z.object({ params: idSchema })) as any, 
-            this.controller.delete);
+            (req, res, next) => this.controller.delete(req, res, next));
 
 
         /**
@@ -399,7 +399,7 @@ class AccountRouter extends BaseRouter<AccountController> {
          */
         this.router.patch('/:id/balance', 
             validateRequest(z.object({ params: idSchema, body: balanceUpdateSchema })) as any,
-             this.controller.updateBalance);
+            (req, res, next) => this.controller.updateBalance(req, res, next));
 
         /**
          * @swagger
@@ -435,7 +435,7 @@ class AccountRouter extends BaseRouter<AccountController> {
          */
         this.router.patch('/:id/toggle-active', 
             validateRequest(z.object({ params: idSchema })) as any, 
-            this.controller.toggleActive);
+            (req, res, next) => this.controller.toggleActive(req, res, next));
         
         /**
          * @swagger
@@ -463,7 +463,7 @@ class AccountRouter extends BaseRouter<AccountController> {
          *       401:
          *         description: Unauthorized
          */
-        this.router.get('/deleted/all', this.controller.getDeleted);
+        this.router.get('/deleted/all', (req, res, next) => this.controller.getDeleted(req, res, next));
 
         /**
          * @swagger
@@ -502,7 +502,7 @@ class AccountRouter extends BaseRouter<AccountController> {
          */
         this.router.post('/:id/restore', 
             validateRequest(z.object({ params: idSchema })) as any, 
-            this.controller.restore);
+            (req, res, next) => this.controller.restore(req, res, next));
         
         // Admin routes without Swagger documentation
         this.router.get('/admin/all', isAdmin as any, this.controller.getAllAdmin);

@@ -1,466 +1,315 @@
-import { NotFoundError, BadRequestError } from '../errors/index.ts';
-import Account from '../models/accounts.ts';
-import type { AccountController as IAccountController } from '../types/controllers.ts';
+import type { Response, NextFunction } from 'express'; // Use express types
+import AccountService from '../services/AccountService.ts';
+import { NotFoundError, BadRequestError } from '../errors/index.ts'; // Keep error imports if needed directly
+import type { AccountController as IAccountController } from '../types/controllers.ts'; // Assuming types path
+import type { AuthenticatedRequest } from '../types/index.d.ts'; // Assuming a type for authenticated requests
+// Import DTOs for type checking and validation
+import type { AccountQueryFiltersDto, CreateAccountDto, UpdateAccountDto, UpdateBalanceDto, UpdateAccountAdminDto, UpdateBalanceResponseDto } from '../types/dtos/account.dto.ts';
+
 
 class AccountController implements IAccountController {
-  constructor() {}
+    // Inject or import the service instance
+    private accountService : AccountService;
 
-  async getAll(req, res) {
-    const { type, name, sort, fields, page, limit, numericFilters } = req.query;
+    constructor() {
+      this.accountService =  new AccountService();
+    }
 
-    // Add user filter to query object - only return accounts belonging to the authenticated user
-    const queryObject : any = {
-      user: req.user._id
-    };
-    
-    if (type) {
-      queryObject.type = type;
-    }
-    if (name) {
-      queryObject.$or = [
-        { name: { $regex: name, $options: 'i' } },
-        { description: { $regex: name, $options: 'i' } }
-      ];
-    }
-    if (numericFilters) {
-      const operatorMap = {
-        '>': '$gt',
-        '>=': '$gte',
-        '<': '$lt',
-        '<=': '$lte',
-        '=': '$eq',
-        '!=': '$ne'
-      };
-      const regex = /\b(<|>|>=|<=|=|!=)\b/g;
-      let filters = numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);    
-      const options = ['balance'];
-      filters = filters.split(',').forEach((item) => {
-        const [field, operator, value] = item.split('-');
-        if (options.includes(field)) {
-          queryObject[field] = { [operator]: Number(value) };
+    async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            // Ensure req.user and req.user._id exist, handle potential undefined case if necessary
+            if (!req.user?._id) {
+                 throw new BadRequestError('User authentication information is missing.');
+            }
+            const userId = req.user._id.toString();
+            // Pass query parameters directly; service layer handles parsing DTOs
+            const filters: AccountQueryFiltersDto = req.query;
+
+            const { accounts, totalDocuments } = await this.accountService.getAll(userId, filters);
+
+            const pageNumber = Number(filters.page) || 1;
+            const limitNumber = Number(filters.limit) || 10; // Default limit for standard users
+
+            res.status(200).json({
+                accounts,
+                nbHits: accounts.length,
+                page: pageNumber,
+                limit: limitNumber,
+                totalPages: Math.ceil(totalDocuments / limitNumber),
+                total: totalDocuments // Include total count
+            });
+        } catch (error) {
+            next(error);
         }
-      });
-    }
-    
-    let query = Account.find(queryObject);
-
-    if (sort) {
-      const sortFields = sort.split(',').join(' ');
-      query = query.sort(sortFields);
-    }
-    if (fields) {
-      const fieldsList = fields.split(',').join(' ');
-      query = query.select(fieldsList);
-    }
-    
-    // Pagination
-    const pageNumber = Number(page) || 1;
-    const limitNumber = Number(limit) || 10;
-    const skip = (pageNumber - 1) * limitNumber;
-    
-    query = query.skip(skip).limit(limitNumber);
-    
-    const accounts = await query;
-    
-    // For total count, respect the includeDeleted parameter
-    let countQuery = queryObject;
-      // Normal count (middleware handles filtering)
-    const totalDocuments = await Account.countDocuments(countQuery);
-    res.status(200).json({ 
-      accounts, 
-      nbHits: accounts.length,
-      page: pageNumber,
-      limit: limitNumber,
-      totalPages: Math.ceil(totalDocuments / limitNumber)
-    });
-  }
-
-  async getById(req, res, next) {
-    const { id } = req.params;
-    
-    // Find account and ensure it belongs to the authenticated user
-    const account = await Account.findOne({
-      _id: id,
-      user: req.user._id
-    });
-    
-    if (!account) {
-      return next(new NotFoundError('Account not found'));
-    }
-    
-    res.status(200).json({ account });
-  }
-
-  async create(req, res) {
-    const account = new Account({...req.body, user: req.user._id, balance: 0, isActive: true});
-    await account.save();
-    res.status(201).json({ account });
-  }
-
-  async delete(req, res, next) {
-    const { id } = req.params;
-    
-    // Find account and ensure it belongs to the authenticated user
-    const account = await Account.findOne({
-      _id: id,
-      user: req.user._id
-    });
-    
-    if (!account) {
-      return next(new NotFoundError('Account not found'));
-    }
-    
-    // Check if already deleted
-    if (account.isDeleted) {
-      return next(new BadRequestError('Account is already deleted'));
-    }
-    
-    await account.softDelete();
-    res.status(200).json({ message: 'Account soft deleted successfully' });
-  }
-
-  async update(req, res, next) {
-    const { id } = req.params;
-    const { name, type, description, isActive } = req.body;
-    
-    // Find and update account, ensuring it belongs to the authenticated user
-    const account = await Account.findOneAndUpdate(
-      { _id: id, user: req.user._id },
-      { name, type, description, isActive }, 
-      { new: true, runValidators: true }
-    );
-    
-    if (!account) {
-      return next(new NotFoundError('Account not found'));
-    }
-    
-    res.status(200).json({ account });
-  }
-
-  async updateBalance(req, res, next) {
-    const { id } = req.params;
-    const { amount, operation } = req.body;
-    // Find account and ensure it belongs to the authenticated user
-    const account = await Account.findOne({
-      _id: id,
-      user: req.user._id
-    });
-    
-    if (!account) {
-      return next(new NotFoundError('Account not found'));
-    }
-    
-    // Prevent operations on deleted accounts
-    if (account.isDeleted) {
-      return next(new BadRequestError('Cannot update balance of a deleted account'));
     }
 
-    if (operation === 'add') {
-      account.balance += Number(amount);
-    } else if (operation === 'subtract') {
-      if (account.balance < amount) {
-        return next(new BadRequestError('Insufficient funds'));
-      }
-      account.balance -= Number(amount);
+    async getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const accountId = req.params.id;
+             if (!req.user?._id) {
+                 throw new BadRequestError('User authentication information is missing.');
+            }
+            const userId = req.user._id.toString();
+            const account = await this.accountService.findById(accountId, userId);
+            res.status(200).json({ account });
+        } catch (error) {
+            // Catch specific errors like NotFoundError if needed for different responses
+            next(error);
+        }
     }
 
-    await account.save();
-    
-    // Return only specific fields
-    res.status(200).json({ 
-      balance: account.balance,
-      name: account.name,
-      operation: operation,
-      amount: Number(amount),
-      timestamp: new Date()
-    });
-  }
+    async create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+             if (!req.user?._id) {
+                 throw new BadRequestError('User authentication information is missing.');
+            }
+            const userId = req.user._id.toString();
+            const accountData: CreateAccountDto = req.body;
 
-  async toggleActive(req, res, next) {
-    const { id } = req.params;
-    
-    // Find account and ensure it belongs to the authenticated user
-    const account = await Account.findOne({
-      _id: id,
-      user: req.user._id
-    });
-    
-    if (!account) {
-      return next(new NotFoundError('Account not found'));
-    }
-    
-    // Prevent toggling active status of deleted accounts
-    if (account.isDeleted) {
-      return next(new BadRequestError('Cannot change active status of a deleted account'));
+            // Basic request body validation (consider using validation middleware)
+            if (!accountData.name || !accountData.type) {
+                 throw new BadRequestError('Missing required fields: name and type');
+            }
+
+            const account = await this.accountService.create(userId, accountData);
+            res.status(201).json({ account });
+        } catch (error) {
+            next(error);
+        }
     }
 
-    account.isActive = !account.isActive;
-    await account.save();
-    res.status(200).json({ account });
-  }
-
-  async restore(req, res, next) {
-    // Set includeDeleted flag to allow finding deleted items
-    const query : any = Account.findOne({
-      _id: req.params.id,
-      user: req.user._id
-    });
-    query.includeDeleted = true;
-    
-    const account = await query;
-    if (!account) {
-      return next(new NotFoundError('Account not found'));
+    async delete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const accountId = req.params.id;
+            if (!req.user?._id) {
+                 throw new BadRequestError('User authentication information is missing.');
+            }
+            const userId = req.user._id.toString();
+            const deletedAccountId = await this.accountService.delete(accountId, userId);
+            res.status(200).json({ message: 'Account soft deleted successfully', accountId: deletedAccountId });
+        } catch (error) {
+            next(error);
+        }
     }
-    
-    if (!account.isDeleted) {
-      return next(new BadRequestError('Account is not deleted'));
+
+     async update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const accountId = req.params.id;
+            if (!req.user?._id) {
+                 throw new BadRequestError('User authentication information is missing.');
+            }
+            const userId = req.user._id.toString();
+            const updateData: UpdateAccountDto = req.body;
+
+             // Ensure at least one field is being updated
+             if (Object.keys(updateData).length === 0) {
+                throw new BadRequestError('No update data provided.');
+             }
+
+            const account = await this.accountService.update(accountId, userId, updateData);
+            res.status(200).json({ account });
+        } catch (error) {
+            next(error);
+        }
     }
-    
-    await account.restore();
-    res.status(200).json({ message: 'Account restored successfully', account });
-  }
 
-  async getDeletedAccounts(req, res) {
-    // Only find deleted accounts belonging to the authenticated user
-    const deletedAccounts = await Account.findDeleted({ user: req.user._id });
-    
-    res.status(200).json({ 
-      deletedAccounts,
-      count: deletedAccounts.length
-    });
-  }
+     async updateBalance(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const accountId = req.params.id;
+            if (!req.user?._id) {
+                 throw new BadRequestError('User authentication information is missing.');
+            }
+            const userId = req.user._id.toString();
+            const { amount, operation }: UpdateBalanceDto = req.body;
 
-  // ==================== Admin-only methods ====================
+             if (amount === undefined || !operation) {
+                 throw new BadRequestError('Missing required fields: amount and operation');
+             }
+             if (operation !== 'add' && operation !== 'subtract') {
+                 throw new BadRequestError('Invalid operation type. Use "add" or "subtract".');
+             }
+             if (typeof amount !== 'number' || amount < 0) {
+                 throw new BadRequestError('Invalid amount provided.');
+             }
 
-  async getAllAdmin(req, res, next) {
-    try {
-      const { type, user, name, sort, fields, page, limit, numericFilters } = req.query;
-      
-      // Create query object without user filter (admin can see all)
-      const queryObject : any = {};
-      
-      // Optional filters
-      if (user) {
-        queryObject.user = user;
-      }
-      
-      if (type) {
-        queryObject.type = type;
-      }
-      
-      if (name) {
-        queryObject.$or = [
-          { name: { $regex: name, $options: 'i' } },
-          { description: { $regex: name, $options: 'i' } }
-        ];
-      }
-      
-      // Numeric filters
-      if (numericFilters) {
-        const operatorMap = {
-          '>': '$gt',
-          '>=': '$gte',
-          '<': '$lt',
-          '<=': '$lte',
-          '=': '$eq',
-          '!=': '$ne'
-        };
-        const regex = /\b(<|>|>=|<=|=|!=)\b/g;
-        let filters = numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);    
-        const options = ['balance'];
-        filters = filters.split(',').forEach((item) => {
-          const [field, operator, value] = item.split('-');
-          if (options.includes(field)) {
-            queryObject[field] = { [operator]: Number(value) };
-          }
-        });
-      }
 
-      // Build query
-      let query = Account.find(queryObject);
+            const account = await this.accountService.updateBalance(accountId, userId, { amount, operation });
 
-      // Sorting
-      if (sort) {
-        const sortFields = sort.split(',').join(' ');
-        query = query.sort(sortFields);
-      } else {
-        // Default sort by creation date (newest first)
-        query = query.sort('-createdAt');
-      }
+            // Format the specific response DTO
+            const response: UpdateBalanceResponseDto = {
+                 balance: account.balance,
+                 name: account.name,
+                 operation: operation,
+                 amount: Number(amount), // Ensure it's a number
+                 timestamp: account.updatedAt || new Date() // Use updatedAt from model if available
+            };
 
-      // Field selection
-      if (fields) {
-        const fieldsList = fields.split(',').join(' ');
-        query = query.select(fieldsList);
-      }
-
-      // Pagination
-      const pageNumber = Number(page) || 1;
-      const limitNumber = Number(limit) || 50;
-      const skip = (pageNumber - 1) * limitNumber;
-      
-      query = query.skip(skip).limit(limitNumber);
-      
-      // Populate user information
-      query = query.populate('user', 'username email firstName lastName');
-      
-      // Execute query
-      const accounts = await query;
-      
-      // Count total documents for pagination
-      const totalDocuments = await Account.countDocuments(queryObject);
-      
-      res.status(200).json({
-        accounts,
-        count: accounts.length,
-        page: pageNumber,
-        limit: limitNumber,
-        totalPages: Math.ceil(totalDocuments / limitNumber),
-        total: totalDocuments
-      });
-    } catch (error) {
-      next(error);
+            res.status(200).json(response);
+        } catch (error) {
+            next(error);
+        }
     }
-  }
 
-  async getByIdAdmin(req, res, next) {
-    try {
-      const { id } = req.params;
-      
-      // Find account without user filter
-      const account = await Account.findById(id)
-        .populate('user', 'username email firstName lastName');
-      
-      if (!account) {
-        return next(new NotFoundError('Account not found'));
-      }
-      
-      res.status(200).json({ account });
-    } catch (error) {
-      next(error);
+     async toggleActive(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const accountId = req.params.id;
+            if (!req.user?._id) {
+                 throw new BadRequestError('User authentication information is missing.');
+            }
+            const userId = req.user._id.toString();
+            const account = await this.accountService.toggleActive(accountId, userId);
+            res.status(200).json({ account });
+        } catch (error) {
+            next(error);
+        }
     }
-  }
 
-  async createAdmin(req, res, next) {
-    try {
-      // Check if user exists
-      const User = require('../models/users.ts');
-      const user = await User.findById(req.body.user);
-      
-      if (!user) {
-        return next(new NotFoundError('User not found'));
-      }
-      
-      // Create the account
-      const account = new Account({
-        ...req.body,
-        balance: req.body.balance || 0,
-        isActive: req.body.isActive !== undefined ? req.body.isActive : true
-      });
-      
-      await account.save();
-      
-      res.status(201).json({ account });
-    } catch (error) {
-      next(error);
+     async restore(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const accountId = req.params.id;
+            if (!req.user?._id) {
+                 throw new BadRequestError('User authentication information is missing.');
+            }
+            const userId = req.user._id.toString();
+            const account = await this.accountService.restore(accountId, userId);
+            res.status(200).json({ message: 'Account restored successfully', account });
+        } catch (error) {
+            next(error);
+        }
     }
-  }
 
-  async updateAdmin(req, res, next) {
-    try {
-      const { id } = req.params;
-      const { name, type, description, isActive, balance, user } = req.body;
-      
-      // Update account without user filter
-      const updatedFields : any = {};
-      if (name !== undefined) updatedFields.name = name;
-      if (type !== undefined) updatedFields.type = type;
-      if (description !== undefined) updatedFields.description = description;
-      if (isActive !== undefined) updatedFields.isActive = isActive;
-      if (balance !== undefined) updatedFields.balance = balance;
-      if (user !== undefined) updatedFields.user = user;
-      
-      const account = await Account.findByIdAndUpdate(
-        id,
-        updatedFields,
-        { new: true, runValidators: true }
-      ).populate('user', 'username email firstName lastName');
-      
-      if (!account) {
-        return next(new NotFoundError('Account not found'));
-      }
-      
-      res.status(200).json({ account });
-    } catch (error) {
-      next(error);
+    async getDeletedAccounts(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+         try {
+             if (!req.user?._id) {
+                 throw new BadRequestError('User authentication information is missing.');
+            }
+             const userId = req.user._id.toString();
+             const deletedAccounts = await this.accountService.getDeleted(userId);
+             res.status(200).json({
+                 deletedAccounts,
+                 count: deletedAccounts.length
+             });
+         } catch (error) {
+             next(error);
+         }
     }
-  }
 
-  async deleteAdmin(req, res, next) {
-    try {
-      const { id } = req.params;
-      
-      // Find account without user filter
-      const account = await Account.findById(id);
-      
-      if (!account) {
-        return next(new NotFoundError('Account not found'));
-      }
-      
-      // Check if already deleted
-      if (account.isDeleted) {
-        return next(new BadRequestError('Account is already deleted'));
-      }
-      
-      // Soft delete
-      await account.softDelete();
-      res.status(200).json({ 
-        message: 'Account soft deleted successfully',
-        accountId: account._id
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    // ==================== Admin-only methods ====================
+    // Note: These assume an admin role check middleware runs before them.
 
-  async restoreAdmin(req, res, next) {
-    try {
-      // Set includeDeleted flag to allow finding deleted items
-      const query : any = Account.findById(req.params.id);
-      query.includeDeleted = true;
-      
-      const account = await query;
-      if (!account) {
-        return next(new NotFoundError('Account not found'));
-      }
-      
-      if (!account.isDeleted) {
-        return next(new BadRequestError('Account is not deleted'));
-      }
-      
-      await account.restore();
-      res.status(200).json({ 
-        message: 'Account restored successfully',
-        account
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+    async getAllAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+         try {
+             // Pass null userId to indicate admin access (no user filtering)
+             const filters: AccountQueryFiltersDto = req.query;
+             const { accounts, totalDocuments } = await this.accountService.getAll(null, filters);
 
-  async getDeleted(req, res, next) {
-    try {
-      // Find all deleted accounts (not filtered by user)
-      const deletedAccounts = await Account.findDeleted();
-      
-      res.status(200).json({ 
-        deletedAccounts,
-        count: deletedAccounts.length
-      });
-    } catch (error) {
-      next(error);
+             const pageNumber = Number(filters.page) || 1;
+             const limitNumber = Number(filters.limit) || 50; // Default limit for admin
+
+             res.status(200).json({
+                 accounts,
+                 count: accounts.length,
+                 page: pageNumber,
+                 limit: limitNumber,
+                 totalPages: Math.ceil(totalDocuments / limitNumber),
+                 total: totalDocuments
+             });
+         } catch (error) {
+             next(error);
+         }
     }
-  }
+
+    async getByIdAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const accountId = req.params.id;
+            // Pass null userId to indicate admin access
+            const account = await this.accountService.findById(accountId, null);
+            res.status(200).json({ account });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async createAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+         try {
+             // Explicitly use CreateAccountDto which includes the optional user field
+             const accountData: CreateAccountDto & { balance?: number } = req.body;
+             // Basic request body validation
+             if (!accountData.name || !accountData.type || !accountData.user) {
+                  throw new BadRequestError('Missing required fields for admin creation: name, type, and user');
+             }
+             // Ensure balance is a number if provided
+             if (accountData.balance !== undefined && typeof accountData.balance !== 'number') {
+                 throw new BadRequestError('Invalid balance provided. Must be a number.');
+             }
+
+             const account = await this.accountService.createAdmin(accountData);
+             res.status(201).json({ account });
+         } catch (error) {
+             next(error);
+         }
+    }
+
+    async updateAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+         try {
+             const accountId = req.params.id;
+             // Use the specific DTO for admin updates if it exists and is different
+             const updateData: UpdateAccountAdminDto = req.body;
+
+             if (Object.keys(updateData).length === 0) {
+                throw new BadRequestError('No update data provided.');
+             }
+             // Add specific validation for admin-updatable fields if necessary
+             if (updateData.balance !== undefined && typeof updateData.balance !== 'number') {
+                 throw new BadRequestError('Invalid balance provided. Must be a number.');
+             }
+              if (updateData.user !== undefined && typeof updateData.user !== 'string') { // Or ObjectId validation
+                 throw new BadRequestError('Invalid user ID provided.');
+             }
+
+
+             const account = await this.accountService.updateAdmin(accountId, updateData);
+             res.status(200).json({ account });
+         } catch (error) {
+             next(error);
+         }
+    }
+
+    async deleteAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+         try {
+             const accountId = req.params.id;
+             const deletedAccountId = await this.accountService.delete(accountId, null); // Pass null userId for admin
+             res.status(200).json({
+                 message: 'Account soft deleted successfully by admin',
+                 accountId: deletedAccountId
+             });
+         } catch (error) {
+             next(error);
+         }
+    }
+
+    async restoreAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const accountId = req.params.id;
+            const account = await this.accountService.restore(accountId, null); // Pass null userId for admin
+            res.status(200).json({ message: 'Account restored successfully by admin', account });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getDeleted(req: AuthenticatedRequest, res: Response, next: NextFunction) { // Renamed from getDeletedAdmin for consistency
+        try {
+            // Assuming admin check middleware passed
+            const deletedAccounts = await this.accountService.getDeleted(null); // Pass null to get all deleted
+            res.status(200).json({
+                deletedAccounts,
+                count: deletedAccounts.length
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
-export default AccountController; 
+export default AccountController; // Export a singleton instance 
