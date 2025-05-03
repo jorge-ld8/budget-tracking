@@ -3,12 +3,12 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
 import type { IUser, IUserModel } from '../types/models/user.types.ts';
-import { CURRENCIES } from '../utils/constants.ts';
+import { CURRENCIES } from '../utils/constants.ts'; 
 
 const userSchema = new mongoose.Schema<IUser>({
   username: {type: String, required: true, unique: true},
   email: {type: String, required: true, unique: true, validate: {
-    validator: validator.isEmail,
+    validator: (value: string) => validator.isEmail(value),
     message: 'Invalid email address'
   }},
   password: {type: String, required: true},
@@ -35,8 +35,8 @@ userSchema.methods.comparePassword = async function(candidatePassword: string): 
 userSchema.methods.generateAuthToken = function(): string {
   return jwt.sign(
     { id: this._id, username: this.username },
-    process.env.JWT_SECRET || '',
-    { expiresIn: process.env.JWT_EXPIRES_IN }
+     process.env.JWT_SECRET || '',
+     { expiresIn: String(process.env.JWT_EXPIRES_IN) || '1h' }
   );
 };
 

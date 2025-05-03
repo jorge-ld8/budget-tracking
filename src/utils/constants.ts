@@ -4,7 +4,7 @@ export const TRANSACTION_TYPES = ['income', 'expense'];
 
 export const BUDGET_TYPES = ['monthly', 'weekly', 'daily', 'yearly'];
 
-export const ACCOUNT_TYPES = ['cash', 'bank', 'credit', 'investment', 'other'];
+export const ACCOUNT_TYPES = ['cash', 'bank', 'credit', 'investment', 'checking', 'savings', 'other'];
 
 export const BALANCE_OPERATIONS = ['add', 'subtract'];
 

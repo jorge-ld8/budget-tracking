@@ -133,7 +133,7 @@ class UsersController extends BaseController {
   }
 
   async getDeletedUsers(req, res) {
-    const deletedUsers = await User.findDeleted();
+    const deletedUsers = await User.findDeleted({});
     res.status(200).json({ 
       deletedUsers,
       count: deletedUsers.length
@@ -344,7 +344,7 @@ class UsersController extends BaseController {
 
   async getDeletedUsersAdmin(req, res, next) {
     try {
-      const deletedUsers = await User.findDeleted();
+      const deletedUsers = await User.findDeleted({});
       
       res.status(200).json({ 
         deletedUsers,

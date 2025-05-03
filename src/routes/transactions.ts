@@ -200,7 +200,7 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *               limit: 10
      *               totalPages: 1
      */
-    this.router.get('/', this.controller.getAll);
+    this.router.get('/', (req, res, next) => this.controller.getAll(req, res, next));
 
     /**
      * @swagger
@@ -235,7 +235,7 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *                   isDeleted: true
      *               count: 1
      */
-    this.router.get('/deleted/all', this.controller.getDeleted);
+    this.router.get('/deleted/all', (req, res, next) => this.controller.getDeleted(req, res, next));
 
     /**
      * @swagger
@@ -276,7 +276,7 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      */
     this.router.get('/:id', 
       validateRequest(z.object({ params: idSchema })) as any, 
-       this.controller.getById);
+      (req, res, next) => this.controller.getById(req, res, next));
 
     /**
      * @swagger
@@ -412,7 +412,7 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      */
     this.router.patch('/:id', 
       validateRequest(z.object({ body: updateTransactionSchema, params: idSchema })) as any, 
-      this.controller.update);
+      (req, res, next) => this.controller.update(req, res, next));
 
     /**
      * @swagger
@@ -445,7 +445,7 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      */
     this.router.delete('/:id', 
       validateRequest(z.object({ params: idSchema })) as any, 
-      this.controller.delete);
+      (req, res, next) => this.controller.delete(req, res, next));
 
     /**
      * @swagger
@@ -492,7 +492,7 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      */
     this.router.post('/:id/restore', 
       validateRequest(z.object({ params: idSchema })) as any, 
-      this.controller.restore);
+      (req, res, next) => this.controller.restore(req, res, next));
 
     /**
      * @swagger
@@ -525,7 +525,7 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      */
     this.router.get('/account/:id', 
       validateRequest(z.object({ params: idSchema })) as any, 
-      this.controller.getByAccount);
+      (req, res, next) => this.controller.getByAccount(req, res, next));
 
     /**
      * @swagger
@@ -558,7 +558,7 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      */
     this.router.get('/category/:id', 
       validateRequest(z.object({ params: idSchema })) as any, 
-      this.controller.getByCategory);
+      (req, res, next) => this.controller.getByCategory(req, res, next));
 
     // Admin routes without Swagger documentation
     this.router.get('/admin/all', isAdmin as any, this.controller.getAllAdmin);

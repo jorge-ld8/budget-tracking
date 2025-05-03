@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
 import type { IAccountSchema, IAccountModel } from '../types/models/accounts.types.ts';
+import { ACCOUNT_TYPES } from '../utils/constants.ts';
 
 const accountSchema = new Schema<IAccountSchema>({
   name: { type: String, required: true, trim: true, unique: true },
@@ -8,7 +9,7 @@ const accountSchema = new Schema<IAccountSchema>({
   type: { 
     type: String, 
     required: true, 
-    enum: ['cash', 'bank', 'credit', 'investment', 'other'],
+    enum: ACCOUNT_TYPES,
     default: 'bank'
   },
   description: { type: String, trim: true },
