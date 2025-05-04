@@ -22,7 +22,7 @@ import AuthController from './controllers/auth.ts';
 import swaggerDoc from './swagger.ts';
 import path from 'path';
 import fs from 'fs';
-import env from './config/config.js';
+import env from './config/config.ts';
 import { createStream } from 'rotating-file-stream';
 import dotenv from 'dotenv';
 import xss from 'xss-clean';
