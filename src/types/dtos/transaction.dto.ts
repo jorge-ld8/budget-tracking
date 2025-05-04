@@ -6,14 +6,14 @@ export interface TransactionQueryFiltersDto {
     description?: string;
     category?: string; // Category ID
     account?: string;  // Account ID
-    startDate?: string; // ISO Date string or YYYY-MM-DD
-    endDate?: string;   // ISO Date string or YYYY-MM-DD
+    startDate?: string; 
+    endDate?: string; 
     sort?: string;
     fields?: string;
     page?: number;
     limit?: number;
-    numericFilters?: string; // e.g., "amount>100"
-    user?: string; // User ID (optional, for admin queries)
+    numericFilters?: string; 
+    user?: string; 
 }
 
 // DTO for creating a new transaction

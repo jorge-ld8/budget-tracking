@@ -112,27 +112,23 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *         schema:
      *           type: string
      *         description: Filter by category ID
-     *         example: 60d21b4667d0d8992e610c85
      *       - in: query
      *         name: account
      *         schema:
      *           type: string
      *         description: Filter by account ID
-     *         example: 60d21b4667d0d8992e610c86
      *       - in: query
      *         name: startDate
      *         schema:
      *           type: string
      *           format: date
      *         description: Filter by start date (YYYY-MM-DD)
-     *         example: 2023-06-01
      *       - in: query
      *         name: endDate
      *         schema:
      *           type: string
      *           format: date
      *         description: Filter by end date (YYYY-MM-DD)
-     *         example: 2023-06-30
      *       - in: query
      *         name: sort
      *         schema:
@@ -157,6 +153,12 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *           type: integer
      *         description: Items per page
      *         example: 10
+     *       - in: query
+     *         name: numericFilters
+     *         schema:
+     *           type: string
+     *         description: Numeric filters for balance (e.g. balance>100)
+     *         example: amount>100,amount<500
      *     responses:
      *       200:
      *         description: The list of transactions

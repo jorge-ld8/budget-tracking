@@ -8,22 +8,15 @@ import { BadRequestError } from '../errors/index.ts';
 // import env from '../config/env.js';
 // import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 
-// Import necessary types
 import type { TransactionController as ITransactionController } from '../types/controllers.ts';
 import type { AuthenticatedRequest } from '../types/index.d.ts';
 import type { TransactionQueryFiltersDto, CreateTransactionDto, UpdateTransactionDto, CreateTransactionAdminDto, UpdateTransactionAdminDto } from '../types/dtos/transaction.dto.ts';
 
-// BaseController might not be needed if not providing shared functionality anymore
-// import { BaseController } from '../interfaces/BaseController.ts';
-
 class TransactionController implements ITransactionController {
-    private transactionService = TransactionService; // Use the imported singleton instance
+    private transactionService = TransactionService;
 
-    constructor() {
-        // No need for super() if not extending BaseController
-    }
+    constructor() {}
 
-    // Use arrow functions for methods passed as route handlers to preserve 'this' context
     getAll = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
         try {
             if (!req.user?._id) {
@@ -31,6 +24,7 @@ class TransactionController implements ITransactionController {
             }
             const userId = req.user._id.toString();
             const filters: TransactionQueryFiltersDto = req.query;
+            console.log(req.query);
 
             const { transactions, totalDocuments } = await this.transactionService.getAll(userId, filters);
 
