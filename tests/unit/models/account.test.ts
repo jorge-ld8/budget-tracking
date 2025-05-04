@@ -1,4 +1,4 @@
-import Account from '../../../src/models/accounts.js';
+import Account from '../../../src/models/accounts.ts';
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import type { IAccountSchema } from '../../../src/types/models/accounts.types.js';

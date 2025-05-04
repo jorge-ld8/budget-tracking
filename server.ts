@@ -1,5 +1,5 @@
 import { app } from './src/app.ts';
-import env from './src/config/config.js';
+import env from './src/config/config.ts';
 import 'express-async-errors';
 import dotenv from 'dotenv';
 
@@ -10,7 +10,7 @@ dotenv.config({ path: envFile });
 const start = async () => {
   try {
     console.log('NODE_ENV', env.NODE_ENV);
-    await env.connectDB(process.env.MONGO_URI).then(() => {
+    await env.connectDB(process.env.MONGO_URI as string).then(() => {
   console.log('Connected to MongoDB');
     }).catch((err) => {
       console.log('Error connecting to MongoDB', err);

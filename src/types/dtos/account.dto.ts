@@ -8,7 +8,7 @@ export interface AccountQueryFiltersDto {
     page?: number;
     limit?: number;
     numericFilters?: string;
-    user?: string; // Optional: For admin queries
+    user?: string;
 }
 
 export interface CreateAccountDto {

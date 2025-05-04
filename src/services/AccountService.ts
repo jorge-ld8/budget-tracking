@@ -27,9 +27,9 @@ class AccountService {
         }
         if (filters.numericFilters) {
             const operatorMap: { [key: string]: string } = {
-                '>': '$gt', '>=': '$gte', '<': '$lt', '<=': '$lte', '=': '$eq', '!=': '$ne'
+                '>': '$gt', '>=': '$gte', '&lt;': '$lt', '&lte;': '$lte', '=': '$eq', '!=': '$ne'
             };
-            const regex = /\b(<|>|>=|<=|=|!=)\b/g;
+            const regex = /\b((&lt;)|>|>=|(&lte;)|=|!=)\b/g;
             let numFilters = filters.numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);
             const allowedNumericFields = ['balance']; // Only allow filtering on balance
             numFilters.split(',').forEach((item) => {

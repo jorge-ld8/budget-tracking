@@ -3,8 +3,8 @@ import multerS3 from 'multer-s3';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
-import s3Client from '../config/s3Config.js';
-import env from '../config/env.js';
+import s3Client from '../config/s3Config.ts';
+import env from '../config/env.ts';
 
 // Ensure upload directory exists
 const uploadDir = path.join(import.meta.url, '../uploads/images');
