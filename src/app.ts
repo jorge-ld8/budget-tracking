@@ -38,7 +38,6 @@ const envFile = env.NODE_ENV === 'development' ? '.env.development' : (env.NODE_
 dotenv.config({ path: envFile });
 
 
-// Trust proxy for render deploy
 app.set('trust proxy', 1)
 app.get('/ip', (req: Request, res: Response) => {
   res.send(req.ip);
