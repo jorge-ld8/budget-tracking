@@ -5,8 +5,8 @@ import User from '../models/users.ts';
 import { NotFoundError, BadRequestError } from '../errors/index.ts';
 import type { ITransactionSchema } from '../types/models/transaction.types.ts';
 import type { TransactionQueryFiltersDto, CreateTransactionDto, UpdateTransactionDto, CreateTransactionAdminDto, UpdateTransactionAdminDto } from '../types/dtos/transaction.dto.ts';
-import s3Client from '../config/s3Config.js'; // Import S3 client
-import env from '../config/env.js';         // Import env config for bucket name
+import s3Client from '../config/s3Config.ts'; // Import S3 client
+import env from '../config/env.ts';         // Import env config for bucket name
 import { DeleteObjectCommand } from '@aws-sdk/client-s3'; // Import S3 command
 
 class TransactionService {
