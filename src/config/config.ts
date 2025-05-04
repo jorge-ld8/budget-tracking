@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import env from './env.js';
+import env from './env.ts';
 
 const connectDB = (url) => (mongoose.connect(url));
 
