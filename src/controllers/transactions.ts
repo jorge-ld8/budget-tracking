@@ -17,7 +17,7 @@ class TransactionController implements ITransactionController {
 
     constructor() {}
 
-    getAll = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             if (!req.user?._id) {
                  throw new BadRequestError('User authentication information is missing.');
@@ -44,7 +44,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    getById = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             if (!req.user?._id) {
                  throw new BadRequestError('User authentication information is missing.');
@@ -59,7 +59,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    create = async (req: AuthenticatedRequest & { file?: any }, res: Response, next: NextFunction) => {
+    async create(req: AuthenticatedRequest & { file?: any }, res: Response, next: NextFunction) {
         try {
              if (!req.user?._id) {
                  throw new BadRequestError('User authentication information is missing.');
@@ -90,7 +90,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    update = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             if (!req.user?._id) {
                  throw new BadRequestError('User authentication information is missing.');
@@ -112,7 +112,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    delete = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async delete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             if (!req.user?._id) {
                  throw new BadRequestError('User authentication information is missing.');
@@ -127,7 +127,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    restore = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async restore(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
              if (!req.user?._id) {
                  throw new BadRequestError('User authentication information is missing.');
@@ -145,7 +145,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    getDeleted = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async getDeleted(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             if (!req.user?._id) {
                  throw new BadRequestError('User authentication information is missing.');
@@ -165,7 +165,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    getByAccount = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async getByAccount(req: AuthenticatedRequest, res: Response, next: NextFunction) {  
         try {
             if (!req.user?._id) {
                  throw new BadRequestError('User authentication information is missing.');
@@ -183,7 +183,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    getByCategory = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async getByCategory(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             if (!req.user?._id) {
                  throw new BadRequestError('User authentication information is missing.');
@@ -204,7 +204,7 @@ class TransactionController implements ITransactionController {
     // ==================== Admin-only methods ====================
     // Assumes isAdmin middleware runs before these
 
-    getAllAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async getAllAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             // No user ID passed, service handles fetching all
             const filters: TransactionQueryFiltersDto = req.query;
@@ -226,7 +226,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    getByIdAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async getByIdAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             const transactionId = req.params.id;
             // Pass null userId for admin access
@@ -237,7 +237,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    createAdmin = async (req: AuthenticatedRequest & { file?: any }, res: Response, next: NextFunction) => {
+    async createAdmin(req: AuthenticatedRequest & { file?: any }, res: Response, next: NextFunction) {
         try {
             // Admin needs to provide user ID in the body
             const transactionData: CreateTransactionAdminDto = req.body;
@@ -260,7 +260,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    updateAdmin = async (req: AuthenticatedRequest & { file?: any }, res: Response, next: NextFunction) => {
+    async updateAdmin(req: AuthenticatedRequest & { file?: any }, res: Response, next: NextFunction) {
         try {
             const transactionId = req.params.id;
             const updateData: UpdateTransactionAdminDto = req.body;
@@ -276,7 +276,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    deleteAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async deleteAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             const transactionId = req.params.id;
             // Pass null userId for admin delete
@@ -287,7 +287,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-     restoreAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    async restoreAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
             const transactionId = req.params.id;
             // Pass null userId for admin restore
@@ -302,7 +302,7 @@ class TransactionController implements ITransactionController {
     }
 
      // Admin getting all deleted transactions - uses same service method as user but passes null
-     getDeletedAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+     async getDeletedAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
          try {
              // *** Assumes TransactionService.getDeleted is fixed ***
              const deletedTransactions = await this.transactionService.getDeleted(null);
