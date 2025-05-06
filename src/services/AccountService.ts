@@ -2,11 +2,13 @@ import mongoose from 'mongoose';
 import Account from '../models/accounts.ts';
 import User from '../models/users.ts'; // Assuming user model path
 import { NotFoundError, BadRequestError } from '../errors/index.ts';
-import type { IAccountSchema, IAccountModel } from '../types/models/accounts.types.ts'; // Assuming types path
+import type { IAccountSchema } from '../types/models/accounts.types.ts'; // Adjusted type import name
 import type { AccountQueryFiltersDto, CreateAccountDto, UpdateAccountDto, UpdateBalanceDto } from '../types/dtos/account.dto.ts';
+import type { IBaseService } from '../types/services/base.service.types.ts'; // Import the base interface
 
 
-class AccountService {
+// Specify the concrete types for the generics
+class AccountService implements IBaseService<IAccountSchema, CreateAccountDto, UpdateAccountDto, AccountQueryFiltersDto> {
 
     // Helper to build the base query object for find operations
     private buildQueryObject(userId: string | null, filters: AccountQueryFiltersDto): any {
@@ -14,7 +16,10 @@ class AccountService {
 
         // If userId is provided, filter by user (standard user operation)
         // If userId is null, don't filter by user (admin operation)
-        queryObject.user = userId;
+        // MODIFIED: Only add user filter if userId is not null
+        if (userId) {
+            queryObject.user = userId;
+        }
 
         if (filters.type) {
             queryObject.type = filters.type;
@@ -42,7 +47,7 @@ class AccountService {
         return queryObject;
     }
 
-    async getAll(userId: string | null, filters: AccountQueryFiltersDto): Promise<{ accounts: IAccountSchema[], totalDocuments: number }> {
+    async getAll(userId: string | null, filters: AccountQueryFiltersDto): Promise<{ items: IAccountSchema[], totalDocuments: number }> {
         const queryObject = this.buildQueryObject(userId, filters);
         let query : any = Account.find(queryObject);
 
@@ -75,11 +80,13 @@ class AccountService {
         const accounts = await query;
         const totalDocuments = await Account.countDocuments(queryObject);
 
-        return { accounts, totalDocuments };
+        // MODIFIED: Return object matching the interface { items: ..., totalDocuments: ... }
+        return { items: accounts, totalDocuments };
     }
 
-    async findById(accountId: string, userId: string | null): Promise<IAccountSchema> {
-        const query: any = { _id: accountId };
+    // MODIFIED: Parameter name changed from accountId to id
+    async findById(id: string, userId: string | null): Promise<IAccountSchema> {
+        const query: any = { _id: id };
         if (userId) {
             query.user = userId; // Filter by user if userId is provided
         }
@@ -94,7 +101,8 @@ class AccountService {
         const account = await accountQuery;
 
         if (!account) {
-            throw new NotFoundError(`Account not found with id ${accountId}${userId ? ` for the current user` : ''}`);
+            // MODIFIED: Use id in the error message
+            throw new NotFoundError(`Account not found with id ${id}${userId ? ` for the current user` : ''}`);
         }
         return account;
     }
@@ -111,7 +119,9 @@ class AccountService {
         return account;
     }
 
-    async createAdmin(data: CreateAccountDto & { balance?: number }): Promise<IAccountSchema> {
+    // Admin create - doesn't implement an interface method directly
+    // Uses inline type intersection instead of a separate DTO
+    async createAdmin(data: CreateAccountDto & { balance?: number, user?: string }): Promise<IAccountSchema> { // Kept original type
          if (!data.user) {
             throw new BadRequestError('User ID is required for admin creation');
          }
@@ -136,16 +146,19 @@ class AccountService {
     }
 
 
-    async update(accountId: string, userId: string, data: UpdateAccountDto): Promise<IAccountSchema> {
+    // MODIFIED: Parameter name changed from accountId to id
+    async update(id: string, userId: string, data: UpdateAccountDto): Promise<IAccountSchema> {
 
       const account = await Account.findOneAndUpdate(
-            { _id: accountId, user: userId },
+            // MODIFIED: Use id in query
+            { _id: id, user: userId },
             data,
             { new: true, runValidators: true }
         );
 
         if (!account) {
-            throw new NotFoundError(`Account not found with id ${accountId} for the current user`);
+            // MODIFIED: Use id in error message
+            throw new NotFoundError(`Account not found with id ${id} for the current user`);
         }
         return account;
     }
@@ -170,13 +183,16 @@ class AccountService {
         return account;
     }
 
-    async delete(accountId: string, userId: string | null): Promise<mongoose.Types.ObjectId> {
+    // MODIFIED: Parameter name changed from accountId to id
+    async delete(id: string, userId: string | null): Promise<mongoose.Types.ObjectId> {
         // If userId is null, it's an admin delete, otherwise user delete
-        const query = userId ? { _id: accountId, user: userId } : { _id: accountId };
+        // MODIFIED: Use id in query
+        const query = userId ? { _id: id, user: userId } : { _id: id };
         const account = await Account.findOne(query);
 
         if (!account) {
-             throw new NotFoundError(`Account not found with id ${accountId}${userId ? ` for the current user` : ''}`);
+            // MODIFIED: Use id in error message
+             throw new NotFoundError(`Account not found with id ${id}${userId ? ` for the current user` : ''}`);
         }
         if (account.isDeleted) {
             throw new BadRequestError('Account is already deleted');
@@ -186,14 +202,20 @@ class AccountService {
         return account._id;
     }
 
-    async restore(accountId: string, userId: string | null): Promise<IAccountSchema> {
-        const queryFilter = userId ? { _id: new mongoose.Types.ObjectId(accountId), user: new mongoose.Types.ObjectId(userId) } : { _id: new mongoose.Types.ObjectId(accountId) };
+    // MODIFIED: Parameter name changed from accountId to id
+    async restore(id: string, userId: string | null): Promise<IAccountSchema> {
+        // MODIFIED: Use id in query filter ObjectId creation
+        const queryFilter = userId ? { _id: new mongoose.Types.ObjectId(id), user: new mongoose.Types.ObjectId(userId) } : { _id: new mongoose.Types.ObjectId(id) };
 
         // Use the static method to find deleted, respecting potential user filter
-        const account : any = (await Account.findDeleted(queryFilter)).findOne();
+        // MODIFIED: Use exec() to get the array and then access the first element
+        const deletedAccounts: IAccountSchema[] = await (Account as any).findDeleted(queryFilter).exec();
+        const account : IAccountSchema | null = deletedAccounts.length > 0 ? deletedAccounts[0] : null;
+
 
         if (!account) {
-            throw new NotFoundError(`Deleted account not found with id ${accountId}${userId ? ` for the current user` : ''}`);
+            // MODIFIED: Use id in error message
+            throw new NotFoundError(`Deleted account not found with id ${id}${userId ? ` for the current user` : ''}`);
         }
 
         // Restore method handles setting isDeleted to false and saving
@@ -202,6 +224,7 @@ class AccountService {
     }
 
     async updateBalance(accountId: string, userId: string, data: UpdateBalanceDto): Promise<IAccountSchema> {
+        // MODIFIED: Use inherited findById
         const account = await this.findById(accountId, userId); // Reuse findById to check ownership and existence
 
         if (account.isDeleted) {
@@ -230,6 +253,7 @@ class AccountService {
     }
 
     async toggleActive(accountId: string, userId: string): Promise<IAccountSchema> {
+        // MODIFIED: Use inherited findById
         const account : IAccountSchema = await this.findById(accountId, userId); // Check ownership and existence
 
         if (account.isDeleted) {
@@ -243,7 +267,8 @@ class AccountService {
 
     async getDeleted(userId: string | null): Promise<IAccountSchema[]> {
          const query = userId ? { user: new mongoose.Types.ObjectId(userId) } : {}; // Filter by user if userId provided
-         const deletedAccounts : any = await Account.findDeleted(query);
+         // MODIFIED: Explicitly cast Model to any to access static findDeleted method and use exec()
+         const deletedAccounts : IAccountSchema[] = await (Account as any).findDeleted(query).exec();
          return deletedAccounts;
     }
 }

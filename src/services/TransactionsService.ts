@@ -8,8 +8,10 @@ import type { TransactionQueryFiltersDto, CreateTransactionDto, UpdateTransactio
 import s3Client from '../config/s3Config.ts'; // Import S3 client
 import env from '../config/env.ts';         // Import env config for bucket name
 import { DeleteObjectCommand } from '@aws-sdk/client-s3'; // Import S3 command
+import type { IBaseService } from '../types/services/base.service.types.ts'; // Import the base interface
 
-class TransactionService {
+// Implement the IBaseService interface
+class TransactionService implements IBaseService<ITransactionSchema, CreateTransactionDto, UpdateTransactionDto, TransactionQueryFiltersDto> {
 
     // Helper to build the base query object for find operations
     private buildQueryObject(userId: string | null, filters: TransactionQueryFiltersDto): any {
@@ -100,7 +102,7 @@ class TransactionService {
         return queryObject;
     }
 
-    async getAll(userId: string | null, filters: TransactionQueryFiltersDto): Promise<{ transactions: ITransactionSchema[], totalDocuments: number }> {
+    async getAll(userId: string | null, filters: TransactionQueryFiltersDto): Promise<{ items: ITransactionSchema[], totalDocuments: number }> {
         const queryObject = this.buildQueryObject(userId, filters);
         // Explicitly type the query result if necessary, though Mongoose often infers correctly with proper schema/model setup
         let query : any = Transaction.find(queryObject);
@@ -137,13 +139,13 @@ class TransactionService {
         const transactions: ITransactionSchema[] = await query.exec();
         const totalDocuments = await Transaction.countDocuments(queryObject);
 
-        return { transactions, totalDocuments };
+        return { items: transactions, totalDocuments };
     }
 
-    async findById(transactionId: string, userId: string | null): Promise<ITransactionSchema> {
+    async findById(id: string, userId: string | null): Promise<ITransactionSchema> {
         let tId: Types.ObjectId;
         try {
-            tId = new Types.ObjectId(transactionId);
+            tId = new Types.ObjectId(id);
         } catch (e) {
             throw new BadRequestError("Invalid transaction ID format");
         }
@@ -170,16 +172,17 @@ class TransactionService {
         const transaction = await transactionQuery.exec();
 
         if (!transaction) {
-            throw new NotFoundError(`Transaction not found with id ${transactionId}${userId ? ' for the current user' : ''}`);
+            throw new NotFoundError(`Transaction not found with id ${id}${userId ? ' for the current user' : ''}`);
         }
         // Cast if necessary, although findOne should return the correct type if model is typed
         return transaction as ITransactionSchema;
     }
 
-    async create(userId: string, data: CreateTransactionDto, imageUrl?: string): Promise<ITransactionSchema> {
+    async create(userId: string, data: CreateTransactionDto, ...args: any[]): Promise<ITransactionSchema> {
          let accountId: Types.ObjectId;
          let categoryId: Types.ObjectId;
          let ownerUserId: Types.ObjectId;
+         const imageUrl = args[0] as string | undefined; // Extract imageUrl from args
 
          try {
              accountId = new Types.ObjectId(data.account);
@@ -222,10 +225,10 @@ class TransactionService {
         await account.save();
         // --- End Balance Update ---
 
-        return transaction;
+        return transaction as ITransactionSchema;
     }
 
-    async update(transactionId: string, userId: string, data: UpdateTransactionDto): Promise<ITransactionSchema> {
+    async update(id: string, userId: string, data: UpdateTransactionDto): Promise<ITransactionSchema> {
         let ownerUserId: Types.ObjectId;
         try {
             ownerUserId = new Types.ObjectId(userId);
@@ -233,7 +236,7 @@ class TransactionService {
             throw new BadRequestError("Invalid user ID format");
         }
 
-        const transaction = await this.findById(transactionId, userId); // Reuse findById to check ownership
+        const transaction = await this.findById(id, userId); // Reuse findById to check ownership
 
         const amountChanged = data.amount !== undefined && data.amount !== transaction.amount;
         const typeChanged = data.type !== undefined && data.type !== transaction.type;
@@ -304,11 +307,11 @@ class TransactionService {
         return updatedTransaction as ITransactionSchema;
     }
 
-    async delete(transactionId: string, userId: string | null): Promise<mongoose.Types.ObjectId> {
+    async delete(id: string, userId: string | null): Promise<mongoose.Types.ObjectId> {
         let tId: Types.ObjectId;
         let ownerUserId: Types.ObjectId | null = null;
         try {
-             tId = new Types.ObjectId(transactionId);
+             tId = new Types.ObjectId(id);
              if(userId) ownerUserId = new Types.ObjectId(userId);
         } catch (e) {
              throw new BadRequestError("Invalid ID format for transaction or user.");
@@ -318,7 +321,7 @@ class TransactionService {
         const transaction = await Transaction.findOne(queryFilter);
 
         if (!transaction) {
-             throw new NotFoundError(`Transaction not found with id ${transactionId}${userId ? ' for the current user' : ''}`);
+             throw new NotFoundError(`Transaction not found with id ${id}${userId ? ' for the current user' : ''}`);
         }
         if (transaction.isDeleted) {
             throw new BadRequestError('Transaction is already deleted');
@@ -363,11 +366,11 @@ class TransactionService {
         return transaction._id;
     }
 
-    async restore(transactionId: string, userId: string | null): Promise<ITransactionSchema> {
+    async restore(id: string, userId: string | null): Promise<ITransactionSchema> {
         let tId: Types.ObjectId;
         let ownerUserId: Types.ObjectId | null = null;
          try {
-             tId = new Types.ObjectId(transactionId);
+             tId = new Types.ObjectId(id);
              if(userId) ownerUserId = new Types.ObjectId(userId);
         } catch (e) {
              throw new BadRequestError("Invalid ID format for transaction or user.");
@@ -375,10 +378,11 @@ class TransactionService {
 
         const queryFilter = ownerUserId ? { _id: tId, user: ownerUserId } : { _id: tId };
         // Correctly chain findOne() onto the Query returned by findDeleted()
-        const transaction : any = (await Transaction.findDeleted(queryFilter)).findOne();
+        const deletedTransactions: ITransactionSchema[] = await (Transaction as any).findDeleted(queryFilter).exec();
+        const transaction : ITransactionSchema | null = deletedTransactions.length > 0 ? deletedTransactions[0] : null;
 
         if (!transaction) {
-            throw new NotFoundError(`Deleted transaction not found with id ${transactionId}${userId ? ' for the current user' : ''}`);
+            throw new NotFoundError(`Deleted transaction not found with id ${id}${userId ? ' for the current user' : ''}`);
         }
         // No need to check isDeleted status again, findDeleted handles it.
 
@@ -418,8 +422,8 @@ class TransactionService {
              throw new BadRequestError("Invalid user ID format.");
          }
          const query = ownerUserId ? { user: ownerUserId } : {};
-         // Correctly call exec() on the Query returned by findDeleted()
-         const deletedTransactions : any = await Transaction.findDeleted(query);
+         // MODIFIED: Use exec() after findDeleted
+         const deletedTransactions : ITransactionSchema[] = await (Transaction as any).findDeleted(query).exec();
          // Explicitly cast if needed, though Mongoose should infer Array type
          return deletedTransactions as ITransactionSchema[];
     }
@@ -641,7 +645,7 @@ class TransactionService {
         return updatedTransaction as ITransactionSchema;
     }
 
-    // deleteAdmin and restoreAdmin can reuse the non-admin versions by passing null for userId
+    // deleteAdmin and restoreAdmin can reuse the IBaseService versions (delete/restore) by passing null for userId
 }
 
 export default new TransactionService(); // Export singleton instance 

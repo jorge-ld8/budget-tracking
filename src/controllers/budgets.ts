@@ -1,14 +1,16 @@
-import Category from '../models/categories.ts';
+
 import Budget from '../models/budgets.ts';
 import { NotFoundError, BadRequestError } from '../errors/index.ts';
 import { BaseController } from '../interfaces/BaseController.ts';
+import type { AuthenticatedRequest } from '../types/index.d.ts';
+import type { Response, NextFunction } from 'express';
 
 class BudgetsController extends BaseController {
   constructor() {
     super();
   }
 
-  async getAll(req, res, next) {
+  async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { period, category, sort, fields, page, limit, startDate, endDate, numericFilters } = req.query;
 
