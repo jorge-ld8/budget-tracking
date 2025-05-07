@@ -2,7 +2,7 @@ import { z } from "zod";
 import { objectIdRegex, BUDGET_TYPES, TRANSACTION_TYPES } from "../utils/constants.ts";
 
 export const createBudgetSchema = z.object({
-    name: z.string().min(1),
+    // name: z.string().min(1),
     amount: z.number().min(0),
     startDate: z.string().date(),
     endDate: z.string().date(),

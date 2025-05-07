@@ -644,8 +644,6 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
 
         return updatedTransaction as ITransactionSchema;
     }
-
-    // deleteAdmin and restoreAdmin can reuse the IBaseService versions (delete/restore) by passing null for userId
 }
 
-export default new TransactionService(); // Export singleton instance 
+export default TransactionService; 

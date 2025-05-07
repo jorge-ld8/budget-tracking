@@ -2,7 +2,7 @@ export const CURRENCIES = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'NZD', 'CHF', 'JPY
 
 export const TRANSACTION_TYPES = ['income', 'expense'];
 
-export const BUDGET_TYPES = ['monthly', 'weekly', 'daily', 'yearly'];
+export const BUDGET_TYPES = ['monthly', 'weekly', 'daily', 'yearly', 'custom'];
 
 export const ACCOUNT_TYPES = ['cash', 'bank', 'credit', 'investment', 'checking', 'savings', 'other'];
 

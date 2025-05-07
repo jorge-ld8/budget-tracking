@@ -1,9 +1,10 @@
 import { authenticate, isAdmin } from '../middlewares/auth.ts';
-import type { BudgetController } from '../types/controllers.ts';
+import BudgetController from '../controllers/budgets.ts';
 import { BaseRouter } from '../interfaces/BaseRouter.ts';
 import { validateRequest } from '../middlewares/validateRequest.ts';
 import { createBudgetSchema, updateBudgetSchema, idSchema, typeSchema, periodSchema } from '../validators/budget.validator.ts';
 import { z } from 'zod';
+import type { AuthenticatedRequest } from '../types/index.d.ts';
 /**
  * @swagger
  * components:
@@ -162,7 +163,8 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      *                 totalPages:
      *                   type: integer
      */
-    this.router.get('/', this.controller.getAll);
+    this.router.get('/', 
+      (req, res, next) => this.controller.getAll(req as AuthenticatedRequest, res, next));
 
     /**
      * @swagger
@@ -196,11 +198,11 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      *                 description: Category ID
      *               startDate:
      *                 type: string
-     *                 format: date-time
+     *                 format: date
      *                 description: Start date for this budget
      *               endDate:
      *                 type: string
-     *                 format: date-time
+     *                 format: date
      *                 description: End date for this budget (omit if ongoing)
      *               isRecurring:
      *                 type: boolean
@@ -218,7 +220,7 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      */
     this.router.post('/', 
       validateRequest(z.object({ body: createBudgetSchema })) as any, 
-      this.controller.create);
+      (req, res, next) => this.controller.create(req as AuthenticatedRequest, res, next));
     
     /**
      * @swagger
@@ -243,7 +245,7 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      *                 count:
      *                   type: integer
      */
-    this.router.get('/deleted', this.controller.getDeleted);
+    this.router.get('/deleted', (req, res, next) => this.controller.getDeleted(req as AuthenticatedRequest, res, next));
 
     /**
      * @swagger
@@ -269,7 +271,7 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      *                 count:
      *                   type: integer
      */
-    this.router.get('/current', this.controller.getCurrent);
+    this.router.get('/current', (req, res, next) => this.controller.getCurrent(req as AuthenticatedRequest, res, next));
 
     /**
      * @swagger
@@ -306,7 +308,7 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      */
     this.router.get('/period/:period', 
       validateRequest(z.object({ params: periodSchema })) as any, 
-      this.controller.getByPeriod);
+      (req, res, next) => this.controller.getByPeriod(req as AuthenticatedRequest, res, next));
 
     /**
      * @swagger
@@ -343,7 +345,7 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      */
     this.router.get('/category-type/:type', 
       validateRequest(z.object({ params: typeSchema })) as any, 
-      this.controller.getByCategoryType);
+      (req, res, next) => this.controller.getByCategoryType(req as AuthenticatedRequest, res, next));
 
     /**
      * @swagger
@@ -375,7 +377,7 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      */
     this.router.get('/:id', 
       validateRequest(z.object({ params: idSchema })) as any, 
-      this.controller.getById);
+      (req, res, next) => this.controller.getById(req as AuthenticatedRequest, res, next));
 
     /**
      * @swagger
@@ -432,7 +434,7 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      */
     this.router.patch('/:id', 
       validateRequest(z.object({ params: idSchema, body: updateBudgetSchema })) as any, 
-      this.controller.update);
+      (req, res, next) => this.controller.update(req as AuthenticatedRequest, res, next));
 
     /**
      * @swagger
@@ -459,7 +461,7 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      */
     this.router.delete('/:id', 
       validateRequest(z.object({ params: idSchema })) as any, 
-      this.controller.delete);
+      (req, res, next) => this.controller.delete(req as AuthenticatedRequest, res, next));
 
     /**
      * @swagger
@@ -495,16 +497,16 @@ class BudgetsRouter extends BaseRouter<BudgetController> {
      */
     this.router.patch('/:id/restore', 
       validateRequest(z.object({ params: idSchema })) as any, 
-      this.controller.restore);
+      (req, res, next) => this.controller.restore(req as AuthenticatedRequest, res, next));
 
     // Admin routes without Swagger documentation
-    this.router.get('/admin/all', isAdmin as any, this.controller.getAllAdmin);
-    this.router.get('/admin/deleted/all', isAdmin as any, this.controller.getDeleted); 
-    this.router.get('/admin/:id', isAdmin as any, this.controller.getByIdAdmin);
-    this.router.post('/admin', isAdmin as any, this.controller.createAdmin);
-    this.router.patch('/admin/:id', isAdmin as any, this.controller.updateAdmin);
-    this.router.delete('/admin/:id', isAdmin as any, this.controller.deleteAdmin);
-    this.router.post('/admin/:id/restore', isAdmin as any, this.controller.restoreAdmin);
+    this.router.get('/admin/all', isAdmin as any, (req, res, next) => this.controller.getAllAdmin(req as AuthenticatedRequest, res, next));
+    this.router.get('/admin/deleted/all', isAdmin as any, (req, res, next) => this.controller.getDeletedAdmin(req as AuthenticatedRequest, res, next)); 
+    this.router.get('/admin/:id', isAdmin as any, (req, res, next) => this.controller.getByIdAdmin(req as AuthenticatedRequest, res, next));
+    this.router.post('/admin', isAdmin as any, (req, res, next) => this.controller.createAdmin(req as AuthenticatedRequest, res, next));
+    this.router.patch('/admin/:id', isAdmin as any, (req, res, next) => this.controller.updateAdmin(req as AuthenticatedRequest, res, next));
+    this.router.delete('/admin/:id', isAdmin as any, (req, res, next) => this.controller.deleteAdmin(req as AuthenticatedRequest, res, next));
+    this.router.post('/admin/:id/restore', isAdmin as any, (req, res, next) => this.controller.restoreAdmin(req as AuthenticatedRequest, res, next));
   }
 }
 
