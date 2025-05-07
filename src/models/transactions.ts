@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
 import type { ITransactionSchema, ITransactionModel } from '../types/models/transaction.types.ts';
+import { TRANSACTION_TYPES } from '../utils/constants.ts';
 
 const transactionSchema = new Schema<ITransactionSchema>({
   amount: { type: Number, required: true },
-  type: { type: String, required: true, enum: ['income', 'expense'] },
+  type: { type: String, required: true, enum: TRANSACTION_TYPES },
   description: { type: String, required: true, trim: true },
   date: { type: Date, default: Date.now },
   category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },

@@ -13,7 +13,7 @@ import TransactionController from './controllers/transactions.ts';
 import CategoriesRouter from './routes/categories.ts';
 import CategoriesController from './controllers/categories.ts';
 import BudgetsRouter from './routes/budgets.ts';
-import BudgetsController from './controllers/budgets.ts';
+import BudgetController from './controllers/budgets.ts';
 import ReportsRouter from './routes/reports.ts';
 import ReportsController from './controllers/reports.ts';
 import errorHandler from './middlewares/error-handler.ts';
@@ -105,7 +105,7 @@ app.use('/users', new UsersRouter(new UsersController()).getRouter());
 app.use('/accounts', new AccountRouter(new AccountController()).getRouter());
 app.use('/transactions', new TransactionsRouter(new TransactionController()).getRouter());
 app.use('/categories', new CategoriesRouter(new CategoriesController()).getRouter());
-app.use('/budgets', new BudgetsRouter(new BudgetsController()).getRouter());
+app.use('/budgets', new BudgetsRouter(new BudgetController()).getRouter());
 app.use('/reports', new ReportsRouter(new ReportsController()).getRouter());
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome to the budget tracking express api"});

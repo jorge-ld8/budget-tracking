@@ -1,10 +1,11 @@
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
 import type { ICategorySchema, ICategoryModel } from '../types/models/categories.types.ts';
+import { TRANSACTION_TYPES as CATEGORY_TYPES } from '../utils/constants.ts';
 
 const categorySchema = new Schema<ICategorySchema>({
   name: { type: String, required: true, trim: true, unique: true },
-  type: { type: String, required: true, enum: ['income', 'expense'] },
+  type: { type: String, required: true, enum: CATEGORY_TYPES },
   icon: { type: String, default: 'default-icon' },
   color: { type: String, default: '#000000' },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },

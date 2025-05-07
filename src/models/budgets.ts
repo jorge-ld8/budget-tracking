@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 import { Schema } from 'mongoose';
 import type { IBudgetSchema, IBudgetModel } from '../types/models/budgets.types.ts';
-
+import { BUDGET_TYPES } from '../utils/constants.ts';
 const budgetSchema = new Schema<IBudgetSchema>({
   amount: { type: Number, required: true },
-  period: { type: String, required: true, enum: ['daily', 'weekly', 'monthly', 'yearly'] },
+  period: { type: String, required: true, enum: BUDGET_TYPES },
   category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
   startDate: { type: Date, required: true },
   endDate: { type: Date },
