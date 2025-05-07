@@ -25,14 +25,14 @@ class AccountController implements IAccountController {
             // Pass query parameters directly; service layer handles parsing DTOs
             const filters: AccountQueryFiltersDto = req.query;
 
-            const { accounts, totalDocuments } = await this.accountService.getAll(userId, filters);
+            const { items:accounts, totalDocuments } = await this.accountService.getAll(userId, filters);
 
             const pageNumber = Number(filters.page) || 1;
             const limitNumber = Number(filters.limit) || 10; // Default limit for standard users
 
             res.status(200).json({
                 accounts,
-                nbHits: accounts.length,
+                nbHits: accounts?.length || 0,
                 page: pageNumber,
                 limit: limitNumber,
                 totalPages: Math.ceil(totalDocuments / limitNumber),
@@ -201,7 +201,7 @@ class AccountController implements IAccountController {
          try {
              // Pass null userId to indicate admin access (no user filtering)
              const filters: AccountQueryFiltersDto = req.query;
-             const { accounts, totalDocuments } = await this.accountService.getAll(null, filters);
+             const { items: accounts, totalDocuments } = await this.accountService.getAll(null, filters);
 
              const pageNumber = Number(filters.page) || 1;
              const limitNumber = Number(filters.limit) || 50; // Default limit for admin

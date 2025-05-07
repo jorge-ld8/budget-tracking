@@ -13,9 +13,11 @@ import type { AuthenticatedRequest } from '../types/index.d.ts';
 import type { TransactionQueryFiltersDto, CreateTransactionDto, UpdateTransactionDto, CreateTransactionAdminDto, UpdateTransactionAdminDto } from '../types/dtos/transaction.dto.ts';
 
 class TransactionController implements ITransactionController {
-    private transactionService = TransactionService;
+    private transactionService : TransactionService;
 
-    constructor() {}
+    constructor() {
+        this.transactionService = new TransactionService();
+    }
 
     async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
@@ -26,14 +28,14 @@ class TransactionController implements ITransactionController {
             const filters: TransactionQueryFiltersDto = req.query;
             console.log(req.query);
 
-            const { transactions, totalDocuments } = await this.transactionService.getAll(userId, filters);
+            const { items: transactions, totalDocuments } = await this.transactionService.getAll(userId, filters);
 
             const pageNumber = Number(filters.page) || 1;
             const limitNumber = Number(filters.limit) || 10; // Default limit for standard users
 
             res.status(200).json({
                 transactions,
-                count: transactions.length, // Use nbHits or count consistently
+                count: transactions?.length || 0, // Use nbHits or count consistently
                 page: pageNumber,
                 limit: limitNumber,
                 totalPages: Math.ceil(totalDocuments / limitNumber),
@@ -208,7 +210,7 @@ class TransactionController implements ITransactionController {
         try {
             // No user ID passed, service handles fetching all
             const filters: TransactionQueryFiltersDto = req.query;
-            const { transactions, totalDocuments } = await this.transactionService.getAll(null, filters);
+            const { items: transactions, totalDocuments } = await this.transactionService.getAll(null, filters);
 
             const pageNumber = Number(filters.page) || 1;
             const limitNumber = Number(filters.limit) || 50; // Default admin limit
