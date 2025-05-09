@@ -1,340 +1,234 @@
-import Category from '../models/categories.ts';
-import { NotFoundError, BadRequestError } from '../errors/index.ts';
-import { BaseController } from '../interfaces/BaseController.ts';
+import type { Response, NextFunction } from 'express';
+import { BadRequestError } from '../errors/index.ts';
+import type { AuthenticatedRequest } from '../types/index.d.ts';
+import type { CategoryController as ICategoryController } from '../types/controllers.ts';
+import type { CreateCategoryDto, UpdateCategoryDto, CategoryQueryFiltersDto } from '../types/dtos/category.dto.ts';
+import CategoryService from '../services/CategoryService.ts';
 
-class CategoriesController extends BaseController {
+class CategoriesController implements ICategoryController {
+  private categoryService: CategoryService;
+
   constructor() {
-    super();
+    this.categoryService = new CategoryService();
   }
 
-  async getAll(req, res) {
-    const { type, name, sort, fields, page, limit, user } = req.query;
-
-    const queryObject : any = {};
-    
-    // Only return categories that belong to the current user
-    queryObject.user = req.user._id;
-    
-    if (type) {
-      queryObject.type = type;
-    }
-    if (name) {
-      queryObject.name = { $regex: name, $options: 'i' };
-    }
-    
-    let result : any = Category.find(queryObject);
-
-    if (sort) {
-      const sortFields = sort.split(',').join(' ');
-      result = result.sort(sortFields);
-    } else {
-      // Default sort by name
-      result = result.sort('name');
-    }
-    
-    if (fields) {
-      const fieldsList = fields.split(',').join(' ');
-      result = result.select(fieldsList);
-    }
-    
-    // Pagination
-    const pageNumber = Number(page) || 1;
-    const limitNumber = Number(limit) || 10;
-    const skip = (pageNumber - 1) * limitNumber;
-    
-    result = result.skip(skip).limit(limitNumber);
-    
-    const categories = await result;
-    res.status(200).json({ 
-      categories, 
-      nbHits: categories.length,
-      page: pageNumber,
-      limit: limitNumber,
-      totalPages: Math.ceil(await Category.countDocuments(queryObject) / limitNumber)
-    });
-  }
-
-  async getById(req, res, next) {
-    const { id } = req.params;
-    
-    const category = await Category.findOne({
-      _id: id,
-      user: req.user._id
-    });
-    
-    if (!category) {
-      return next(new NotFoundError('Category not found'));
-    }
-    
-    res.status(200).json({ category });
-  }
-
-  async create(req, res) {
-    // Ensure the category is associated with the current user
-    const categoryData = {
-      ...req.body,
-      user: req.user._id
-    };
-    
-    const category = new Category(categoryData);
-    await category.save();
-
-    res.status(201).json({ category });
-  }
-
-  async update(req, res, next) {
-    const { id } = req.params;
-    const { name, type, icon, color } = req.body;
-    
-    const category = await Category.findOneAndUpdate(
-      { _id: id, user: req.user._id },
-      { name, type, icon, color }, 
-      { new: true, runValidators: true }
-    );
-    
-    if (!category) {
-      return next(new NotFoundError('Category not found'));
-    }
-    
-    res.status(200).json({ category });
-  }
-
-  async delete(req, res, next) {
-    const { id } = req.params;
-    
-    const category = await Category.findOne({
-      _id: id,
-      user: req.user._id
-    });
-    
-    if (!category) {
-      return next(new NotFoundError('Category not found'));
-    }
-    
-    if (category.isDeleted) {
-      return next(new BadRequestError('Category is already deleted'));
-    }
-    
-    await category.softDelete();
-    res.status(200).json({ message: 'Category soft deleted successfully' });
-  }
-  
-  async restore(req, res, next) {
-    const { id } = req.params;
-    
-    // Set includeDeleted flag to allow finding deleted items
-    const query : any = Category.findOne({
-      _id: id,
-      user: req.user._id
-    });
-    query.includeDeleted = true;
-    
-    const category = await query;
-
-    if (!category) {
-      return next(new NotFoundError('Category not found'));
-    }
-    
-    if (!category.isDeleted) {
-      return next(new BadRequestError('Category is not deleted'));
-    }
-    
-    await category.restore();
-    res.status(200).json({ message: 'Category restored successfully', category });
-  }
-
-  async getDeletedCategories(req, res) {
-    const deletedCategories = await Category.findDeleted({
-      user: req.user._id
-    });
-    
-    res.status(200).json({ 
-      deletedCategories,
-      count: deletedCategories.length
-    });
-  }
-  
-  async getByType(req, res, next) {
-    const { type } = req.params;
-    
-    const categories = await Category.find({
-      type,
-      user: req.user._id
-    }).sort('name');
-    
-    res.status(200).json({ 
-      categories,
-      count: categories.length
-    });
-  }
-
-  async getAllAdmin(req, res, next) {
+  async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const { type, name, sort, fields, page, limit, user } = req.query;
+      const userId = req.user?._id?.toString() || null;
+      const filters : CategoryQueryFiltersDto = req.query;
 
-      const queryObject : any = {};
+      const { items: categories, totalDocuments } = await this.categoryService.getAll(userId, filters);
       
-      // Admin can filter by user
-      if (user) {
-        queryObject.user = user;
-      }
-      
-      if (type) {
-        queryObject.type = type;
-      }
-      if (name) {
-        queryObject.name = { $regex: name, $options: 'i' };
-      }
-      
-      let result : any = Category.find(queryObject);
+      const pageNumber = Number(filters.page) || 1;
+      const limitNumber = Number(filters.limit) || (userId === null ? 50 : 10); // Match service defaults
 
-      // Populate user information
-      result = result.populate('user', 'username email firstName lastName');
-
-      if (sort) {
-        const sortFields = sort.split(',').join(' ');
-        result = result.sort(sortFields);
-      } else {
-        result = result.sort('name');
-      }
-      
-      if (fields) {
-        const fieldsList = fields.split(',').join(' ');
-        result = result.select(fieldsList);
-      }
-      
-      // Pagination
-      const pageNumber = Number(page) || 1;
-      const limitNumber = Number(limit) || 10;
-      const skip = (pageNumber - 1) * limitNumber;
-      
-      result = result.skip(skip).limit(limitNumber);
-      
-      const categories = await result;
-      const totalDocuments = await Category.countDocuments(queryObject);
-      
-      res.status(200).json({ 
-        categories, 
+      res.status(200).json({
+        categories,
         count: categories.length,
         page: pageNumber,
         limit: limitNumber,
-        totalPages: Math.ceil(totalDocuments / limitNumber)
+        totalPagepros: Math.ceil(totalDocuments / limitNumber),
+        total: totalDocuments,
       });
     } catch (error) {
       next(error);
     }
   }
 
-  async getByIdAdmin(req, res, next) {
+  async getById(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      
-      const category = await Category.findById(id)
-        .populate('user', 'username email firstName lastName');
-      
-      if (!category) {
-        return next(new NotFoundError('Category not found'));
-      }
-      
+      const userId = req.user._id.toString();
+      const category = await this.categoryService.findById(id, userId);
       res.status(200).json({ category });
     } catch (error) {
       next(error);
     }
   }
 
-  async createAdmin(req, res, next) {
+  async create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      // Check if user exists
-      const User = require('../models/users.ts');
-      const user = await User.findById(req.body.user);
-      
-      if (!user) {
-        return next(new NotFoundError('User not found'));
-      }
-      
-      const category = new Category(req.body);
-      await category.save();
-      
+      const userId = req.user._id.toString();
+      const categoryData: CreateCategoryDto = req.body;
+      const category = await this.categoryService.create(userId, categoryData);
       res.status(201).json({ category });
     } catch (error) {
       next(error);
     }
   }
 
-  async updateAdmin(req, res, next) {
+  async update(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const { name, type, icon, color, user } = req.body;
-      
-      const updatedFields : any = {};
-      if (name !== undefined) updatedFields.name = name;
-      if (type !== undefined) updatedFields.type = type;
-      if (icon !== undefined) updatedFields.icon = icon;
-      if (color !== undefined) updatedFields.color = color;
-      if (user !== undefined) updatedFields.user = user;
-      
-      const category = await Category.findByIdAndUpdate(
-        id,
-        updatedFields,
-        { new: true, runValidators: true }
-      ).populate('user', 'username email firstName lastName');
-      
-      if (!category) {
-        return next(new NotFoundError('Category not found'));
-      }
-      
+      const userId = req.user._id.toString();
+      const categoryData: UpdateCategoryDto = req.body;
+      const category = await this.categoryService.update(id, userId, categoryData);
       res.status(200).json({ category });
     } catch (error) {
       next(error);
     }
   }
 
-  async deleteAdmin(req, res, next) {
+  async delete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      
-      const category = await Category.findById(id);
-      
-      if (!category) {
-        return next(new NotFoundError('Category not found'));
-      }
-      
-      if (category.isDeleted) {
-        return next(new BadRequestError('Category is already deleted'));
-      }
-      
-      await category.softDelete();
+      const userId = req.user._id.toString();
+      const deletedCategoryId = await this.categoryService.delete(id, userId);
+      res.status(200).json({ message: 'Category soft deleted successfully', categoryId: deletedCategoryId.toHexString() });
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  async restore(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const userId = req.user._id.toString();
+      const category = await this.categoryService.restore(id, userId);
+      res.status(200).json({ message: 'Category restored successfully', category });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getDeleted(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user._id.toString();
+      const deletedCategories = await this.categoryService.getDeleted(userId);
       res.status(200).json({ 
-        message: 'Category soft deleted successfully',
-        categoryId: category._id
+        deletedCategories,
+        count: deletedCategories.length
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  async getByType(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { type } = req.params;
+      const userId = req.user._id.toString();
+      const filters = req.query as CategoryQueryFiltersDto;
+
+      const { items: categories, totalDocuments } = await this.categoryService.getByType(userId, type, filters);
+      
+      const page = Number(filters.page) || 1;
+      const limit = Number(filters.limit) || (userId === null ? 50 : 10); // Match service defaults
+      
+      res.status(200).json({ 
+        categories,
+        count: categories.length,
+        page,
+        limit,
+        totalPages: Math.ceil(totalDocuments / limit),
+        total: totalDocuments
       });
     } catch (error) {
       next(error);
     }
   }
 
-  async restoreAdmin(req, res, next) {
+  // --- Admin Methods ---
+  // Assuming isAdmin middleware protects these routes
+
+  async getAllAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const filters = req.query as CategoryQueryFiltersDto;
+      
+      // For admin, pass null as current userId, service uses filters.user if provided
+      const { items: categories, totalDocuments } = await this.categoryService.getAll(null, filters);
+      
+      const page = Number(filters.page) || 1;
+      const limit = Number(filters.limit) || 50; // Admin default limit
+
+      res.status(200).json({ 
+        categories, 
+        count: categories.length,
+        page,
+        limit,
+        totalPages: Math.ceil(totalDocuments / limit),
+        total: totalDocuments
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getByIdAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      
-      // Set includeDeleted flag to allow finding deleted items
-      const query : any = Category.findById(id);
-      query.includeDeleted = true;
-      
-      const category = await query;
-      
-      if (!category) {
-        return next(new NotFoundError('Category not found'));
+      // Admin passes null for userId to service.findById
+      const category = await this.categoryService.findById(id, null);
+      res.status(200).json({ category });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async createAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const categoryData: CreateCategoryDto = req.body;
+      // Admin MUST provide 'user' field in req.body for CreateCategoryDto
+      if (!req.body.user) {
+        throw new BadRequestError('User ID must be provided in the request body for admin creation.');
       }
-      
-      if (!category.isDeleted) {
-        return next(new BadRequestError('Category is not deleted'));
-      }
-      
-      await category.restore();
+      // The service's create method takes the owner's userId as the first argument.
+      const category = await this.categoryService.create(req.body.user, categoryData);
+      res.status(201).json({ category });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const categoryData: UpdateCategoryDto & { user?: string } = req.body; 
+      // Admin passes null for userId, service.update handles updates based on ID only for admin.
+      // If categoryData includes 'user', it means user reassignment is intended.
+      // The service's update method logic for userId=null allows updating any category.
+      // If categoryData.user is present, it will be part of the update payload.
+      const category = await this.categoryService.update(id, null, categoryData);
+      res.status(200).json({ category });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      // Admin passes null for userId to service.delete
+      const deletedCategoryId = await this.categoryService.delete(id, null);
       res.status(200).json({ 
-        message: 'Category restored successfully', 
+        message: 'Category soft deleted successfully by admin',
+        categoryId: deletedCategoryId.toHexString()
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async restoreAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      // Admin passes null for userId to service.restore
+      const category = await this.categoryService.restore(id, null);
+      res.status(200).json({ 
+        message: 'Category restored successfully by admin', 
         category 
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getDeletedAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const deletedCategories = await this.categoryService.getDeleted(null); // Pass null for admin
+      res.status(200).json({
+        deletedCategories,
+        count: deletedCategories.length
       });
     } catch (error) {
       next(error);

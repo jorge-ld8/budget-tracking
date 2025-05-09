@@ -126,7 +126,7 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      *                 totalPages:
      *                   type: integer
      */
-    this.router.get('/', this.controller.getAll);
+    this.router.get('/', (req, res, next) => this.controller.getAll(req, res, next));
 
     /**
      * @swagger
@@ -168,7 +168,7 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      */
     this.router.post('/', 
       validateRequest(z.object({ body: createCategorySchema })) as any, 
-      this.controller.create);
+      (req, res, next) => this.controller.create(req, res, next));
     
     /**
      * @swagger
@@ -193,7 +193,7 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      *                 count:
      *                   type: integer
      */
-    this.router.get('/deleted', this.controller.getDeleted);
+    this.router.get('/deleted', (req, res, next) => this.controller.getDeleted(req, res, next));
 
     /**
      * @swagger
@@ -230,7 +230,7 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      */
     this.router.get('/type/:type', 
       validateRequest(z.object({ params: typeSchema })) as any, 
-      this.controller.getByType);
+      (req, res, next) => this.controller.getByType(req, res, next));
 
     /**
      * @swagger
@@ -262,7 +262,7 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      */
     this.router.get('/:id', 
       validateRequest(z.object({ params: idSchema })) as any, 
-      this.controller.getById);
+      (req, res, next) => this.controller.getById(req, res, next));
 
     /**
      * @swagger
@@ -310,7 +310,7 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      */
     this.router.patch('/:id', 
       validateRequest(z.object({ params: idSchema, body: updateCategorySchema })) as any, 
-      this.controller.update);
+      (req, res, next) => this.controller.update(req, res, next));
 
     /**
      * @swagger
@@ -337,7 +337,7 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      */
     this.router.delete('/:id', 
       validateRequest(z.object({ params: idSchema })) as any, 
-      this.controller.delete);
+      (req, res, next) => this.controller.delete(req, res, next));
 
     /**
      * @swagger
@@ -373,7 +373,7 @@ class CategoriesRouter extends BaseRouter<CategoryController> {
      */
     this.router.patch('/:id/restore', 
       validateRequest(z.object({ params: idSchema })) as any, 
-      this.controller.restore);
+      (req, res, next) => this.controller.restore(req, res, next));
   }
 }
 

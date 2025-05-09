@@ -154,7 +154,6 @@ class TransactionController implements ITransactionController {
             }
             const userId = req.user._id.toString();
 
-            // *** Assumes TransactionService.getDeleted is fixed and works correctly ***
             const deletedTransactions = await this.transactionService.getDeleted(userId);
             res.status(200).json({
                 deletedTransactions,
@@ -320,5 +319,4 @@ class TransactionController implements ITransactionController {
      }
 }
 
-// Export a singleton instance, consistent with AccountController
 export default TransactionController;

@@ -377,16 +377,16 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         }
 
         const queryFilter = ownerUserId ? { _id: tId, user: ownerUserId } : { _id: tId };
-        // Correctly chain findOne() onto the Query returned by findDeleted()
-        const deletedTransactions: ITransactionSchema[] = await (Transaction as any).findDeleted(queryFilter).exec();
-        const transaction : ITransactionSchema | null = deletedTransactions.length > 0 ? deletedTransactions[0] : null;
+
+        let query : any = Transaction.findOne(queryFilter);
+        query.includeDeleted = true;
+        const transaction = await query;
+
 
         if (!transaction) {
             throw new NotFoundError(`Deleted transaction not found with id ${id}${userId ? ' for the current user' : ''}`);
         }
-        // No need to check isDeleted status again, findDeleted handles it.
 
-        // --- Update Account Balance --- (Atomic operation recommended)
         const account = await Account.findById(transaction.account);
          if (!account) {
             throw new NotFoundError('Cannot restore transaction: Associated account not found.');
@@ -405,11 +405,10 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
             }
             account.balance -= transaction.amount;
         }
+        // Save the updated account balance
         await account.save();
-        // --- End Balance Update ---
 
-        // Note: Restoring does not re-upload the image if it was deleted from S3.
-
+        // Finally restore the transaction
         await transaction.restore();
         return transaction;
     }

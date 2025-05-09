@@ -206,9 +206,9 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
 
     /**
      * @swagger
-     * /transactions/deleted/all:
+     * /transactions/deleted:
      *   get:
-     *     summary: Get all soft-deleted transactions
+     *     summary: Get all deleted transactions
      *     tags: [Transactions]
      *     responses:
      *       200:
@@ -237,7 +237,7 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *                   isDeleted: true
      *               count: 1
      */
-    this.router.get('/deleted/all', (req, res, next) => this.controller.getDeleted(req, res, next));
+    this.router.get('/deleted', (req, res, next) => this.controller.getDeleted(req, res, next));
 
     /**
      * @swagger
