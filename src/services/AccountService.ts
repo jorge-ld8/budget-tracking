@@ -5,10 +5,18 @@ import { NotFoundError, BadRequestError } from '../errors/index.ts';
 import type { IAccountSchema } from '../types/models/accounts.types.ts'; // Adjusted type import name
 import type { AccountQueryFiltersDto, CreateAccountDto, UpdateAccountDto, UpdateBalanceDto } from '../types/dtos/account.dto.ts';
 import type { IBaseService } from '../types/services/base.service.types.ts'; // Import the base interface
-
+import Transaction from '../models/transactions.ts';
+import TransactionService from './TransactionsService.ts';
+import type { ITransactionSchema } from '../types/models/transaction.types.ts';
 
 // Specify the concrete types for the generics
 class AccountService implements IBaseService<IAccountSchema, CreateAccountDto, UpdateAccountDto, AccountQueryFiltersDto> {
+
+    private transactionService : TransactionService;
+
+    constructor() {
+        this.transactionService = new TransactionService();
+    }
 
     // Helper to build the base query object for find operations
     private buildQueryObject(userId: string | null, filters: AccountQueryFiltersDto): any {
@@ -185,20 +193,26 @@ class AccountService implements IBaseService<IAccountSchema, CreateAccountDto, U
 
     // MODIFIED: Parameter name changed from accountId to id
     async delete(id: string, userId: string | null): Promise<mongoose.Types.ObjectId> {
-        // If userId is null, it's an admin delete, otherwise user delete
-        // MODIFIED: Use id in query
         const query = userId ? { _id: id, user: userId } : { _id: id };
         const account = await Account.findOne(query);
 
         if (!account) {
-            // MODIFIED: Use id in error message
              throw new NotFoundError(`Account not found with id ${id}${userId ? ` for the current user` : ''}`);
         }
         if (account.isDeleted) {
             throw new BadRequestError('Account is already deleted');
         }
 
+        const associatedTransactions : ITransactionSchema[] = await Transaction.find({ account: id });
+        if (associatedTransactions.length > 0) {
+            for (const transaction of associatedTransactions){
+                await this.transactionService.delete(transaction._id.toString(), userId);
+                console.log(`Transaction ${transaction._id} deleted`);
+            }
+        }
+
         await account.softDelete();
+
         return account._id;
     }
 

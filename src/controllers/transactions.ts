@@ -26,7 +26,6 @@ class TransactionController implements ITransactionController {
             }
             const userId = req.user._id.toString();
             const filters: TransactionQueryFiltersDto = req.query;
-            console.log(req.query);
 
             const { items: transactions, totalDocuments } = await this.transactionService.getAll(userId, filters);
 

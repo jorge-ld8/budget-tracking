@@ -87,7 +87,6 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
             };
             const regex = /\b((&lt;)|>|>=|(&lte;)|=|!=)\b/g;
             let numFilters = filters.numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);
-            console.log(numFilters);
             const allowedNumericFields = ['amount'];
             numFilters.split(',').forEach((item) => {
                 const [field, operator, value] = item.split('-');
@@ -381,7 +380,6 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         let query : any = Transaction.findOne(queryFilter);
         query.includeDeleted = true;
         const transaction = await query;
-
 
         if (!transaction) {
             throw new NotFoundError(`Deleted transaction not found with id ${id}${userId ? ' for the current user' : ''}`);
