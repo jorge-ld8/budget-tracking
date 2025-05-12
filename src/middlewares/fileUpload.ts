@@ -25,7 +25,7 @@ const storage = multer.diskStorage({
 
 const s3Storage = multerS3({
   s3: s3Client,
-  bucket: env.AWS_S3_BUCKET_NAME,
+  bucket: env.AWS_S3_BUCKET_NAME as string,
   acl: 'public-read',
   metadata: function (req, file, cb) {
     cb(null, { fieldName: file.fieldname });
@@ -49,7 +49,7 @@ const upload = multer({
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB max file size
   },
-  fileFilter: fileFilter
+  fileFilter: fileFilter as any
 });
 
 export default upload;
