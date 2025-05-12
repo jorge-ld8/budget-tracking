@@ -21,9 +21,9 @@ class AuthController extends BaseController {
       const user = new User({
         username,
         email,
-        password, // Will be hashed by the pre-save hook
         firstName,
         lastName,
+        password,
         currency: currency || 'USD'
       });
       
@@ -83,13 +83,10 @@ class AuthController extends BaseController {
 
   async getCurrentUser(req, res) {
     // The user is attached to req by the auth middleware
-    const userObj = req.user.toObject();
-    delete userObj.password;
+    const user = req.user.toObject();
+    delete user.password;
     
-    res.status(200).json({
-      success: true,
-      user: userObj
-    });
+    res.status(200).json({ user});
   }
 
   async changePassword(req, res, next) {

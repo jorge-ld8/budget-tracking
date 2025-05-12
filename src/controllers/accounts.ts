@@ -32,7 +32,7 @@ class AccountController implements IAccountController {
 
             res.status(200).json({
                 accounts,
-                nbHits: accounts?.length || 0,
+                count: accounts?.length || 0,
                 page: pageNumber,
                 limit: limitNumber,
                 totalPages: Math.ceil(totalDocuments / limitNumber),
@@ -53,10 +53,9 @@ class AccountController implements IAccountController {
             const account = await this.accountService.findById(accountId, userId);
             res.status(200).json({ account });
         } catch (error) {
-            // Catch specific errors like NotFoundError if needed for different responses
             next(error);
         }
-    }
+    } 
 
     async create(req: AuthenticatedRequest, res: Response, next: NextFunction) {
         try {
@@ -86,7 +85,7 @@ class AccountController implements IAccountController {
             }
             const userId = req.user._id.toString();
             const deletedAccountId = await this.accountService.delete(accountId, userId);
-            res.status(200).json({ message: 'Account soft deleted successfully', accountId: deletedAccountId });
+            res.status(200).json({ accountId: deletedAccountId });
         } catch (error) {
             next(error);
         }
@@ -172,13 +171,13 @@ class AccountController implements IAccountController {
             }
             const userId = req.user._id.toString();
             const account = await this.accountService.restore(accountId, userId);
-            res.status(200).json({ message: 'Account restored successfully', account });
+            res.status(200).json({ account });
         } catch (error) {
             next(error);
         }
     }
 
-    async getDeletedAccounts(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    async getDeleted(req: AuthenticatedRequest, res: Response, next: NextFunction) {
          try {
              if (!req.user?._id) {
                  throw new BadRequestError('User authentication information is missing.');
@@ -293,19 +292,6 @@ class AccountController implements IAccountController {
             const accountId = req.params.id;
             const account = await this.accountService.restore(accountId, null); // Pass null userId for admin
             res.status(200).json({ message: 'Account restored successfully by admin', account });
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    async getDeleted(req: AuthenticatedRequest, res: Response, next: NextFunction) { // Renamed from getDeletedAdmin for consistency
-        try {
-            // Assuming admin check middleware passed
-            const deletedAccounts = await this.accountService.getDeleted(null); // Pass null to get all deleted
-            res.status(200).json({
-                deletedAccounts,
-                count: deletedAccounts.length
-            });
         } catch (error) {
             next(error);
         }

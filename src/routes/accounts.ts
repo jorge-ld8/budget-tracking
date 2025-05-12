@@ -439,9 +439,9 @@ class AccountRouter extends BaseRouter<AccountController> {
         
         /**
          * @swagger
-         * /accounts/deleted/all:
+         * /accounts/deleted:
          *   get:
-         *     summary: Get all soft-deleted accounts
+         *     summary: Get all deleted accounts
          *     tags: [Accounts]
          *     security:
          *       - bearerAuth: []
@@ -463,7 +463,7 @@ class AccountRouter extends BaseRouter<AccountController> {
          *       401:
          *         description: Unauthorized
          */
-        this.router.get('/deleted/all', (req, res, next) => this.controller.getDeleted(req, res, next));
+        this.router.get('/deleted', (req, res, next) => this.controller.getDeleted(req, res, next));
 
         /**
          * @swagger

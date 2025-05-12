@@ -1,4 +1,8 @@
-// src/types/dtos/account.dto.ts
+import { ACCOUNT_TYPES, BALANCE_OPERATIONS } from '../../utils/constants.ts';
+
+export type AccountType = typeof ACCOUNT_TYPES[number];
+export type BalanceOperation = typeof BALANCE_OPERATIONS[number];
+
 
 export interface AccountQueryFiltersDto {
     type?: string;
@@ -13,7 +17,7 @@ export interface AccountQueryFiltersDto {
 
 export interface CreateAccountDto {
     name: string;
-    type: string;
+    type: AccountType;
     description?: string;
     isActive?: boolean;
     user?: string;
@@ -22,7 +26,7 @@ export interface CreateAccountDto {
 // DTO for updating an existing account
 export interface UpdateAccountDto {
     name?: string;
-    type?: string;
+    type?: AccountType;
     description?: string;
     isActive?: boolean;
 }
@@ -37,14 +41,14 @@ export interface UpdateAccountAdminDto extends UpdateAccountDto {
 // DTO for updating account balance
 export interface UpdateBalanceDto {
     amount: number;
-    operation: 'add' | 'subtract';
+    operation: BalanceOperation;
 }
 
 // DTO for the response of the updateBalance operation
 export interface UpdateBalanceResponseDto {
     balance: number;
     name: string;
-    operation: 'add' | 'subtract';
+    operation: BalanceOperation;
     amount: number;
     timestamp: Date;
 }

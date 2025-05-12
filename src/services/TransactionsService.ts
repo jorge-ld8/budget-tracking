@@ -181,7 +181,7 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
          let accountId: Types.ObjectId;
          let categoryId: Types.ObjectId;
          let ownerUserId: Types.ObjectId;
-         const imageUrl = args[0] as string | undefined; // Extract imageUrl from args
+         const imageUrl = args[0] as string | undefined; 
 
          try {
              accountId = new Types.ObjectId(data.account);
@@ -215,14 +215,12 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         const transaction = new Transaction(transactionData);
         await transaction.save();
 
-        // --- Update Account Balance --- (Atomic operation recommended in production)
         if (transaction.type === 'income') {
             account.balance += transaction.amount;
-        } else { // expense
+        } else { 
             account.balance -= transaction.amount;
         }
         await account.save();
-        // --- End Balance Update ---
 
         return transaction as ITransactionSchema;
     }
