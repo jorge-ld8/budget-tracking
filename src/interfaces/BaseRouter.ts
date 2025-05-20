@@ -20,7 +20,7 @@ class BaseRouter<T extends CrudController> {
     return this;
   }
 
-  getRouter() {
+  public getRouter() : Router {
     return this.router;
   }
 }

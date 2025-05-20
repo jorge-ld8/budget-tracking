@@ -1,9 +1,12 @@
 import { BaseRouter } from '../interfaces/BaseRouter.ts';
-import { authenticate } from '../middlewares/auth.ts';
+import { authenticate, isAdmin } from '../middlewares/auth.ts';
 import { validateRequest } from '../middlewares/validateRequest.ts';
 import { idSchema, createUserSchema, updateUserSchema } from '../validators/users.validator.ts';
 import type { UserController } from '../types/controllers.ts';
 import { z } from 'zod';
+import type { RequestHandler } from 'express';
+
+
 /**
  * @swagger
  * components:
@@ -58,8 +61,9 @@ import { z } from 'zod';
  */
 
 class UsersRouter extends BaseRouter<UserController> {
-    async initializeRoutes() {
-        this.router.use(authenticate as any);
+    initializeRoutes() : void{
+        this.router.use(authenticate as RequestHandler);
+        this.router.use(isAdmin as RequestHandler);
 
         /**
          * @swagger

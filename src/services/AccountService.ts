@@ -22,9 +22,6 @@ class AccountService implements IBaseService<IAccountSchema, CreateAccountDto, U
     private buildQueryObject(userId: string | null, filters: AccountQueryFiltersDto): any {
         const queryObject: any = {};
 
-        // If userId is provided, filter by user (standard user operation)
-        // If userId is null, don't filter by user (admin operation)
-        // MODIFIED: Only add user filter if userId is not null
         if (userId) {
             queryObject.user = userId;
         }

@@ -2,10 +2,11 @@ import jwt from 'jsonwebtoken';
 import User from '../models/users.ts';
 import { UnauthorizedError, ForbiddenError } from '../errors/index.ts';
 import type { Request, Response, NextFunction } from 'express';
+import type { AuthenticatedRequest, UserPayload } from '../types/index.d.ts';
 
 
 // Middleware to authenticate users
-const authenticate = async (req: Request & { user: any }, res: Response, next: NextFunction) => {
+const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     // Get token from header
     const authHeader = req.headers.authorization;
@@ -31,7 +32,7 @@ const authenticate = async (req: Request & { user: any }, res: Response, next: N
       }
       
       // Attach user to request
-      req.user = user;
+      req.user = user as UserPayload;
       next();
     } catch (error) {
       return next(new UnauthorizedError('Invalid or expired token'));
@@ -41,14 +42,11 @@ const authenticate = async (req: Request & { user: any }, res: Response, next: N
   }
 };
 
-// Middleware to check if user is an administrator
-const isAdmin = async (req: Request & { user: any }, res: Response, next: NextFunction) => {
-  // First ensure the user is authenticated
+const isAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) : Promise<any> => {
   if (!req.user) {
     return next(new UnauthorizedError('Authentication required'));
   }
   
-  // Check if the user has admin privileges
   if (!req.user.isAdmin) {
     return next(new ForbiddenError('Administrator access required'));
   }
@@ -56,7 +54,6 @@ const isAdmin = async (req: Request & { user: any }, res: Response, next: NextFu
   next();
 };
 
-// Optional: middleware to check specific roles
 const authorizeRoles = (...roles: string[]) => {
   return (req: Request & { user: any }, res: Response, next: NextFunction) => {
     if (!roles.includes(req.user.role)) {
