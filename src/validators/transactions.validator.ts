@@ -4,7 +4,7 @@ const transactionType = z.enum(["income", "expense"]);
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
 export const createTransactionSchema = z.object({
-    amount: z.number().min(0),
+    amount: z.coerce.number().min(0),
     date: z.string().date(),
     description: z.string().min(1),
     type: transactionType,
@@ -13,7 +13,7 @@ export const createTransactionSchema = z.object({
 });
 
 export const updateTransactionSchema = z.object({
-    amount: z.number().min(0).optional(),
+    amount: z.coerce.number().min(0).optional(),
     date: z.string().date().optional(),
     description: z.string().min(1).optional(),
     type: transactionType.optional(),

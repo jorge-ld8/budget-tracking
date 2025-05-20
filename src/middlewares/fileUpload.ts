@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import s3Client from '../config/s3Config.ts';
 import env from '../config/env.ts';
+import type { Request } from 'express';
 
 // Ensure upload directory exists
 const uploadDir = path.join(import.meta.url, '../uploads/images');
@@ -25,7 +26,7 @@ const storage = multer.diskStorage({
 
 const s3Storage = multerS3({
   s3: s3Client,
-  bucket: env.AWS_S3_BUCKET_NAME as string,
+  bucket: env.AWS_S3_BUCKET_NAME,
   acl: 'public-read',
   metadata: function (req, file, cb) {
     cb(null, { fieldName: file.fieldname });
@@ -47,9 +48,10 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: any) => {
 const upload = multer({
   storage: s3Storage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB max file size
+    fileSize: 5 * 1024 * 1024
   },
-  fileFilter: fileFilter as any
+  fileFilter: fileFilter
 });
 
 export default upload;
+// VITE_API_URL=https://budget-tracking-docker.onrender.com

@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
-import * as env from 'env-var';
+import env from 'env-var';
+import * as ms from 'ms';
 
 // Determine which .env file to use
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -12,6 +13,7 @@ const envFile = NODE_ENV === 'development'
 dotenv.config({ 
   path: path.resolve(process.cwd(), envFile) 
 });
+
 
 // export default {
 //   NODE_ENV,
@@ -29,8 +31,8 @@ export default {
   NODE_ENV,
   PORT: env.get('PORT').required().asInt(),
   MONGO_URI: env.get('MONGO_URI').required().asString(),
-  JWT_SECRET: env.get('JWT_SECRET').required().asString() as string,
-  JWT_EXPIRES_IN: env.get('JWT_EXPIRES_IN').required().asString() as string,
+  JWT_SECRET: env.get('JWT_SECRET').required().asString(),
+  JWT_EXPIRES_IN: env.get('JWT_EXPIRES_IN').required().asString() as ms.StringValue,
   AWS_ACCESS_KEY_ID: env.get('AWS_ACCESS_KEY_ID').required().asString(),
   AWS_SECRET_ACCESS_KEY: env.get('AWS_SECRET_ACCESS_KEY').required().asString(),
   AWS_REGION: env.get('AWS_REGION').required().asString(),

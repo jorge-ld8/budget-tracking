@@ -348,8 +348,9 @@ class TransactionsRouter extends BaseRouter<TransactionController> {
      *                   $ref: '#/components/schemas/Transaction'
      */
     this.router.post('/', 
+      upload.single('image'), 
       validateRequest(z.object({ body: createTransactionSchema })) as any, 
-      upload.single('image'), this.controller.create);
+      (req, res, next) => this.controller.create(req, res, next));
 
     /**
      * @swagger

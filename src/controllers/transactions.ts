@@ -34,7 +34,7 @@ class TransactionController implements ITransactionController {
 
             res.status(200).json({
                 transactions,
-                count: transactions?.length || 0, // Use nbHits or count consistently
+                count: transactions?.length || 0, 
                 page: pageNumber,
                 limit: limitNumber,
                 totalPages: Math.ceil(totalDocuments / limitNumber),
@@ -77,11 +77,9 @@ class TransactionController implements ITransactionController {
             let imageUrl: string | undefined = undefined;
             if (req.file) {
                 // Assuming req.file.location is set by multer-s3 or similar
-                imageUrl = (req.file as any).location; // Cast to any if type is uncertain
+                imageUrl = req.file.location; // Cast to any if type is uncertain
             }
-            // else if (req.body.imgUrl) { // Prioritize file upload if both present?
-            //     imageUrl = req.body.imgUrl;
-            // }
+
 
             const transaction = await this.transactionService.create(userId, transactionData, imageUrl);
             res.status(201).json({ transaction });
@@ -249,7 +247,7 @@ class TransactionController implements ITransactionController {
             // Handle image URL if provided (e.g., from form data or direct URL)
             let imageUrl: string | undefined = undefined;
              if (req.file) {
-                imageUrl = (req.file as any).location;
+                imageUrl = req.file.location;
             }
             // else if (req.body.imgUrl) { imageUrl = req.body.imgUrl; }
 
