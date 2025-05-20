@@ -44,9 +44,6 @@ app.get('/x-forwarded-for', (req: Request, res: Response) => {
   res.send(req.headers['x-forwarded-for']);
 });
 
-
-
-   
 const apiLimiter = rateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
@@ -117,8 +114,8 @@ app.get('/health', (req, res) => {
 // swagger docs
 swaggerDoc(app, env.PORT);
 
-app.use(notFound as any);
-app.use(errorHandler as any);
+app.use(notFound);
+app.use(errorHandler);
 
 /**
  * @swagger
