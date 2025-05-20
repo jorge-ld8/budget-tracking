@@ -1,6 +1,6 @@
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-
+import type { Express } from 'express';
 
 // Swagger definition
 const swaggerDefinition = {
@@ -38,16 +38,13 @@ const swaggerDefinition = {
 
 // Options for the swagger docs
 const options = {
-  // Import swaggerDefinitions
   swaggerDefinition,
-  // Path to the API docs
   apis: ['./src/routes/*.ts', './src/models/*.ts'],
 };
 
 // Initialize swagger-jsdoc
-const swaggerSpec = swaggerJSDoc(options as any);
-
-const swaggerDocs = (app, port) => {
+const swaggerSpec = swaggerJSDoc(options);
+const swaggerDocs = (app: Express, port: number) => {
   // Route for swagger docs
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     explorer: true,
@@ -63,9 +60,7 @@ const swaggerDocs = (app, port) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(swaggerSpec);
   });
-
   console.log(`\nSwagger docs available at http://localhost:${port}/api-docs`);
-  
 };
 
 export default swaggerDocs; 

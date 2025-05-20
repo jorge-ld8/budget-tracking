@@ -1,5 +1,4 @@
-import type { Request, Response } from 'express';
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -22,13 +21,12 @@ import AuthController from './controllers/auth.ts';
 import swaggerDoc from './swagger.ts';
 import path from 'path';
 import fs from 'fs';
-import env from './config/config.ts';
+import env from './config/env.ts';
 import { createStream } from 'rotating-file-stream';
 import dotenv from 'dotenv';
 import xss from 'xss-clean';
 import rateLimiter from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
-// import { hpp } from 'hpp';
 
 
 const app = express();
@@ -117,7 +115,7 @@ app.get('/health', (req, res) => {
 });
 
 // swagger docs
-swaggerDoc(app, process.env.PORT);
+swaggerDoc(app, env.PORT);
 
 app.use(notFound as any);
 app.use(errorHandler as any);
