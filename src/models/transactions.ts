@@ -27,16 +27,6 @@ const transactionSchema = new Schema<ITransactionSchema>({
   },
 });
 
-// Update the updatedAt field before saving
-transactionSchema.pre('save', function(next) {
-  (this as any).updatedAt = Date.now();
-  if (this.date) {
-    const date = new Date(this.date);
-    this.date = new Date(date.getTime() + (4 * 60 * 60 * 1000));
-  }
-  next();
-});
-
 // Create soft delete methods
 transactionSchema.methods.softDelete = function() {
   this.isDeleted = true;

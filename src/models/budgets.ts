@@ -13,12 +13,6 @@ const budgetSchema = new Schema<IBudgetSchema>({
   isDeleted: { type: Boolean, default: false, index: true }
 }, {timestamps: true});
 
-// Update the updatedAt field before saving
-budgetSchema.pre('save', function(next) {
-  (this as any).updatedAt = Date.now();
-  next();
-});
-
 // Create soft delete methods
 budgetSchema.methods.softDelete = function() {
   this.isDeleted = true;

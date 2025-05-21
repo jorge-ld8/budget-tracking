@@ -3,10 +3,10 @@ import User from '../models/users.ts';
 import { UnauthorizedError, ForbiddenError } from '../errors/index.ts';
 import type { Request, Response, NextFunction } from 'express';
 import type { AuthenticatedRequest, UserPayload } from '../types/index.d.ts';
-
+import env from '../config/env.ts';
 
 // Middleware to authenticate users
-const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction) : Promise<void>=> {
   try {
     // Get token from header
     const authHeader = req.headers.authorization;
@@ -24,7 +24,8 @@ const authenticate = async (req: AuthenticatedRequest, res: Response, next: Next
     
     try {
       // Verify token
-      const decoded : any = jwt.verify(token, process.env.JWT_SECRET as string);
+      const decoded : jwt.JwtPayload = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload;
+
       // Find user
       const user = await User.findById(decoded.id).select('-password');
       if (!user) {
@@ -42,13 +43,15 @@ const authenticate = async (req: AuthenticatedRequest, res: Response, next: Next
   }
 };
 
-const isAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) : Promise<any> => {
+const isAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) : Promise<void> => {
   if (!req.user) {
-    return next(new UnauthorizedError('Authentication required'));
+    next(new UnauthorizedError('Authentication required'));
+    return;
   }
   
   if (!req.user.isAdmin) {
-    return next(new ForbiddenError('Administrator access required'));
+    next(new ForbiddenError('Administrator access required'));
+    return;
   }
   
   next();

@@ -60,7 +60,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    async create(req: AuthenticatedRequest & { file?: any }, res: Response, next: NextFunction) {
+    async create(req: AuthenticatedRequest & { file: Express.MulterS3.File }, res: Response, next: NextFunction) {
         try {
              if (!req.user?._id) {
                  throw new BadRequestError('User authentication information is missing.');
@@ -72,7 +72,6 @@ class TransactionController implements ITransactionController {
             if (!transactionData.amount || !transactionData.type || !transactionData.description || !transactionData.category || !transactionData.account) {
                  throw new BadRequestError('Missing required fields for transaction creation.');
             }
-
             // Handle potential image URL from file upload (Multer/S3) or request body (UploadThing)
             let imageUrl: string | undefined = undefined;
             if (req.file) {
@@ -235,7 +234,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    async createAdmin(req: AuthenticatedRequest & { file?: any }, res: Response, next: NextFunction) {
+    async createAdmin(req: AuthenticatedRequest & { file?: Express.MulterS3.File }, res: Response, next: NextFunction) {
         try {
             // Admin needs to provide user ID in the body
             const transactionData: CreateTransactionAdminDto = req.body;
@@ -258,7 +257,7 @@ class TransactionController implements ITransactionController {
         }
     }
 
-    async updateAdmin(req: AuthenticatedRequest & { file?: any }, res: Response, next: NextFunction) {
+    async updateAdmin(req: AuthenticatedRequest & { file?: Express.MulterS3.File }, res: Response, next: NextFunction) {
         try {
             const transactionId = req.params.id;
             const updateData: UpdateTransactionAdminDto = req.body;

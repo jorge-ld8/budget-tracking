@@ -18,11 +18,6 @@ const accountSchema = new Schema<IAccountSchema>({
   isDeleted: { type: Boolean, default: false, index: true }
 }, {timestamps: true});
 
-// Update the updatedAt field before saving
-accountSchema.pre('save', function(next) {
-  (this as any).updatedAt = Date.now();
-  next();
-});
 
 // Create soft delete methods
 accountSchema.methods.softDelete = function() {

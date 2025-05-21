@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
 
-class BaseController {
-  protected service: any;
+class BaseController<T>{
+  protected service: T;
 
-  constructor(service?: any) {
+  constructor(service: T) {
     this.service = service;
   }
 

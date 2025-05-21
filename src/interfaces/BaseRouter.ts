@@ -15,11 +15,6 @@ class BaseRouter<T extends CrudController> {
     throw new Error('Method initializeRoutes() must be implemented');
   }
 
-  applyMiddleware(middleware: any) {
-    this.router.use(middleware);
-    return this;
-  }
-
   public getRouter() : Router {
     return this.router;
   }

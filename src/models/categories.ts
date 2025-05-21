@@ -12,12 +12,6 @@ const categorySchema = new Schema<ICategorySchema>({
   isDeleted: { type: Boolean, default: false, index: true }
 }, {timestamps: true});
 
-// Update the updatedAt field before saving
-categorySchema.pre('save', function(next) {
-  (this as any).updatedAt = Date.now();
-  next();
-});
-
 // Create soft delete methods
 categorySchema.methods.softDelete = function() {
   this.isDeleted = true;
