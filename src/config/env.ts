@@ -14,19 +14,6 @@ dotenv.config({
   path: path.resolve(process.cwd(), envFile) 
 });
 
-
-// export default {
-//   NODE_ENV,
-//   PORT: process.env.PORT || 5000,
-//   MONGO_URI: process.env.MONGO_URI,
-//   JWT_SECRET: process.env.JWT_SECRET,
-//   JWT_LIFETIME: process.env.JWT_LIFETIME || '1d',
-//   AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
-//   AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
-//   AWS_REGION: process.env.AWS_REGION,
-//   AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME
-// };
-
 export default {
   NODE_ENV,
   PORT: env.get('PORT').required().asInt(),

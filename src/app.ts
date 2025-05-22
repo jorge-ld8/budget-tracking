@@ -24,18 +24,12 @@ import path from 'path';
 import fs from 'fs';
 import env from './config/env.ts';
 import { createStream } from 'rotating-file-stream';
-import dotenv from 'dotenv';
 import xss from 'xss-clean';
 import rateLimiter from 'express-rate-limit';
 import mongoSanitize from 'express-mongo-sanitize';
 
 
 const app = express();
-
-// Load environment variables
-const envFile = env.NODE_ENV === 'development' ? '.env.development' : (env.NODE_ENV === 'production' ? '.env.production' : '.env');
-dotenv.config({ path: envFile });
-
 
 app.set('trust proxy', 1)
 app.get('/ip', (req: Request, res: Response) => {
@@ -54,7 +48,6 @@ const apiLimiter = rateLimiter({
 // In your Express app configuration
 app.use('/uploads', express.static(path.join(import.meta.url, 'uploads')));
 
-
 // Middleware
 app.use(apiLimiter);
 app.use(helmet({
@@ -71,7 +64,6 @@ app.use(mongoSanitize());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use(express.static(path.join(import.meta.url, 'public')));
 
 
