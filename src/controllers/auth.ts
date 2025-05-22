@@ -1,128 +1,99 @@
-import User from '../models/users.ts';
-import { BadRequestError, UnauthorizedError } from '../errors/index.ts';
-import { BaseController } from '../interfaces/BaseController.ts';
+import type { Response, NextFunction } from 'express';
+import AuthService from '../services/AuthService.ts';
+import { BadRequestError } from '../errors/index.ts';
+import type { AuthController as IAuthController } from '../types/controllers.ts';
+import type { AuthenticatedRequest } from '../types/index.d.ts';
+import type { RegisterDto, LoginDto, ChangePasswordDto } from '../types/dtos/auth.dto.ts';
 
-class AuthController extends BaseController {
-  constructor() {
-    super();
-  }
+class AuthController implements IAuthController {
+    private authService: AuthService;
 
-  async register(req, res, next) {
-    try {
-      const { username, email, password, firstName, lastName, currency } = req.body;
-      
-      // Check if user already exists
-      const existingUser = await User.findOne({ $or: [{ email }, { username }] });
-      if (existingUser) {
-        return next(new BadRequestError('User with this email or username already exists'));
-      }
-      
-      // Create new user
-      const user = new User({
-        username,
-        email,
-        firstName,
-        lastName,
-        password,
-        currency: currency || 'USD'
-      });
-      
-      await user.save();
-      
-      // Generate token
-      const token = user.generateAuthToken();
-      
-      // Return user info without password
-      const userObj : any = user.toObject();
-      delete userObj.password;
-      
-      res.status(201).json({
-        token,
-        user: userObj
-      });
-    } catch (error) {
-      next(error);
+    constructor() {
+        this.authService = new AuthService();
     }
-  }
 
-  async login(req, res, next) {
-    try {
-      const { email, password } = req.body;
-      
-      // Check if user exists
-      const user = await User.findOne({ email });
-      if (!user) {
-        return next(new UnauthorizedError('Invalid credentials'));
-      }
-      
-      // Check password
-      const isMatch = await user.comparePassword(password);
-      if (!isMatch) {
-        return next(new UnauthorizedError('Invalid credentials'));
-      }
-      
-      // Update last login
-      (user as any).lastLogin = Date.now();
-      await user.save();
-      
-      // Generate token
-      const token = user.generateAuthToken();
-      
-      // Return user info without password
-      const userObj : any = user.toObject();
-      delete userObj.password;
-      
-      res.status(200).json({
-        token,
-        user: userObj
-      });
-    } catch (error) {
-      next(error);
+    async register(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const registerData: RegisterDto = req.body;
+
+            // Basic validation
+            if (!registerData.username || !registerData.email || !registerData.password || !registerData.firstName || !registerData.lastName) {
+                throw new BadRequestError('Missing required fields: username, email, password, firstName, lastName');
+            }
+
+            const result = await this.authService.register(registerData);
+            res.status(201).json(result);
+        } catch (error) {
+            next(error);
+        }
     }
-  }
 
-  async getCurrentUser(req, res) {
-    // The user is attached to req by the auth middleware
-    const user = req.user.toObject();
-    delete user.password;
-    
-    res.status(200).json({ user});
-  }
+    async login(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            const loginData: LoginDto = req.body;
 
-  async changePassword(req, res, next) {
-    try {
-      const { currentPassword, newPassword } = req.body;
-      const user = req.user;
-      
-      // Verify current password
-      const isMatch = await user.comparePassword(currentPassword);
-      if (!isMatch) {
-        const error = new UnauthorizedError('Current password is incorrect');
-        return next(error);
-      }
-      
-      // Update password
-      user.password = newPassword;
-      await user.save();
-      
-      res.status(200).json({
-        success: true,
-        message: 'Password updated successfully'
-      });
-    } catch (error) {
-      next(error);
+            // Basic validation
+            if (!loginData.email || !loginData.password) {
+                throw new BadRequestError('Missing required fields: email and password');
+            }
+
+            const result = await this.authService.login(loginData);
+            res.status(200).json(result);
+        } catch (error) {
+            next(error);
+        }
     }
-  }
 
-  async logout(req, res) {
-    // For JWT, client-side should remove the token
-    // Here we can add any server-side cleanup if needed
-    
-    res.status(200).json({
-      success: true,
-      message: 'Logged out successfully'
-    });
-  }
+    async getCurrentUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            if (!req.user?._id) {
+                throw new BadRequestError('User authentication information is missing.');
+            }
+
+            const userId = req.user._id.toString();
+            const user = await this.authService.getCurrentUser(userId);
+            res.status(200).json({ user });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async changePassword(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            if (!req.user?._id) {
+                throw new BadRequestError('User authentication information is missing.');
+            }
+
+            const userId = req.user._id.toString();
+            const passwordData: ChangePasswordDto = req.body;
+
+            // Basic validation
+            if (!passwordData.currentPassword || !passwordData.newPassword) {
+                throw new BadRequestError('Missing required fields: currentPassword and newPassword');
+            }
+
+            await this.authService.changePassword(userId, passwordData);
+            res.status(200).json({
+                success: true,
+                message: 'Password updated successfully'
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async logout(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+        try {
+            // For JWT, client-side should remove the token
+            // Here we can add any server-side cleanup if needed
+            res.status(200).json({
+                success: true,
+                message: 'Logged out successfully'
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 export default AuthController;

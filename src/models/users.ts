@@ -54,11 +54,7 @@ userSchema.methods.restore = function() {
 
 // Create a mongoose query middleware that by default filters out deleted records
 userSchema.pre(/^find/, function(this: Query<IUser[], IUser> & { includeDeleted?: boolean }, next) {
-  // In case you want to include deleted documents in some specific queries,
-  // you can set this.includeDeleted = true in your query
-  if (this.includeDeleted !== true) {
-    this.where({ isDeleted: false });
-  }
+  this.where({ isDeleted: false });
   next();
 });
 
