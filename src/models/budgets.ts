@@ -27,12 +27,7 @@ budgetSchema.methods.restore = function() {
 // Create a mongoose query middleware that by default filters out deleted records
 // This automatically applies to find, findOne, findById, etc.
 budgetSchema.pre(/^find/, function(next) {
-  // In case you want to include deleted documents in some specific queries,
-  // you can set this.includeDeleted = true in your query
-  if ((this as any).includeDeleted !== true) {
-    // By default exclude deleted documents
-    (this as any).where({ isDeleted: false });
-  }
+  (this as any).where({ isDeleted: false });
   next();
 });
 

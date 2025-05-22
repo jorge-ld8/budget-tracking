@@ -1,13 +1,6 @@
 import type { Response, NextFunction } from 'express';
 import TransactionService from '../services/TransactionsService.ts';
 import { BadRequestError } from '../errors/index.ts';
-// Remove unused model imports if service handles all DB interaction
-// import Transaction from '../models/transactions.ts';
-// import Account from '../models/accounts.ts';
-// import s3Client from '../config/s3Config.js';
-// import env from '../config/env.js';
-// import { DeleteObjectCommand } from '@aws-sdk/client-s3';
-
 import type { TransactionController as ITransactionController } from '../types/controllers.ts';
 import type { AuthenticatedRequest } from '../types/index.d.ts';
 import type { TransactionQueryFiltersDto, CreateTransactionDto, UpdateTransactionDto, CreateTransactionAdminDto, UpdateTransactionAdminDto } from '../types/dtos/transaction.dto.ts';
