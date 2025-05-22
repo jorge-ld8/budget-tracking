@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Query } from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
@@ -53,19 +53,19 @@ userSchema.methods.restore = function() {
 };
 
 // Create a mongoose query middleware that by default filters out deleted records
-userSchema.pre(/^find/, function(next) {
+userSchema.pre(/^find/, function(this: Query<IUser[], IUser> & { includeDeleted?: boolean }, next) {
   // In case you want to include deleted documents in some specific queries,
   // you can set this.includeDeleted = true in your query
-  if ((this as any).includeDeleted !== true) {
-    (this as any).where({ isDeleted: false });
+  if (this.includeDeleted !== true) {
+    this.where({ isDeleted: false });
   }
   next();
 });
 
 // Add a static method to find deleted documents when needed
 userSchema.statics.findDeleted = function(query = {}) {
-  const queryObj = this.find({...query, isDeleted: true});
-  (queryObj as any).includeDeleted = true;
+  const queryObj = this.find({...query, isDeleted: true}) as Query<IUser[], IUser> & { includeDeleted?: boolean };
+  queryObj.includeDeleted = true;
   return queryObj;
 };
 

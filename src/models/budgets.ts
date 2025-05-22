@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Query } from 'mongoose';
 import { Schema } from 'mongoose';
 import type { IBudgetSchema, IBudgetModel } from '../types/models/budgets.types.ts';
 import { BUDGET_TYPES } from '../utils/constants.ts';
@@ -26,8 +26,8 @@ budgetSchema.methods.restore = function() {
 
 // Create a mongoose query middleware that by default filters out deleted records
 // This automatically applies to find, findOne, findById, etc.
-budgetSchema.pre(/^find/, function(next) {
-  (this as any).where({ isDeleted: false });
+budgetSchema.pre(/^find/, function(this: Query<IBudgetSchema[], IBudgetSchema>, next) {
+  this.where({ isDeleted: false });
   next();
 });
 

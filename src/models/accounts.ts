@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Query } from 'mongoose';
 import { Schema } from 'mongoose';
 import type { IAccountSchema, IAccountModel } from '../types/models/accounts.types.ts';
 import { ACCOUNT_TYPES } from '../utils/constants.ts';
@@ -31,8 +31,8 @@ accountSchema.methods.restore = function() {
 };
 
 
-accountSchema.pre(/^find/, function(next) {
-  (this as any).where({ isDeleted: false });
+accountSchema.pre(/^find/, function (this: Query<IAccountSchema[], IAccountSchema>, next) {
+  this.where({ isDeleted: false });
   next();
 });
 

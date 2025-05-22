@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Query } from 'mongoose';
 import { Schema } from 'mongoose';
 import type { ICategorySchema, ICategoryModel } from '../types/models/categories.types.ts';
 import { TRANSACTION_TYPES as CATEGORY_TYPES } from '../utils/constants.ts';
@@ -23,8 +23,8 @@ categorySchema.methods.restore = function() {
   return this.save();
 };
 
-categorySchema.pre(/^find/, function(next) {
-  (this as any).where({ isDeleted: false });
+categorySchema.pre(/^find/, function(this: Query<ICategorySchema[], ICategorySchema>, next) {
+  this.where({ isDeleted: false });
   next();
 });
 
