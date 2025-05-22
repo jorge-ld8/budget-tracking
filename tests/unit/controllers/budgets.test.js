@@ -1,8 +1,9 @@
-const mongoose = require('mongoose');
-const BudgetsController = require('../../../src/controllers/budgets');
-const Budget = require('../../../src/models/budgets');
-const Category = require('../../../src/models/categories');
-const { NotFoundError, BadRequestError } = require('../../../src/errors');
+import mongoose from 'mongoose';
+import BudgetsController from '../../../src/controllers/budgets';
+import Budget from '../../../src/models/budgets';
+import Category from '../../../src/models/categories';
+import { NotFoundError, BadRequestError } from '../../../src/errors';
+import { jest } from '@jest/globals';
 
 // Mock models
 jest.mock('../../../src/models/budgets');
@@ -112,7 +113,7 @@ describe('Budgets Controller', () => {
         limit: jest.fn().mockResolvedValue(mockBudgets)
       };
       
-      Budget.find.mockReturnValue(mockFindQuery);
+      Budget.find.mockReturnValue(mockFindQuery as any);
       Budget.countDocuments.mockResolvedValue(mockBudgets.length);
       
       await budgetsController.getAll(req, res, next);

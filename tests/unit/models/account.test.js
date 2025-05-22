@@ -1,6 +1,6 @@
-const Account = require('../../../src/models/accounts');
-const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+import Account from '../../../src/models/accounts.ts';
+import mongoose from 'mongoose';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 describe('Account Model', () => {
   let mongod;

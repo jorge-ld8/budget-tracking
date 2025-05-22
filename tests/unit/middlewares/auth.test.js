@@ -1,11 +1,11 @@
 const { authenticate } = require('../../../src/middlewares/auth');
 const { StatusCodes } = require('http-status-codes');
-const User = require('../../../src/models/users');
+const User = require('../../../src/models/users.ts');
 const { UnauthorizedError } = require('../../../src/errors');
 const jwt = require('jsonwebtoken');
 
 // Mock the User model and jwt
-jest.mock('../../../src/models/users');
+jest.mock('../../../src/models/users.ts');
 jest.mock('jsonwebtoken');
 
 describe('Auth Middleware', () => {
