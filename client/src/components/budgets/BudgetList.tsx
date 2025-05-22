@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Budget, BudgetPeriod } from '../../types/budget';
 import { Category } from '../../types/category';
 import { PaginationData } from '../../types/common';

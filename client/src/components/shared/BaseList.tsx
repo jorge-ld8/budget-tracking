@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { Entity, PaginationData } from '../../types/common';
 import Pagination from './Pagination';
 import Modal from '../common/Modal';
