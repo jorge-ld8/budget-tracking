@@ -129,7 +129,7 @@ class AuthRouter {
          */
         this.router.post('/register', limiter, 
             validateRequest(z.object({ body: registerSchema })) as any, 
-            this.controller.register);
+            (req, res, next) => this.controller.register(req, res, next));
 
         /**
          * @swagger
@@ -178,7 +178,7 @@ class AuthRouter {
          */
         this.router.post('/login', limiter, 
             validateRequest(z.object({ body: loginSchema })) as any, 
-            this.controller.login);
+            (req, res, next) => this.controller.login(req, res, next));
 
         /**
          * @swagger
@@ -202,7 +202,7 @@ class AuthRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.post('/logout', authenticate as any, this.controller.logout);
+        this.router.post('/logout', authenticate as any, (req, res, next) => this.controller.logout(req, res, next));
 
         /**
          * @swagger
@@ -225,7 +225,7 @@ class AuthRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.get('/current-user', authenticate as any, this.controller.getCurrentUser);
+        this.router.get('/current-user', authenticate as any, (req, res, next) => this.controller.getCurrentUser(req, res, next));
 
         /**
          * @swagger
@@ -259,7 +259,7 @@ class AuthRouter {
          */
         this.router.post('/change-password', authenticate as any, 
             validateRequest(z.object({ body: changePasswordSchema })) as any, 
-            this.controller.changePassword);
+            (req, res, next) => this.controller.changePassword(req, res, next));
     }
 }
 
