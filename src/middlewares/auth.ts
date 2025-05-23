@@ -1,12 +1,15 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/users.ts';
 import { UnauthorizedError, ForbiddenError } from '../errors/index.ts';
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction, RequestHandler } from 'express';
 import type { AuthenticatedRequest, UserPayload } from '../types/index.d.ts';
 import env from '../config/env.ts';
 
+// Create proper middleware types
+type AuthMiddleware = (req: Request, res: Response, next: NextFunction) => Promise<void>;
+
 // Middleware to authenticate users
-const authenticate = async (req: AuthenticatedRequest, res: Response, next: NextFunction) : Promise<void>=> {
+const authenticate: AuthMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     // Get token from header
     const authHeader = req.headers.authorization;
@@ -43,13 +46,15 @@ const authenticate = async (req: AuthenticatedRequest, res: Response, next: Next
   }
 };
 
-const isAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunction) : Promise<void> => {
-  if (!req.user) {
+const isAdmin: AuthMiddleware = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  const authenticatedReq = req as AuthenticatedRequest;
+  
+  if (!authenticatedReq.user) {
     next(new UnauthorizedError('Authentication required'));
     return;
   }
   
-  if (!req.user.isAdmin) {
+  if (!authenticatedReq.user.isAdmin) {
     next(new ForbiddenError('Administrator access required'));
     return;
   }
@@ -57,10 +62,13 @@ const isAdmin = async (req: AuthenticatedRequest, res: Response, next: NextFunct
   next();
 };
 
-const authorizeRoles = (...roles: string[]) => {
-  return (req: Request & { user: any }, res: Response, next: NextFunction) => {
-    if (!roles.includes(req.user.role)) {
-      return next(new ForbiddenError(`Role ${req.user.role} is not authorized to access this resource`));
+const authorizeRoles = (...roles: string[]): RequestHandler => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const authenticatedReq = req as AuthenticatedRequest;
+    // Since UserPayload only has isAdmin boolean, we'll use a simple role mapping
+    const userRole = authenticatedReq.user.isAdmin ? 'admin' : 'user';
+    if (!roles.includes(userRole)) {
+      return next(new ForbiddenError(`Role ${userRole} is not authorized to access this resource`));
     }
     next();
   };

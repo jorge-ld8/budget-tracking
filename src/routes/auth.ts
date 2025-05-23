@@ -128,7 +128,7 @@ class AuthRouter {
          *         description: Username or email already exists
          */
         this.router.post('/register', limiter, 
-            validateRequest(z.object({ body: registerSchema })) as any, 
+            validateRequest(z.object({ body: registerSchema })), 
             (req, res, next) => this.controller.register(req, res, next));
 
         /**
@@ -177,7 +177,7 @@ class AuthRouter {
          *         description: Invalid credentials
          */
         this.router.post('/login', limiter, 
-            validateRequest(z.object({ body: loginSchema })) as any, 
+            validateRequest(z.object({ body: loginSchema })), 
             (req, res, next) => this.controller.login(req, res, next));
 
         /**
@@ -202,7 +202,7 @@ class AuthRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.post('/logout', authenticate as any, (req, res, next) => this.controller.logout(req, res, next));
+        this.router.post('/logout', authenticate, (req, res, next) => this.controller.logout(req, res, next));
 
         /**
          * @swagger
@@ -225,7 +225,7 @@ class AuthRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.get('/current-user', authenticate as any, (req, res, next) => this.controller.getCurrentUser(req, res, next));
+        this.router.get('/current-user', authenticate, (req, res, next) => this.controller.getCurrentUser(req, res, next));
 
         /**
          * @swagger
@@ -257,8 +257,8 @@ class AuthRouter {
          *       401:
          *         description: Unauthorized
          */
-        this.router.post('/change-password', authenticate as any, 
-            validateRequest(z.object({ body: changePasswordSchema })) as any, 
+        this.router.post('/change-password', authenticate, 
+            validateRequest(z.object({ body: changePasswordSchema })), 
             (req, res, next) => this.controller.changePassword(req, res, next));
     }
 }

@@ -62,8 +62,8 @@ import type { RequestHandler } from 'express';
 
 class UsersRouter extends BaseRouter<UserController> {
     initializeRoutes() : void{
-        this.router.use(authenticate as RequestHandler);
-        this.router.use(isAdmin as RequestHandler);
+        this.router.use(authenticate);
+        this.router.use(isAdmin);
 
         /**
          * @swagger
@@ -128,7 +128,7 @@ class UsersRouter extends BaseRouter<UserController> {
          *                 totalPages:
          *                   type: integer
          */
-        this.router.get('/', this.controller.getAll);
+        this.router.get('/', (req, res, next) => this.controller.getAll(req, res, next));
 
         /**
          * @swagger
@@ -157,8 +157,8 @@ class UsersRouter extends BaseRouter<UserController> {
          *         description: User not found
          */
         this.router.get('/:id', 
-            validateRequest(z.object({ params: idSchema })) as any,
-            this.controller.getById);
+            validateRequest(z.object({ params: idSchema })),
+            (req, res, next) => this.controller.getById(req, res, next));
 
         /**
          * @swagger
@@ -205,8 +205,8 @@ class UsersRouter extends BaseRouter<UserController> {
          *                   $ref: '#/components/schemas/User'
          */
         this.router.post('/', 
-            validateRequest(z.object({ body: createUserSchema })) as any,
-            this.controller.create);
+            validateRequest(z.object({ body: createUserSchema })),
+            (req, res, next) => this.controller.create(req, res, next));
 
         /**
          * @swagger
@@ -244,8 +244,8 @@ class UsersRouter extends BaseRouter<UserController> {
          *         description: User not found
          */
         this.router.patch('/:id', 
-            validateRequest(z.object({ params: idSchema, body: updateUserSchema })) as any,
-            this.controller.update);
+            validateRequest(z.object({ params: idSchema, body: updateUserSchema })),
+            (req, res, next) => this.controller.update(req, res, next));
 
         /**
          * @swagger
@@ -267,8 +267,8 @@ class UsersRouter extends BaseRouter<UserController> {
          *         description: User not found
          */
         this.router.delete('/:id', 
-            validateRequest(z.object({ params: idSchema })) as any,
-            this.controller.delete);
+            validateRequest(z.object({ params: idSchema })),
+            (req, res, next) => this.controller.delete(req, res, next));
         
         /**
          * @swagger
@@ -291,7 +291,7 @@ class UsersRouter extends BaseRouter<UserController> {
          *                 count:
          *                   type: integer
          */
-        this.router.get('/deleted/all', this.controller.getDeleted);
+        this.router.get('/deleted/all', (req, res, next) => this.controller.getDeleted(req, res, next));
 
         /**
          * @swagger
@@ -315,8 +315,8 @@ class UsersRouter extends BaseRouter<UserController> {
          *         description: User not found
          */
         this.router.post('/:id/restore', 
-            validateRequest(z.object({ params: idSchema })) as any,
-            this.controller.restore);
+            validateRequest(z.object({ params: idSchema })),
+            (req, res, next) => this.controller.restore(req, res, next));
     }
 }
 
