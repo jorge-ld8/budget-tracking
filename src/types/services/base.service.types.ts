@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import type mongoose from 'mongoose';
 
 // T: The Mongoose document type (e.g., IAccountSchema)
 // C: The DTO type for creating the entity (e.g., CreateAccountDto)

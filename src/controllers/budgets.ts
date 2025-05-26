@@ -1,16 +1,16 @@
-import type { Response, NextFunction } from 'express';
+import type { NextFunction, Response } from 'express';
 import BudgetService from '../services/BudgetService.ts'; // Import the service
 import { BadRequestError } from '../errors/index.ts';
 // import Budget from '../models/budgets.ts';
 import type { AuthenticatedRequest } from '../types/index.d.ts';
-import type { BudgetQueryFiltersDto, CreateBudgetDto, UpdateBudgetDto, CreateBudgetAdminDto, UpdateBudgetAdminDto, BudgetPeriod } from '../types/dtos/budget.dto.ts';
+import type { BudgetPeriod, BudgetQueryFiltersDto, CreateBudgetAdminDto, CreateBudgetDto, UpdateBudgetAdminDto, UpdateBudgetDto } from '../types/dtos/budget.dto.ts';
 // Assuming IBudgetController interface might be out of sync after refactor
 import type { BudgetController as IBudgetController } from '../types/controllers.ts';
 
 // class BudgetsController implements IBudgetController {
 class BudgetController implements IBudgetController {
     // Use the imported singleton instance
-    private budgetService : BudgetService;
+    private readonly budgetService : BudgetService;
 
     constructor() {
       this.budgetService = new BudgetService();

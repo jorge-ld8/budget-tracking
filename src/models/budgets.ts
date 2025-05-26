@@ -1,6 +1,7 @@
-import mongoose, { Query } from 'mongoose';
+import mongoose, { type FilterQuery, type Query } from 'mongoose';
+// eslint-disable-next-line no-duplicate-imports
 import { Schema } from 'mongoose';
-import type { IBudgetSchema, IBudgetModel } from '../types/models/budgets.types.ts';
+import type { IBudgetModel, IBudgetSchema } from '../types/models/budgets.types.ts';
 import { BUDGET_TYPES } from '../utils/constants.ts';
 const budgetSchema = new Schema<IBudgetSchema>({
   amount: { type: Number, required: true },
@@ -32,8 +33,9 @@ budgetSchema.pre(/^find/, function(this: Query<IBudgetSchema[], IBudgetSchema>, 
 });
 
 // Add a static method to find deleted documents when needed
-budgetSchema.statics.findDeleted = function(query = {}) {
-  const queryObj = this.find({...query, isDeleted: true});
+budgetSchema.statics.findDeleted = function(query: FilterQuery<IBudgetSchema> = {}) {
+  const deletedQuery: FilterQuery<IBudgetSchema> = {...query, isDeleted: true};
+  const queryObj = this.find(deletedQuery);
   queryObj.includeDeleted = true;
   return queryObj;
 };
@@ -42,13 +44,13 @@ budgetSchema.statics.findDeleted = function(query = {}) {
 // Override the countDocuments to respect the isDeleted filter
 budgetSchema.statics.countDocuments = function(query = {}, options = {}) {
   // Allow override of isDeleted behavior through options
-  if (options && options.includeDeleted) {
+  if (options?.includeDeleted) {
     // Don't add isDeleted filter if explicitly asked to include deleted items
     return mongoose.Model.countDocuments.call(this, query, options);
   }
   
   // Otherwise filter out deleted documents by default
-  if (!query.hasOwnProperty('isDeleted')) {
+  if (!Object.prototype.hasOwnProperty.call(query, 'isDeleted')) {
     query.isDeleted = false;
   }
   return mongoose.Model.countDocuments.call(this, query, options);

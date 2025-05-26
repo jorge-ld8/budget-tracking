@@ -1,6 +1,7 @@
-import mongoose, { Query } from 'mongoose';
+import mongoose, { type Query } from 'mongoose';
+// eslint-disable-next-line no-duplicate-imports
 import { Schema } from 'mongoose';
-import type { ICategorySchema, ICategoryModel } from '../types/models/categories.types.ts';
+import type { ICategoryModel, ICategorySchema } from '../types/models/categories.types.ts';
 import { TRANSACTION_TYPES as CATEGORY_TYPES } from '../utils/constants.ts';
 
 const categorySchema = new Schema<ICategorySchema>({
@@ -38,7 +39,7 @@ categorySchema.statics.findDeleted = function(query = {}) {
 // Override the countDocuments to respect the isDeleted filter
 categorySchema.statics.countDocuments = function(query = {}, options = {}) {
   // Allow override of isDeleted behavior through options
-  if (options && options.includeDeleted) {
+  if (options?.includeDeleted) {
     // Don't add isDeleted filter if explicitly asked to include deleted items
     return mongoose.Model.countDocuments.call(this, query, options);
   }

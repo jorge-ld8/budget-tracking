@@ -1,5 +1,5 @@
-import { Request } from 'express';
-import { ObjectId } from 'mongodb';
+import { type Request } from 'express';
+import { type ObjectId } from 'mongodb';
 // Define the structure of the user object attached by auth middleware
 export interface UserPayload {
   _id: ObjectId;

@@ -2,7 +2,7 @@ import { BaseRouter } from '../interfaces/BaseRouter.ts';
 import { authenticate, isAdmin } from '../middlewares/auth.ts';
 import type { AccountController } from '../types/controllers.ts';
 import { validateRequest } from '../middlewares/validateRequest.ts';
-import { idSchema, createAccountSchema, updateAccountSchema, balanceUpdateSchema } from '../validators/accounts.validator.ts';
+import { balanceUpdateSchema, createAccountSchema, idSchema, updateAccountSchema } from '../validators/accounts.validator.ts';
 import { z } from 'zod';
 /**
  * @swagger

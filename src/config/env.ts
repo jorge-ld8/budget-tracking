@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import env from 'env-var';
-import * as ms from 'ms';
+import type * as ms from 'ms';
 
 // Determine which .env file to use
 const NODE_ENV = process.env.NODE_ENV || 'development';

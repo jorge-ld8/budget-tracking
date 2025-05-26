@@ -1,5 +1,3 @@
-import { Types } from 'mongoose';
-
 // DTO for querying transactions
 export interface TransactionQueryFiltersDto {
     type?: 'income' | 'expense';

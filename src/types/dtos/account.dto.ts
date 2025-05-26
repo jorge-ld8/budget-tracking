@@ -1,4 +1,4 @@
-import { ACCOUNT_TYPES, BALANCE_OPERATIONS } from '../../utils/constants.ts';
+import { type ACCOUNT_TYPES, type BALANCE_OPERATIONS } from '../../utils/constants.ts';
 
 export type AccountType = typeof ACCOUNT_TYPES[number];
 export type BalanceOperation = typeof BALANCE_OPERATIONS[number];

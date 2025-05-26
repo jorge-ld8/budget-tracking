@@ -17,10 +17,10 @@ if (!fs.existsSync(uploadDir)) {
 
 // Configure storage
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination (req, file, cb) {
     cb(null, uploadDir);
   },
-  filename: function (req, file, cb) {
+  filename (req, file, cb) {
     const uniqueFilename = `${uuidv4()}${path.extname(file.originalname)}`;
     cb(null, uniqueFilename);
   }
@@ -30,7 +30,7 @@ const s3Storage = multerS3({
   s3: s3Client,
   bucket: env.AWS_S3_BUCKET_NAME,
   acl: 'public-read',
-  metadata: function (req, file, cb) {
+  metadata (req, file, cb) {
     cb(null, { fieldName: file.fieldname });
   }
 });
@@ -52,7 +52,7 @@ const upload = multer({
   limits: {
     fileSize: 5 * 1024 * 1024
   },
-  fileFilter: fileFilter
+  fileFilter
 });
 
 export default upload;

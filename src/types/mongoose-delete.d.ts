@@ -1,7 +1,7 @@
 // src/types/mongoose-delete.d.ts
 
 declare module 'mongoose-delete' {
-    import mongoose = require('mongoose');
+    import type mongoose from 'mongoose';
 
     interface SoftDeleteOptions {
         deletedAt?: boolean;

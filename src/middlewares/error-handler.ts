@@ -1,6 +1,6 @@
 import { CustomError } from '../errors/index.ts';
 import { StatusCodes } from 'http-status-codes';
-import type { Request, Response, NextFunction } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 
 const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction): void => {
   console.error(err.stack);

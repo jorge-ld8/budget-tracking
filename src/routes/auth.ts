@@ -2,7 +2,7 @@ import type { AuthController } from '../types/controllers.ts';
 import rateLimiter from 'express-rate-limit';
 import { authenticate } from '../middlewares/auth.ts';
 import { Router } from 'express';
-import { registerSchema, loginSchema, changePasswordSchema } from '../validators/auth.validator.ts';
+import { changePasswordSchema, loginSchema, registerSchema } from '../validators/auth.validator.ts';
 import { z } from 'zod';
 import { validateRequest } from '../middlewares/validateRequest.ts';
 const limiter = rateLimiter({
@@ -82,8 +82,8 @@ const limiter = rateLimiter({
  */
 
 class AuthRouter {
-    private router: Router;
-    private controller: AuthController;
+    private readonly router: Router;
+    private readonly controller: AuthController;
 
     constructor(controller: AuthController) {
         this.router = Router();

@@ -1,10 +1,10 @@
-import type { Response, NextFunction } from 'express';
+import type { NextFunction, Response } from 'express';
 import User from '../models/users.ts';
-import { NotFoundError, BadRequestError } from '../errors/index.ts';
+import { BadRequestError, NotFoundError } from '../errors/index.ts';
 import type { AuthenticatedRequest } from '../types/index.d.ts';
-import type { UserQueryFiltersDto, CreateUserDto, UpdateUserDto, UpdateUserAdminDto } from '../types/dtos/user.dto.ts';
+import type { CreateUserDto, UpdateUserAdminDto, UpdateUserDto, UserQueryFiltersDto } from '../types/dtos/user.dto.ts';
 import type { IUser } from '../types/models/user.types.ts';
-import { Query, Types } from 'mongoose';
+import { type Query, Types } from 'mongoose';
 
 class UsersController {
     constructor() {}
@@ -36,7 +36,7 @@ class UsersController {
                 '!=': '$ne'
             };
             const regex = /\b(<|>|>=|<=|=|!=)\b/g;
-            let processedFilters = filters.numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);
+            const processedFilters = filters.numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);
             const options = ['balance', 'age'];
             processedFilters.split(',').forEach((item) => {
                 const [field, operator, value] = item.split('-');

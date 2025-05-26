@@ -1,12 +1,12 @@
-import type { Response, NextFunction } from 'express';
+import type { NextFunction, Response } from 'express';
 import TransactionService from '../services/TransactionsService.ts';
 import { BadRequestError } from '../errors/index.ts';
 import type { TransactionController as ITransactionController } from '../types/controllers.ts';
 import type { AuthenticatedRequest } from '../types/index.d.ts';
-import type { TransactionQueryFiltersDto, CreateTransactionDto, UpdateTransactionDto, CreateTransactionAdminDto, UpdateTransactionAdminDto } from '../types/dtos/transaction.dto.ts';
+import type { CreateTransactionAdminDto, CreateTransactionDto, TransactionQueryFiltersDto, UpdateTransactionAdminDto, UpdateTransactionDto } from '../types/dtos/transaction.dto.ts';
 
 class TransactionController implements ITransactionController {
-    private transactionService : TransactionService;
+    private readonly transactionService : TransactionService;
 
     constructor() {
         this.transactionService = new TransactionService();
@@ -23,7 +23,7 @@ class TransactionController implements ITransactionController {
             const { items: transactions, totalDocuments } = await this.transactionService.getAll(userId, filters);
 
             const pageNumber = Number(filters.page) || 1;
-            const limitNumber = Number(filters.limit) || 10; // Default limit for standard users
+            const limitNumber = Number(filters.limit) || 10;
 
             res.status(200).json({
                 transactions,
@@ -61,15 +61,12 @@ class TransactionController implements ITransactionController {
             const userId = req.user._id.toString();
             const transactionData: CreateTransactionDto = req.body;
 
-            // Basic validation (consider using validation middleware)
             if (!transactionData.amount || !transactionData.type || !transactionData.description || !transactionData.category || !transactionData.account) {
                  throw new BadRequestError('Missing required fields for transaction creation.');
             }
-            // Handle potential image URL from file upload (Multer/S3) or request body (UploadThing)
             let imageUrl: string | undefined = undefined;
             if (req.file) {
-                // Assuming req.file.location is set by multer-s3 or similar
-                imageUrl = req.file.location; // Cast to any if type is uncertain
+                imageUrl = req.file.location;
             }
 
 

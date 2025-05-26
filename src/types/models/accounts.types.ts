@@ -1,5 +1,5 @@
 import type { IBaseModel, IBaseSchema } from "./base.types.ts";
-import  { Types } from "mongoose";
+import  { type Types } from "mongoose";
 
 export interface IAccountSchema extends IBaseSchema {
     name: string;

@@ -2,12 +2,12 @@ import { authenticate } from '../middlewares/auth.ts';
 import type { ReportsController } from '../types/controllers.ts';
 import { Router } from 'express';
 import { validateRequest } from '../middlewares/validateRequest.ts';
-import { spendingByCategorySchema, incomeVsExpensesSchema, monthlyTrendSchema } from '../validators/reports.validator.ts';
+import { incomeVsExpensesSchema, monthlyTrendSchema, spendingByCategorySchema } from '../validators/reports.validator.ts';
 import { z } from 'zod';
 
 class ReportsRouter{
-  private router: Router;
-  private controller: ReportsController;
+  private readonly router: Router;
+  private readonly controller: ReportsController;
 
   constructor(controller: ReportsController) {
     this.router = Router();

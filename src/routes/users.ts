@@ -1,7 +1,7 @@
 import { BaseRouter } from '../interfaces/BaseRouter.ts';
 import { authenticate, isAdmin } from '../middlewares/auth.ts';
 import { validateRequest } from '../middlewares/validateRequest.ts';
-import { idSchema, createUserSchema, updateUserSchema } from '../validators/users.validator.ts';
+import { createUserSchema, idSchema, updateUserSchema } from '../validators/users.validator.ts';
 import type { UserController } from '../types/controllers.ts';
 import { z } from 'zod';
 import type { RequestHandler } from 'express';

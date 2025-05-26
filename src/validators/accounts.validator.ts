@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { objectIdRegex, ACCOUNT_TYPES, BALANCE_OPERATIONS } from "../utils/constants.ts";
+import { ACCOUNT_TYPES, BALANCE_OPERATIONS, objectIdRegex } from "../utils/constants.ts";
 
 export const createAccountSchema = z.object({
     name: z.string().min(1),

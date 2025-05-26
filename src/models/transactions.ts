@@ -1,6 +1,6 @@
-import mongoose, { Query } from 'mongoose';
+import mongoose, { type Query } from 'mongoose';
 import { Schema } from 'mongoose';
-import type { ITransactionSchema, ITransactionModel } from '../types/models/transaction.types.ts';
+import type { ITransactionModel, ITransactionSchema } from '../types/models/transaction.types.ts';
 import { TRANSACTION_TYPES } from '../utils/constants.ts';
 
 const transactionSchema = new Schema<ITransactionSchema>({
@@ -17,7 +17,7 @@ const transactionSchema = new Schema<ITransactionSchema>({
   timestamps: true,
   toJSON: { 
     virtuals: true,
-    transform: function(doc, ret) {
+    transform(doc, ret) {
       if (ret.date) {
         const date = new Date(ret.date);
         ret.date = new Date(date.getTime() + (4 * 60 * 60 * 1000));
@@ -55,7 +55,7 @@ transactionSchema.statics.findDeleted = function(query: any = {}) {
 // Override the countDocuments to respect the isDeleted filter
 transactionSchema.statics.countDocuments = function(query: any  = {}, options: any = {}) {
   // Allow override of isDeleted behavior through options
-  if (options && options.includeDeleted) {
+  if (options?.includeDeleted) {
     // Don't add isDeleted filter if explicitly asked to include deleted items
     return mongoose.Model.countDocuments.call(this, query, options);
   }

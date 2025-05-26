@@ -1,6 +1,5 @@
-import mongoose, { Query } from 'mongoose';
-import { Schema } from 'mongoose';
-import type { IAccountSchema, IAccountModel } from '../types/models/accounts.types.ts';
+import mongoose, { type Query, Schema } from 'mongoose';
+import type { IAccountModel, IAccountSchema } from '../types/models/accounts.types.ts';
 import { ACCOUNT_TYPES } from '../utils/constants.ts';
 
 const accountSchema = new Schema<IAccountSchema>({
@@ -46,7 +45,7 @@ accountSchema.statics.findDeleted = function(query = {}) {
 // Override the countDocuments to respect the isDeleted filter
 accountSchema.statics.countDocuments = function(query = {}, options = {}) {
   // Allow override of isDeleted behavior through options
-  if (options && options.includeDeleted) {
+  if (options?.includeDeleted) {
     // Don't add isDeleted filter if explicitly asked to include deleted items
     return mongoose.Model.countDocuments.call(this, query, options);
   }

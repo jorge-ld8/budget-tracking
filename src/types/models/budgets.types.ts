@@ -1,12 +1,12 @@
 import type { IBaseModel, IBaseSchema } from "./base.types.ts";
-import  { Types } from "mongoose";
+import  { type Types } from "mongoose";
 
 export interface IBudgetSchema extends IBaseSchema {
     amount: number;
     period: string;
     category: Types.ObjectId;
     startDate: Date;
-    endDate: Date;
+    endDate?: Date;
     isRecurring: boolean;
     user: Types.ObjectId;
   }

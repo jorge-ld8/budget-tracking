@@ -1,23 +1,34 @@
-import { Types } from 'mongoose';
+import { type FilterQuery, type Query, Types } from 'mongoose';
 import Budget from '../models/budgets.ts';
 import User from '../models/users.ts'; // Needed for admin checks
 import Category from '../models/categories.ts'; // Needed for validation
-import { NotFoundError, BadRequestError } from '../errors/index.ts';
+import { BadRequestError, NotFoundError } from '../errors/index.ts';
 import type { IBudgetSchema } from '../types/models/budgets.types.ts';
-import type { BudgetQueryFiltersDto, CreateBudgetDto, UpdateBudgetDto, CreateBudgetAdminDto, UpdateBudgetAdminDto, BudgetPeriod } from '../types/dtos/budget.dto.ts';
+import type { BudgetPeriod, BudgetQueryFiltersDto, CreateBudgetAdminDto, CreateBudgetDto, UpdateBudgetAdminDto, UpdateBudgetDto } from '../types/dtos/budget.dto.ts';
 import type { IBaseService } from '../types/services/base.service.types.ts';
+
+// Define the proper filter type for budgets
+type BudgetFilterQuery = FilterQuery<IBudgetSchema> & {
+    user?: Types.ObjectId;
+    category?: Types.ObjectId;
+    period?: string;
+    startDate?: {
+        $gte?: Date;
+        $lte?: Date;
+    };
+};
 
 class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, UpdateBudgetDto, BudgetQueryFiltersDto> {
     // Helper to build query object
-    private buildQueryObject(userId: string | null, filters: BudgetQueryFiltersDto): any {
-        const queryObject: any = {};
+    private buildQueryObject(userId: string | null, filters: BudgetQueryFiltersDto): BudgetFilterQuery {
+        const queryObject: BudgetFilterQuery = {};
 
         if (userId) {
             queryObject.user = new Types.ObjectId(userId);
         } else if (filters.user) {
             try {
                 queryObject.user = new Types.ObjectId(filters.user);
-            } catch (e) {
+            } catch (_e) {
                 throw new BadRequestError("Invalid user ID format in filter");
             }
         }
@@ -25,7 +36,7 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
         if (filters.category) {
             try {
                 queryObject.category = new Types.ObjectId(filters.category);
-            } catch (e) {
+            } catch (_e) {
                 throw new BadRequestError("Invalid category ID format in filter");
             }
         }
@@ -37,10 +48,10 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
         if (filters.startDate || filters.endDate) {
             queryObject.startDate = {}; // Filter on budget start date
             if (filters.startDate) {
-                try { queryObject.startDate.$gte = new Date(filters.startDate); } catch (e) { /* ignore */ }
+                try { queryObject.startDate.$gte = new Date(filters.startDate); } catch (_e) { /* ignore */ }
             }
             if (filters.endDate) {
-                 try { queryObject.startDate.$lte = new Date(filters.endDate); } catch (e) { /* ignore */ }
+                 try { queryObject.startDate.$lte = new Date(filters.endDate); } catch (_e) { /* ignore */ }
             }
         }
 
@@ -51,17 +62,15 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
 
     async getAll(userId: string | null, filters: BudgetQueryFiltersDto): Promise<{ items: IBudgetSchema[], totalDocuments: number }> {
         const queryObject = this.buildQueryObject(userId, filters);
-        let query : any = Budget.find(queryObject);
+        let query : Query<IBudgetSchema[], IBudgetSchema> = Budget.find(queryObject);
 
-        // Sorting
         if (filters.sort) {
             const sortFields = filters.sort.split(',').join(' ');
             query = query.sort(sortFields);
         } else {
-            query = query.sort('-startDate'); // Default sort
+            query = query.sort('-startDate');
         }
 
-        // Field selection
         if (filters.fields) {
             const fieldsList = filters.fields.split(',').join(' ');
             query = query.select(fieldsList);
@@ -78,8 +87,8 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
             query = query.populate('user', 'username email firstName lastName');
         }
 
-        const items = await query.exec() as IBudgetSchema[];
-        const totalDocuments = await (Budget as any).countDocuments(queryObject).exec();
+        const items = await query.exec();
+        const totalDocuments = await Budget.countDocuments(queryObject).exec();
 
         return { items, totalDocuments };
     }
@@ -88,11 +97,11 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
         let budgetId: Types.ObjectId;
         try {
             budgetId = new Types.ObjectId(id);
-        } catch (e) {
+        } catch (_e) {
             throw new BadRequestError("Invalid budget ID format");
         }
 
-        const queryFilter: any = { _id: budgetId };
+        const queryFilter: FilterQuery<IBudgetSchema> = { _id: budgetId };
         if (userId) {
             queryFilter.user = new Types.ObjectId(userId);
         }
@@ -119,7 +128,7 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
         try {
             ownerUserId = new Types.ObjectId(userId);
             categoryId = new Types.ObjectId(data.category);
-        } catch (e) {
+        } catch (_e) {
             throw new BadRequestError("Invalid user or category ID format.");
         }
 
@@ -156,7 +165,7 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
             let categoryId: Types.ObjectId;
             try {
                 categoryId = new Types.ObjectId(data.category);
-            } catch (e) {
+            } catch (_e) {
                 throw new BadRequestError("Invalid category ID format.");
             }
             const categoryExists = await Category.findOne({ _id: categoryId /* , user: budget.user */ }); // Add user check if needed
@@ -167,17 +176,17 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
         }
 
         // Validate end date if period is custom
-        const newPeriod = data.period || budget.period;
-        let newEndDate = data.endDate ? new Date(data.endDate) : budget.endDate;
+        const newPeriod = data.period ?? budget.period;
+        const newEndDate = data.endDate ? new Date(data.endDate) : budget.endDate;
 
         if (newPeriod === 'custom' && !newEndDate) {
             throw new BadRequestError('End date is required for custom budget periods.');
         }
 
         // Update fields selectively
-        if (data.amount !== undefined) budget.amount = data.amount;
-        if (data.period !== undefined) budget.period = data.period;
-        if (data.startDate !== undefined) budget.startDate = new Date(data.startDate);
+        if (data.amount !== undefined) {budget.amount = data.amount;}
+        if (data.period !== undefined) {budget.period = data.period;}
+        if (data.startDate !== undefined) {budget.startDate = new Date(data.startDate);}
         
         if (data.endDate === null || data.endDate === undefined) {
             budget.endDate = data.endDate as any;
@@ -205,11 +214,11 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
         let budgetId: Types.ObjectId;
         try {
             budgetId = new Types.ObjectId(id);
-        } catch (e) {
+        } catch (_e) {
             throw new BadRequestError("Invalid budget ID format");
         }
 
-        const queryFilter: any = { _id: budgetId };
+        const queryFilter: FilterQuery<IBudgetSchema> = { _id: budgetId };
         if (userId) {
             queryFilter.user = new Types.ObjectId(userId);
         }
@@ -226,7 +235,7 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
     }
 
     async getDeleted(userId: string | null): Promise<IBudgetSchema[]> {
-        const queryFilter: any = {};
+        const queryFilter: FilterQuery<IBudgetSchema> = {};
         if (userId) {
             queryFilter.user = new Types.ObjectId(userId);
         }
@@ -241,7 +250,7 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
         const ownerUserId = new Types.ObjectId(userId);
         const budgets = await Budget.find({
             user: ownerUserId,
-            period: period,
+            period,
             isActive: true // Typically, users only want to see active budgets here
         })
         .populate('category', 'name type icon color')
@@ -306,7 +315,7 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
         try {
             userId = new Types.ObjectId(data.user);
             categoryId = new Types.ObjectId(data.category);
-        } catch (e) {
+        } catch (_e) {
             throw new BadRequestError("Invalid user or category ID format.");
         }
 
@@ -346,33 +355,33 @@ class BudgetService implements IBaseService<IBudgetSchema, CreateBudgetDto, Upda
         // Validate category if changed
         if (data.category) {
             let categoryId: Types.ObjectId;
-            try { categoryId = new Types.ObjectId(data.category); } catch (e) { throw new BadRequestError("Invalid category ID format."); }
+            try { categoryId = new Types.ObjectId(data.category); } catch (_e) { throw new BadRequestError("Invalid category ID format."); }
             const categoryExists = await Category.findById(categoryId);
-            if (!categoryExists) throw new NotFoundError(`Category not found with id ${data.category}`);
+            if (!categoryExists) {throw new NotFoundError(`Category not found with id ${data.category}`);}
             budget.category = categoryId;
         }
 
         // Validate user if changed
         if (data.user) {
             let userId: Types.ObjectId;
-            try { userId = new Types.ObjectId(data.user); } catch (e) { throw new BadRequestError("Invalid user ID format."); }
+            try { userId = new Types.ObjectId(data.user); } catch (_e) { throw new BadRequestError("Invalid user ID format."); }
             const userExists = await User.findById(userId);
-            if (!userExists) throw new NotFoundError(`User not found with id ${data.user}`);
+            if (!userExists) {throw new NotFoundError(`User not found with id ${data.user}`);}
             budget.user = userId as any;
         }
 
         // Validate end date if period is custom
-        const newPeriod = data.period || budget.period;
-        let newEndDate = data.endDate ? new Date(data.endDate) : budget.endDate;
-        if (newPeriod === 'custom' && !newEndDate) throw new BadRequestError('End date is required for custom budget periods.');
+        const newPeriod = data.period ?? budget.period;
+        const newEndDate = data.endDate ? new Date(data.endDate) : budget.endDate;
+        if (newPeriod === 'custom' && !newEndDate) {throw new BadRequestError('End date is required for custom budget periods.');}
 
         // Update fields selectively
-        if (data.amount !== undefined) budget.amount = data.amount;
-        if (data.period !== undefined) budget.period = data.period;
-        if (data.startDate !== undefined) budget.startDate = new Date(data.startDate);
+        if (data.amount !== undefined) {budget.amount = data.amount;}
+        if (data.period !== undefined) {budget.period = data.period;}
+        if (data.startDate !== undefined) {budget.startDate = new Date(data.startDate);}
         
-        if (data.endDate === null || data.endDate === undefined) {
-            budget.endDate = data.endDate as any;
+        if (!data.endDate) {
+            budget.endDate = undefined;
         } else if (data.endDate) {
             budget.endDate = new Date(data.endDate);
         }

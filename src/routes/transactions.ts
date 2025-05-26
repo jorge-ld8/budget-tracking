@@ -3,7 +3,7 @@ import type { TransactionController } from '../types/controllers.ts';
 import { authenticate, isAdmin } from '../middlewares/auth.ts';
 import upload from '../middlewares/fileUpload.ts';
 import { validateRequest } from '../middlewares/validateRequest.ts';
-import { createTransactionSchema, updateTransactionSchema, idSchema } from '../validators/transactions.validator.ts';
+import { createTransactionSchema, idSchema, updateTransactionSchema } from '../validators/transactions.validator.ts';
 import { z } from 'zod';
 
 

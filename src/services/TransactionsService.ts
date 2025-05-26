@@ -1,37 +1,51 @@
-import mongoose, { Types } from 'mongoose';
+import { type FilterQuery, type Query, Types } from 'mongoose';
 import Transaction from '../models/transactions.ts';
 import Account from '../models/accounts.ts';
 import User from '../models/users.ts';
-import { NotFoundError, BadRequestError } from '../errors/index.ts';
+import { BadRequestError, NotFoundError } from '../errors/index.ts';
 import type { ITransactionSchema } from '../types/models/transaction.types.ts';
-import type { TransactionQueryFiltersDto, CreateTransactionDto, UpdateTransactionDto, CreateTransactionAdminDto, UpdateTransactionAdminDto } from '../types/dtos/transaction.dto.ts';
-import s3Client from '../config/s3Config.ts'; // Import S3 client
-import env from '../config/env.ts';         // Import env config for bucket name
-import { DeleteObjectCommand } from '@aws-sdk/client-s3'; // Import S3 command
-import type { IBaseService } from '../types/services/base.service.types.ts'; // Import the base interface
+import type { CreateTransactionAdminDto, CreateTransactionDto, TransactionQueryFiltersDto, UpdateTransactionAdminDto, UpdateTransactionDto } from '../types/dtos/transaction.dto.ts';
+import s3Client from '../config/s3Config.ts';
+import env from '../config/env.ts';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
+import type { IBaseService } from '../types/services/base.service.types.ts';
+
+// Define the proper filter type for transactions
+type TransactionFilterQuery = FilterQuery<ITransactionSchema> & {
+    user?: Types.ObjectId;
+    type?: 'income' | 'expense';
+    description?: { $regex: string; $options: string };
+    category?: Types.ObjectId;
+    account?: Types.ObjectId;
+    date?: {
+        $gte?: Date;
+        $lte?: Date;
+    };
+    amount?: Record<string, number>;
+    $or?: Array<FilterQuery<ITransactionSchema>>;
+    $and?: Array<FilterQuery<ITransactionSchema>>;
+};
 
 // Implement the IBaseService interface
 class TransactionService implements IBaseService<ITransactionSchema, CreateTransactionDto, UpdateTransactionDto, TransactionQueryFiltersDto> {
 
     // Helper to build the base query object for find operations
-    private buildQueryObject(userId: string | null, filters: TransactionQueryFiltersDto): any {
-        const queryObject: any = {};
+    private buildQueryObject(userId: string | null, filters: TransactionQueryFiltersDto): TransactionFilterQuery {
+        const queryObject: TransactionFilterQuery = {};
 
         if (userId) {
             // Convert string userId to ObjectId for querying
             try {
                  queryObject.user = new Types.ObjectId(userId);
-            } catch (e) {
+            } catch (_e) {
                  console.error("Invalid userId format:", userId);
-                 // Decide how to handle: throw error, or return empty results?
-                 // Throwing is safer to prevent unintended data access.
                  throw new BadRequestError("Invalid user ID format");
             }
 
         } else if (filters.user) {
              try {
                  queryObject.user = new Types.ObjectId(filters.user); // Allow admin to filter by user
-             } catch (e) {
+             } catch (_e) {
                   throw new BadRequestError("Invalid user ID format in filter");
              }
         }
@@ -47,14 +61,14 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         if (filters.category) {
              try {
                 queryObject.category = new Types.ObjectId(filters.category);
-             } catch (e) {
+             } catch (_e) {
                  throw new BadRequestError("Invalid category ID format in filter");
              }
         }
         if (filters.account) {
              try {
                  queryObject.account = new Types.ObjectId(filters.account);
-             } catch (e) {
+             } catch (_e) {
                  throw new BadRequestError("Invalid account ID format in filter");
              }
         }
@@ -66,7 +80,7 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
                 // Attempt to parse date, handle potential errors if format is unexpected
                 try {
                     queryObject.date.$gte = new Date(filters.startDate);
-                } catch (e) { /* Ignore invalid date format */ }
+                } catch (_e) { /* Ignore invalid date format */ }
             }
             if (filters.endDate) {
                 try {
@@ -74,7 +88,7 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
                     const endDate = new Date(filters.endDate);
                     endDate.setHours(23, 59, 59, 999);
                     queryObject.date.$lte = endDate;
-                } catch (e) { /* Ignore invalid date format */ }
+                } catch (_e) { /* Ignore invalid date format */ }
             }
              // If only one date is invalid, the filter might behave unexpectedly
              // Consider adding validation or error handling for date formats
@@ -82,18 +96,18 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
 
         // Numeric filters
         if (filters.numericFilters) {
-            const operatorMap: { [key: string]: string } = {
+            const operatorMap: Record<string, string> = {
                 '>': '$gt', '>=': '$gte', '&lt;': '$lt', '&lte;': '$lte', '=': '$eq', '!=': '$ne'
             };
             const regex = /\b((&lt;)|>|>=|(&lte;)|=|!=)\b/g;
-            let numFilters = filters.numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);
+            const numFilters = filters.numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);
             const allowedNumericFields = ['amount'];
             numFilters.split(',').forEach((item) => {
                 const [field, operator, value] = item.split('-');
                 if (allowedNumericFields.includes(field)) {
                      const numValue = Number(value);
                      if (!isNaN(numValue)) { // Ensure value is a valid number
-                          queryObject[field] = { [operator]: numValue };
+                          (queryObject as any)[field] = { [operator]: numValue };
                      }
                 }
             });
@@ -103,15 +117,14 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
 
     async getAll(userId: string | null, filters: TransactionQueryFiltersDto): Promise<{ items: ITransactionSchema[], totalDocuments: number }> {
         const queryObject = this.buildQueryObject(userId, filters);
-        // Explicitly type the query result if necessary, though Mongoose often infers correctly with proper schema/model setup
-        let query : any = Transaction.find(queryObject);
+        let query : Query<ITransactionSchema[], ITransactionSchema> = Transaction.find(queryObject);
 
         // Sorting
         if (filters.sort) {
             const sortFields = filters.sort.split(',').join(' ');
             query = query.sort(sortFields);
         } else {
-            query = query.sort('-date'); // Default sort: newest first
+            query = query.sort('-date'); 
         }
 
         // Field selection
@@ -145,15 +158,15 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         let tId: Types.ObjectId;
         try {
             tId = new Types.ObjectId(id);
-        } catch (e) {
+        } catch (_e) {
             throw new BadRequestError("Invalid transaction ID format");
         }
 
-        const queryFilter: any = { _id: tId };
+        const queryFilter: FilterQuery<ITransactionSchema> = { _id: tId };
         if (userId) {
              try {
                  queryFilter.user = new Types.ObjectId(userId); // Filter by user if userId is provided
-             } catch (e) {
+             } catch (_e) {
                   throw new BadRequestError("Invalid user ID format");
              }
         }
@@ -173,7 +186,6 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         if (!transaction) {
             throw new NotFoundError(`Transaction not found with id ${id}${userId ? ' for the current user' : ''}`);
         }
-        // Cast if necessary, although findOne should return the correct type if model is typed
         return transaction as ITransactionSchema;
     }
 
@@ -187,7 +199,7 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
              accountId = new Types.ObjectId(data.account);
              categoryId = new Types.ObjectId(data.category);
              ownerUserId = new Types.ObjectId(userId);
-         } catch (e) {
+         } catch (_e) {
              throw new BadRequestError("Invalid ID format for account, category, or user.");
          }
 
@@ -229,7 +241,7 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         let ownerUserId: Types.ObjectId;
         try {
             ownerUserId = new Types.ObjectId(userId);
-        } catch (e) {
+        } catch (_e) {
             throw new BadRequestError("Invalid user ID format");
         }
 
@@ -254,8 +266,8 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
             }
 
             // 2. Apply new transaction effect
-            const newType = data.type || transaction.type;
-            const newAmount = data.amount !== undefined ? data.amount : transaction.amount;
+            const newType = data.type ?? transaction.type;
+            const newAmount = data.amount ?? transaction.amount;
 
             if (newType === 'income') {
                 account.balance += newAmount;
@@ -272,22 +284,34 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
 
         // Update the transaction document itself
         // Convert IDs in update data if present
-        const updateData: any = { ...data }; // Use any temporarily for flexibility
-         if (updateData.date) {
-             updateData.date = new Date(updateData.date); // Ensure date format
+        const updateData: Partial<UpdateTransactionDto> = { ...data };
+         if (data.date) {
+             updateData.date = new Date(data.date as string);
          }
-         if (updateData.category) {
-             try { updateData.category = new Types.ObjectId(updateData.category); } catch (e) { throw new BadRequestError("Invalid category ID format in update data."); }
+         if (data.category) {
+             try { 
+                updateData.category = new Types.ObjectId(data.category).toString(); 
+             } catch (_e) { 
+                throw new BadRequestError("Invalid category ID format in update data."); 
+             }
          }
-          if (updateData.account) {
+          if (data.account) {
              // Standard user shouldn't change account via this method, handle in controller or add validation
              console.warn("Attempting to update account via standard update method. This might be unintended.");
-             try { updateData.account = new Types.ObjectId(updateData.account); } catch (e) { throw new BadRequestError("Invalid account ID format in update data."); }
+             try { 
+                updateData.account = new Types.ObjectId(data.account).toString(); 
+             } catch (_e) { 
+                throw new BadRequestError("Invalid account ID format in update data."); 
+             }
          }
-          if (updateData.user) {
+          if (data.user) {
               // Standard user shouldn't change user via this method
              console.warn("Attempting to update user via standard update method. This might be unintended.");
-             try { updateData.user = new Types.ObjectId(updateData.user); } catch (e) { throw new BadRequestError("Invalid user ID format in update data."); }
+             try { 
+                updateData.user = new Types.ObjectId(data.user).toString(); 
+             } catch (_e) { 
+                throw new BadRequestError("Invalid user ID format in update data."); 
+             }
          }
 
         // Perform the update
@@ -304,13 +328,13 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         return updatedTransaction as ITransactionSchema;
     }
 
-    async delete(id: string, userId: string | null): Promise<mongoose.Types.ObjectId> {
+    async delete(id: string, userId: string | null): Promise<Types.ObjectId> {
         let tId: Types.ObjectId;
         let ownerUserId: Types.ObjectId | null = null;
         try {
              tId = new Types.ObjectId(id);
-             if(userId) ownerUserId = new Types.ObjectId(userId);
-        } catch (e) {
+             if(userId) {ownerUserId = new Types.ObjectId(userId);}
+        } catch (_e) {
              throw new BadRequestError("Invalid ID format for transaction or user.");
         }
 
@@ -338,7 +362,7 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         // --- End Balance Update ---
 
         // --- Delete Image from S3 if exists ---
-        if (transaction.imgUrl && transaction.imgUrl.includes(env.AWS_S3_BUCKET_NAME || '')) {
+        if (transaction.imgUrl?.includes(env.AWS_S3_BUCKET_NAME || '')) {
             try {
                 const urlParts = transaction.imgUrl.split('/');
                 const key = urlParts[urlParts.length - 1]; // Get the last part as key
@@ -368,14 +392,14 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         let ownerUserId: Types.ObjectId | null = null;
          try {
              tId = new Types.ObjectId(id);
-             if(userId) ownerUserId = new Types.ObjectId(userId);
-        } catch (e) {
+             if(userId) {ownerUserId = new Types.ObjectId(userId);}
+        } catch (_e) {
              throw new BadRequestError("Invalid ID format for transaction or user.");
         }
 
         const queryFilter = ownerUserId ? { _id: tId, user: ownerUserId } : { _id: tId };
 
-        let query : any = Transaction.findOne(queryFilter);
+        const query : any = Transaction.findOne(queryFilter);
         query.includeDeleted = true;
         const transaction = await query;
 
@@ -412,15 +436,15 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
      async getDeleted(userId: string | null): Promise<ITransactionSchema[]> {
          let ownerUserId: Types.ObjectId | null = null;
           try {
-             if(userId) ownerUserId = new Types.ObjectId(userId);
-         } catch (e) {
+             if(userId) {ownerUserId = new Types.ObjectId(userId);}
+         } catch (_e) {
              throw new BadRequestError("Invalid user ID format.");
          }
          const query = ownerUserId ? { user: ownerUserId } : {};
          // MODIFIED: Use exec() after findDeleted
          const deletedTransactions : ITransactionSchema[] = await (Transaction as any).findDeleted(query).exec();
          // Explicitly cast if needed, though Mongoose should infer Array type
-         return deletedTransactions as ITransactionSchema[];
+         return deletedTransactions;
     }
 
     async getByAccount(accountId: string, userId: string): Promise<ITransactionSchema[]> {
@@ -429,7 +453,7 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
           try {
              accId = new Types.ObjectId(accountId);
              ownerUserId = new Types.ObjectId(userId);
-         } catch (e) {
+         } catch (_e) {
              throw new BadRequestError("Invalid ID format for account or user.");
          }
 
@@ -454,7 +478,7 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
           try {
              catId = new Types.ObjectId(categoryId);
              ownerUserId = new Types.ObjectId(userId);
-         } catch (e) {
+         } catch (_e) {
              throw new BadRequestError("Invalid ID format for category or user.");
          }
 
@@ -477,7 +501,7 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
              userId = new Types.ObjectId(data.user);
              accountId = new Types.ObjectId(data.account);
              categoryId = new Types.ObjectId(data.category);
-         } catch (e) {
+         } catch (_e) {
              throw new BadRequestError("Invalid ID format for user, account, or category.");
          }
 
@@ -532,7 +556,7 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
          let tId: Types.ObjectId;
          try {
              tId = new Types.ObjectId(transactionId);
-         } catch (e) {
+         } catch (_e) {
              throw new BadRequestError("Invalid transaction ID format.");
          }
 
@@ -546,29 +570,23 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
 
          // --- Update Account Balances if necessary --- (Atomic recommended)
         if (amountChanged || typeChanged || accountChanged) {
-            // 1. Revert effect on OLD account
             const oldAccount = await Account.findById(transaction.account);
+            
             if (oldAccount) {
-                if (transaction.type === 'income') oldAccount.balance -= transaction.amount;
-                else oldAccount.balance += transaction.amount;
+                if (transaction.type === 'income') {oldAccount.balance -= transaction.amount;}
+                else {oldAccount.balance += transaction.amount;}
                 await oldAccount.save();
             }
 
-            // 2. Apply effect to NEW account
-            let newAccountId: Types.ObjectId;
-            try {
-                 newAccountId = new Types.ObjectId(data.account || transaction.account.toString());
-             } catch (e) {
-                 throw new BadRequestError("Invalid new account ID format.");
-             }
-
+            const newAccountId = new Types.ObjectId(data.account ?? transaction.account.toString());
             const newAccount = await Account.findById(newAccountId);
+            
             if (!newAccount) {
                  throw new NotFoundError(`Account not found with id ${newAccountId}`);
             }
 
-            const newType = data.type || transaction.type;
-            const newAmount = data.amount !== undefined ? data.amount : transaction.amount;
+            const newType = data.type ?? transaction.type;
+            const newAmount = data.amount ?? transaction.amount;
 
             if (newType === 'income') {
                 newAccount.balance += newAmount;
@@ -583,16 +601,16 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         // --- End Balance Update ---
 
         // Prepare update data for the transaction
-        const updateData: any = { ...data };
-        if (updateData.date) {
-            updateData.date = new Date(updateData.date);
+        const updateData: Partial<UpdateTransactionAdminDto> = { ...data };
+        if (data.date) {
+            updateData.date = new Date(data.date as string);
         }
          // Validate and convert IDs if changed
         if (userChanged) {
-             let newUserId: Types.ObjectId;
+             let newUserId: string;
              try {
-                 newUserId = new Types.ObjectId(data.user);
-             } catch (e) {
+                 newUserId = new Types.ObjectId(data.user).toString();
+             } catch (_e) {
                  throw new BadRequestError("Invalid new user ID format.");
              }
             const userExists = await User.findById(newUserId);
@@ -605,8 +623,8 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         }
         if (accountChanged) {
              try {
-                 updateData.account = new Types.ObjectId(data.account);
-             } catch (e) {
+                 updateData.account = new Types.ObjectId(data.account).toString();
+             } catch (_e) {
                  throw new BadRequestError("Invalid new account ID format.");
              }
         } else {
@@ -614,8 +632,8 @@ class TransactionService implements IBaseService<ITransactionSchema, CreateTrans
         }
          if (data.category) {
               try {
-                 updateData.category = new Types.ObjectId(data.category);
-             } catch (e) {
+                 updateData.category = new Types.ObjectId(data.category).toString();
+             } catch (_e) {
                  throw new BadRequestError("Invalid category ID format.");
              }
          } else {

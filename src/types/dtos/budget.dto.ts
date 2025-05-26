@@ -1,5 +1,3 @@
-import type { Types } from 'mongoose';
-
 export type BudgetPeriod = 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
 
 // DTO for filtering budget queries

@@ -2,7 +2,7 @@ import { authenticate } from '../middlewares/auth.ts';
 import type { CategoryController } from '../types/controllers.ts';
 import { BaseRouter } from '../interfaces/BaseRouter.ts';
 import { validateRequest } from '../middlewares/validateRequest.ts';
-import { createCategorySchema, updateCategorySchema, idSchema, typeSchema } from '../validators/categories.validator.ts';
+import { createCategorySchema, idSchema, typeSchema, updateCategorySchema } from '../validators/categories.validator.ts';
 import { z } from 'zod';
 
 /**

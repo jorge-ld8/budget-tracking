@@ -1,12 +1,12 @@
-import type { Response, NextFunction } from 'express';
+import type { NextFunction, Response } from 'express';
 import AuthService from '../services/AuthService.ts';
 import { BadRequestError } from '../errors/index.ts';
 import type { AuthController as IAuthController } from '../types/controllers.ts';
 import type { AuthenticatedRequest } from '../types/index.d.ts';
-import type { RegisterDto, LoginDto, ChangePasswordDto } from '../types/dtos/auth.dto.ts';
+import type { ChangePasswordDto, LoginDto, RegisterDto } from '../types/dtos/auth.dto.ts';
 
 class AuthController implements IAuthController {
-    private authService: AuthService;
+    private readonly authService: AuthService;
 
     constructor() {
         this.authService = new AuthService();

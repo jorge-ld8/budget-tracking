@@ -1,8 +1,8 @@
 import { authenticate, isAdmin } from '../middlewares/auth.ts';
-import BudgetController from '../controllers/budgets.ts';
+import type BudgetController from '../controllers/budgets.ts';
 import { BaseRouter } from '../interfaces/BaseRouter.ts';
 import { validateRequest } from '../middlewares/validateRequest.ts';
-import { createBudgetSchema, updateBudgetSchema, idSchema, typeSchema, periodSchema } from '../validators/budget.validator.ts';
+import { createBudgetSchema, idSchema, periodSchema, typeSchema, updateBudgetSchema } from '../validators/budget.validator.ts';
 import { z } from 'zod';
 import type { AuthenticatedRequest } from '../types/index.d.ts';
 /**

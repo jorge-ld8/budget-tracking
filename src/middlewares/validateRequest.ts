@@ -1,5 +1,5 @@
-import type { Request, Response, NextFunction, RequestHandler } from 'express';
-import { z } from 'zod';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
+import { type z } from 'zod';
 // import { BadRequestError } from '../errors/index.ts';
 
 export const validateRequest = (schema: z.AnyZodObject): RequestHandler =>

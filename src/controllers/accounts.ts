@@ -1,15 +1,15 @@
-import type { Response, NextFunction } from 'express'; // Use express types
+import type { NextFunction, Response } from 'express'; // Use express types
 import AccountService from '../services/AccountService.ts';
-import { NotFoundError, BadRequestError } from '../errors/index.ts'; // Keep error imports if needed directly
+import { BadRequestError, NotFoundError } from '../errors/index.ts'; // Keep error imports if needed directly
 import type { AccountController as IAccountController } from '../types/controllers.ts'; // Assuming types path
 import type { AuthenticatedRequest } from '../types/index.d.ts'; // Assuming a type for authenticated requests
 // Import DTOs for type checking and validation
-import type { AccountQueryFiltersDto, CreateAccountDto, UpdateAccountDto, UpdateBalanceDto, UpdateAccountAdminDto, UpdateBalanceResponseDto } from '../types/dtos/account.dto.ts';
+import type { AccountQueryFiltersDto, CreateAccountDto, UpdateAccountAdminDto, UpdateAccountDto, UpdateBalanceDto, UpdateBalanceResponseDto } from '../types/dtos/account.dto.ts';
 
 
 class AccountController implements IAccountController {
     // Inject or import the service instance
-    private accountService : AccountService;
+    private readonly accountService : AccountService;
 
     constructor() {
       this.accountService =  new AccountService();
@@ -138,7 +138,7 @@ class AccountController implements IAccountController {
             const response: UpdateBalanceResponseDto = {
                  balance: account.balance,
                  name: account.name,
-                 operation: operation,
+                 operation,
                  amount: Number(amount), // Ensure it's a number
                  timestamp: account.updatedAt || new Date() // Use updatedAt from model if available
             };

@@ -1,8 +1,8 @@
 import mongoose, { Types } from 'mongoose';
 import User from '../models/users.ts';
 import type { IUser } from '../types/models/user.types.ts';
-import type { RegisterDto, LoginDto, ChangePasswordDto, AuthResponseDto, UserProfileDto } from '../types/dtos/auth.dto.ts';
-import { BadRequestError, UnauthorizedError, NotFoundError } from '../errors/index.ts';
+import type { AuthResponseDto, ChangePasswordDto, LoginDto, RegisterDto, UserProfileDto } from '../types/dtos/auth.dto.ts';
+import { BadRequestError, NotFoundError, UnauthorizedError } from '../errors/index.ts';
 
 class AuthService {
 

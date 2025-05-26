@@ -1,4 +1,4 @@
-import mongoose, { Query } from 'mongoose';
+import mongoose, { type Query } from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import validator from 'validator';
@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema<IUser>({
 }, {timestamps: true});
 
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password')) {return next();}
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
@@ -68,7 +68,7 @@ userSchema.statics.findDeleted = function(query = {}) {
 // Override the countDocuments to respect the isDeleted filter
 userSchema.statics.countDocuments = function(query: any = {}, options: { includeDeleted?: boolean } = {}) {
   // Allow override of isDeleted behavior through options
-  if (options && options.includeDeleted) {
+  if (options?.includeDeleted) {
     // Don't add isDeleted filter if explicitly asked to include deleted items
     return mongoose.Model.countDocuments.call(this, query, options);
   }

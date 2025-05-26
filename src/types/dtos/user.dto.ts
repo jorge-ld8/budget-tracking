@@ -1,5 +1,3 @@
-import type { IUser } from '../models/user.types.ts';
-
 // DTO for querying users
 export interface UserQueryFiltersDto {
     currency?: string;

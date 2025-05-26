@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { objectIdRegex, BUDGET_TYPES, TRANSACTION_TYPES } from "../utils/constants.ts";
+import { BUDGET_TYPES, objectIdRegex, TRANSACTION_TYPES } from "../utils/constants.ts";
 
 export const createBudgetSchema = z.object({
     // name: z.string().min(1),

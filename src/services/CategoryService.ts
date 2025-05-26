@@ -4,7 +4,7 @@ import User from '../models/users.ts';
 import { BadRequestError, NotFoundError } from '../errors/index.ts';
 import type { IBaseService } from '../types/services/base.service.types.ts';
 import type { ICategorySchema } from '../types/models/categories.types.ts';
-import type { CreateCategoryDto, UpdateCategoryDto, CategoryQueryFiltersDto } from '../types/dtos/category.dto.ts';
+import type { CategoryQueryFiltersDto, CreateCategoryDto, UpdateCategoryDto } from '../types/dtos/category.dto.ts';
 
 class CategoryService implements IBaseService<ICategorySchema, CreateCategoryDto, UpdateCategoryDto, CategoryQueryFiltersDto> {
     async getAll(userId: string | null, filters: CategoryQueryFiltersDto = {}) {
@@ -174,7 +174,7 @@ class CategoryService implements IBaseService<ICategorySchema, CreateCategoryDto
                 queryFilter.user = userId;
             }
             
-            let query : any = Category.findOne(queryFilter);
+            const query : any = Category.findOne(queryFilter);
             query.includeDeleted = true;
             const category = await query;
             
@@ -211,7 +211,7 @@ class CategoryService implements IBaseService<ICategorySchema, CreateCategoryDto
         if (userId) {
             queryFilter.user = userId;
         }
-        let deletedCategories : ICategorySchema[] = await (Category as any).findDeleted(queryFilter).exec();
+        const deletedCategories : ICategorySchema[] = await (Category as any).findDeleted(queryFilter).exec();
 
         return deletedCategories;
     }

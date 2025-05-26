@@ -1,12 +1,12 @@
-import type { Response, NextFunction } from 'express';
+import type { NextFunction, Response } from 'express';
 import { BadRequestError } from '../errors/index.ts';
 import type { AuthenticatedRequest } from '../types/index.d.ts';
 import type { CategoryController as ICategoryController } from '../types/controllers.ts';
-import type { CreateCategoryDto, UpdateCategoryDto, CategoryQueryFiltersDto } from '../types/dtos/category.dto.ts';
+import type { CategoryQueryFiltersDto, CreateCategoryDto, UpdateCategoryDto } from '../types/dtos/category.dto.ts';
 import CategoryService from '../services/CategoryService.ts';
 
 class CategoriesController implements ICategoryController {
-  private categoryService: CategoryService;
+  private readonly categoryService: CategoryService;
 
   constructor() {
     this.categoryService = new CategoryService();

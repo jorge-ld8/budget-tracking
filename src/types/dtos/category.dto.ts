@@ -1,4 +1,4 @@
-import { TRANSACTION_TYPES } from '../../utils/constants.ts';
+import { type TRANSACTION_TYPES } from '../../utils/constants.ts';
 
 export type CategoryType = typeof TRANSACTION_TYPES[number];
 

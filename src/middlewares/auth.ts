@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/users.ts';
-import { UnauthorizedError, ForbiddenError } from '../errors/index.ts';
-import type { Request, Response, NextFunction, RequestHandler } from 'express';
+import { ForbiddenError, UnauthorizedError } from '../errors/index.ts';
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import type { AuthenticatedRequest, UserPayload } from '../types/index.d.ts';
 import env from '../config/env.ts';
 
@@ -14,7 +14,7 @@ const authenticate: AuthMiddleware = async (req: Request, res: Response, next: N
     // Get token from header
     const authHeader = req.headers.authorization;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return next(new UnauthorizedError('Authentication required'));
     }
     

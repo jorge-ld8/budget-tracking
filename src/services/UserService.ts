@@ -1,15 +1,15 @@
-import mongoose, { Query, Types } from 'mongoose';
+import mongoose, { type Query, Types } from 'mongoose';
 import User from '../models/users.ts';
 import type { IUser } from '../types/models/user.types.ts';
 import type { IBaseService } from '../types/services/base.service.types.ts';
-import type { UserQueryFiltersDto, CreateUserDto, UpdateUserDto, UpdateUserAdminDto } from '../types/dtos/user.dto.ts';
+import type { CreateUserDto, UpdateUserAdminDto, UpdateUserDto, UserQueryFiltersDto } from '../types/dtos/user.dto.ts';
 import { BadRequestError, NotFoundError } from '../errors/index.ts';
 
 class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, UserQueryFiltersDto> {
 
     // Helper to build the base query object for find operations
     private buildBaseQuery(userId: string | null, filters: UserQueryFiltersDto) {
-        let query: any = {};
+        const query: any = {};
 
         // If userId is provided (non-admin), filter by user
         if (userId) {
@@ -41,7 +41,7 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
                 '!=': '$ne'
             };
             const regex = /\b(<|>|>=|<=|=|!=)\b/g;
-            let processedFilters = filters.numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);
+            const processedFilters = filters.numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);
             const options = ['balance', 'age'];
             processedFilters.split(',').forEach((item) => {
                 const [field, operator, value] = item.split('-');
@@ -86,13 +86,13 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
             User.countDocuments(query)
         ]);
 
-        return { items: items as IUser[], totalDocuments };
+        return { items, totalDocuments };
     }
 
     async findById(id: string, userId: string | null): Promise<IUser> {
         try {
             const objectId = new Types.ObjectId(id);
-            let query: any = { _id: objectId };
+            const query : any = { _id: objectId };
 
             // If not admin, ensure user can only access their own data
             if (userId) {
@@ -106,7 +106,7 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
 
             return user;
         } catch (error: any) {
-            if (error instanceof NotFoundError) throw error;
+            if (error instanceof NotFoundError) {throw error;}
             throw new BadRequestError("Invalid user ID format or access error.");
         }
     }
@@ -127,7 +127,7 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
             const savedUser = await userDoc.save();
             return savedUser;
         } catch (error: any) {
-            if (error instanceof BadRequestError) throw error;
+            if (error instanceof BadRequestError) {throw error;}
             if (error.code === 11000) {
                 throw new BadRequestError('Username or email already exists');
             }
@@ -138,7 +138,7 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
     async update(id: string, userId: string, data: UpdateUserDto): Promise<IUser> {
         try {
             const objectId = new Types.ObjectId(id);
-            let query: any = { _id: objectId };
+            const query: any = { _id: objectId };
 
             // If not admin, ensure user can only update their own data
             if (userId) {
@@ -157,7 +157,7 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
 
             return updatedUser;
         } catch (error: any) {
-            if (error instanceof NotFoundError) throw error;
+            if (error instanceof NotFoundError) {throw error;}
             if (error.code === 11000) {
                 throw new BadRequestError('Username or email already exists');
             }
@@ -168,7 +168,7 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
     async delete(id: string, userId: string | null): Promise<Types.ObjectId> {
         try {
             const objectId = new Types.ObjectId(id);
-            let query: any = { _id: objectId };
+            const query: any = { _id: objectId };
 
             // If not admin, ensure user can only delete their own data
             if (userId) {
@@ -187,7 +187,7 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
             await user.softDelete();
             return user._id;
         } catch (error: any) {
-            if (error instanceof NotFoundError || error instanceof BadRequestError) throw error;
+            if (error instanceof NotFoundError || error instanceof BadRequestError) {throw error;}
             throw new BadRequestError("Invalid user ID format or deletion error.");
         }
     }
@@ -195,7 +195,7 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
     async restore(id: string, userId: string | null): Promise<IUser> {
         try {
             const objectId = new Types.ObjectId(id);
-            let query: any = { _id: objectId };
+            const query: any = { _id: objectId };
 
             // If not admin, ensure user can only restore their own data
             if (userId) {
@@ -218,14 +218,14 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
             await user.restore();
             return user;
         } catch (error: any) {
-            if (error instanceof NotFoundError || error instanceof BadRequestError) throw error;
+            if (error instanceof NotFoundError || error instanceof BadRequestError) {throw error;}
             throw new BadRequestError("Invalid user ID format or restoration error.");
         }
     }
 
     async getDeleted(userId: string | null): Promise<IUser[]> {
         try {
-            let query: any = {};
+            const query: any = {};
 
             // If not admin, filter by user
             if (userId) {
@@ -257,7 +257,7 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
             const savedUser = await userDoc.save();
             return savedUser;
         } catch (error: any) {
-            if (error instanceof BadRequestError) throw error;
+            if (error instanceof BadRequestError) {throw error;}
             if (error.code === 11000) {
                 throw new BadRequestError('Username or email already exists');
             }
@@ -281,7 +281,7 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
 
             return updatedUser;
         } catch (error: any) {
-            if (error instanceof NotFoundError) throw error;
+            if (error instanceof NotFoundError) {throw error;}
             if (error.code === 11000) {
                 throw new BadRequestError('Username or email already exists');
             }
@@ -306,7 +306,7 @@ class UserService implements IBaseService<IUser, CreateUserDto, UpdateUserDto, U
             user.password = newPassword;
             await user.save();
         } catch (error: any) {
-            if (error instanceof NotFoundError || error instanceof BadRequestError) throw error;
+            if (error instanceof NotFoundError || error instanceof BadRequestError) {throw error;}
             throw new BadRequestError("Error changing password.");
         }
     }

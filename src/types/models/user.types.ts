@@ -1,4 +1,4 @@
-import { IBaseModel, IBaseSchema } from "./base.types.ts";
+import { type IBaseModel, type IBaseSchema } from "./base.types.ts";
 
 export interface IUser extends IBaseSchema {
     username: string;

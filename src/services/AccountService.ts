@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
+import mongoose, { type FilterQuery } from 'mongoose';
 import Account from '../models/accounts.ts';
 import User from '../models/users.ts'; // Assuming user model path
-import { NotFoundError, BadRequestError } from '../errors/index.ts';
+import { BadRequestError, NotFoundError } from '../errors/index.ts';
 import type { IAccountSchema } from '../types/models/accounts.types.ts'; // Adjusted type import name
 import type { AccountQueryFiltersDto, CreateAccountDto, UpdateAccountDto, UpdateBalanceDto } from '../types/dtos/account.dto.ts';
 import type { IBaseService } from '../types/services/base.service.types.ts'; // Import the base interface
@@ -9,18 +9,29 @@ import Transaction from '../models/transactions.ts';
 import TransactionService from './TransactionsService.ts';
 import type { ITransactionSchema } from '../types/models/transaction.types.ts';
 
+// Define the proper filter type for accounts
+type AccountFilterQuery = FilterQuery<IAccountSchema> & {
+    user?: string;
+    type?: string;
+    $or?: Array<{
+        name?: { $regex: string; $options: string };
+        description?: { $regex: string; $options: string };
+    }>;
+    balance?: Record<string, number>;
+};
+
 // Specify the concrete types for the generics
 class AccountService implements IBaseService<IAccountSchema, CreateAccountDto, UpdateAccountDto, AccountQueryFiltersDto> {
 
-    private transactionService : TransactionService;
+    private readonly transactionService : TransactionService;
 
     constructor() {
         this.transactionService = new TransactionService();
     }
 
     // Helper to build the base query object for find operations
-    private buildQueryObject(userId: string | null, filters: AccountQueryFiltersDto): any {
-        const queryObject: any = {};
+    private buildQueryObject(userId: string | null, filters: AccountQueryFiltersDto): AccountFilterQuery {
+        const queryObject: AccountFilterQuery = {};
 
         if (userId) {
             queryObject.user = userId;
@@ -36,16 +47,19 @@ class AccountService implements IBaseService<IAccountSchema, CreateAccountDto, U
             ];
         }
         if (filters.numericFilters) {
-            const operatorMap: { [key: string]: string } = {
+            const operatorMap: Record<string, string> = {
                 '>': '$gt', '>=': '$gte', '&lt;': '$lt', '&lte;': '$lte', '=': '$eq', '!=': '$ne'
             };
             const regex = /\b((&lt;)|>|>=|(&lte;)|=|!=)\b/g;
-            let numFilters = filters.numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);
+            const numFilters = filters.numericFilters.replace(regex, (match) => `-${operatorMap[match]}-`);
             const allowedNumericFields = ['balance']; // Only allow filtering on balance
             numFilters.split(',').forEach((item) => {
                 const [field, operator, value] = item.split('-');
                 if (allowedNumericFields.includes(field)) {
-                    queryObject[field] = { [operator]: Number(value) };
+                    const numValue = Number(value);
+                    if (!isNaN(numValue)) {
+                        (queryObject as any)[field] = { [operator]: numValue };
+                    }
                 }
             });
         }
@@ -54,7 +68,7 @@ class AccountService implements IBaseService<IAccountSchema, CreateAccountDto, U
 
     async getAll(userId: string | null, filters: AccountQueryFiltersDto): Promise<{ items: IAccountSchema[], totalDocuments: number }> {
         const queryObject = this.buildQueryObject(userId, filters);
-        let query : any = Account.find(queryObject);
+        let query = Account.find(queryObject);
 
         // Sorting
         if (filters.sort) {
@@ -91,7 +105,7 @@ class AccountService implements IBaseService<IAccountSchema, CreateAccountDto, U
 
     // MODIFIED: Parameter name changed from accountId to id
     async findById(id: string, userId: string | null): Promise<IAccountSchema> {
-        const query: any = { _id: id };
+        const query: FilterQuery<IAccountSchema> = { _id: id };
         if (userId) {
             query.user = userId; // Filter by user if userId is provided
         }
@@ -117,7 +131,7 @@ class AccountService implements IBaseService<IAccountSchema, CreateAccountDto, U
             ...data,
             user: new mongoose.Types.ObjectId(userId),
             balance: 0, 
-            isActive: data.isActive !== undefined ? data.isActive : true,
+            isActive: data.isActive ?? true,
         };
         const account = new Account(accountData);
         await account.save();
@@ -139,8 +153,8 @@ class AccountService implements IBaseService<IAccountSchema, CreateAccountDto, U
         const accountData: Partial<IAccountSchema> = {
             ...data,
             user: new mongoose.Types.ObjectId(data.user),
-            balance: data.balance || 0, 
-            isActive: data.isActive !== undefined ? data.isActive : true,
+            balance: data.balance ?? 0, 
+            isActive: data.isActive ?? true,
         };
 
         const account = new Account(accountData);
@@ -170,11 +184,11 @@ class AccountService implements IBaseService<IAccountSchema, CreateAccountDto, U
 
      async updateAdmin(accountId: string, data: UpdateAccountDto): Promise<IAccountSchema> {
         // Allow updating balance and user for admin
-        const updateData: any = {};
-         if (data.name !== undefined) updateData.name = data.name;
-         if (data.type !== undefined) updateData.type = data.type;
-         if (data.description !== undefined) updateData.description = data.description;
-         if (data.isActive !== undefined) updateData.isActive = data.isActive;
+        const updateData: Partial<UpdateAccountDto> = {};
+         if (data.name !== undefined) {updateData.name = data.name;}
+         if (data.type !== undefined) {updateData.type = data.type;}
+         if (data.description !== undefined) {updateData.description = data.description;}
+         if (data.isActive !== undefined) {updateData.isActive = data.isActive;}
 
         const account = await Account.findByIdAndUpdate(
             accountId,
